@@ -102,7 +102,7 @@ export default function Landing() {
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Never miss a price movement. Get real-time cryptocurrency updates delivered directly to your Telegram channels and groups. Powered by Firebase.
+              Never miss a price movement. Get real-time cryptocurrency updates delivered directly to your Telegram channels and groups. Powered by PostgreSQL.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -226,8 +226,8 @@ export default function Landing() {
           />
           <FeatureCard 
             icon={ShieldCheck}
-            title="Firebase Powered"
-            description="Built on Google Cloud infrastructure for 99.9% uptime and enterprise-grade reliability."
+            title="PostgreSQL Powered"
+            description="Built on robust PostgreSQL infrastructure for 99.9% uptime and enterprise-grade reliability."
             delay={0.3}
           />
         </div>
