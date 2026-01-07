@@ -4,7 +4,6 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import TelegramBot from "node-telegram-bot-api";
 import axios from "axios";
-import { generateFirebaseCode } from "./firebase-generator";
 
 // Bot Token from environment variable
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -19,9 +18,6 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-
-  // Generate the Firebase code files on startup (for the user to see)
-  await generateFirebaseCode();
 
   // Webhook Handler
   app.post(api.webhook.path, (req, res) => {
