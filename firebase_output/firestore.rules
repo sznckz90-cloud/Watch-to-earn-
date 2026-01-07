@@ -1,0 +1,11 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      // Only allow admin SDK (Cloud Functions) to read/write freely
+      // Users shouldn't access DB directly
+      allow read, write: if false; 
+    }
+  }
+}
