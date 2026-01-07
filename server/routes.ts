@@ -11,7 +11,7 @@ const token = process.env.TELEGRAM_BOT_TOKEN;
 // Initialize Bot (only if token exists to prevent crash on start)
 let bot: TelegramBot | null = null;
 if (token) {
-  bot = new TelegramBot(token, { polling: false }); // Webhook mode
+  bot = new TelegramBot(token, { polling: true }); // Use polling for Replit dev
 }
 
 export async function registerRoutes(
