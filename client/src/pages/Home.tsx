@@ -25,7 +25,7 @@ interface UnifiedTask {
   taskType: string;
   title: string;
   link: string | null;
-  rewardPAD: number;
+  rewardHrum: number;
   rewardBUG?: number;
   rewardType: string;
   isAdminTask: boolean;
@@ -48,7 +48,7 @@ interface User {
   id?: string;
   telegramId?: string;
   balance?: string;
-  usdBalance?: string;
+  tonBalance?: string;
   bugBalance?: string;
   lastStreakDate?: string;
   username?: string;
@@ -75,7 +75,7 @@ export default function Home() {
   const [convertPopupOpen, setConvertPopupOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [selectedConvertType, setSelectedConvertType] = useState<'USD' | 'TON' | 'BUG'>('USD');
+  const [selectedConvertType, setSelectedConvertType] = useState<'TON' | 'BUG'>('TON');
   const [convertAmount, setConvertAmount] = useState<string>("");
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   
@@ -713,7 +713,7 @@ export default function Home() {
 
   const rawBalance = parseFloat((user as User)?.balance || "0");
   const padBalance = rawBalance < 1 ? Math.round(rawBalance * 10000000) : Math.round(rawBalance);
-  const balanceUSD = parseFloat((user as User)?.usdBalance || "0");
+  const balanceTON = parseFloat((user as User)?.tonBalance || "0");
   const balanceBUG = parseFloat((user as User)?.bugBalance || "0");
   
   const displayName = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || (user as User)?.firstName || (user as User)?.username || "User";
@@ -726,19 +726,19 @@ export default function Home() {
       return;
     }
 
-    const minimumConvertPAD = selectedConvertType === 'USD' 
-      ? (appSettings?.minimumConvertPAD || 10000)
+    const minimumConvertHrum = selectedConvertType === 'TON' 
+      ? (appSettings?.minimumConvertHrum || 10000)
       : selectedConvertType === 'TON'
         ? (appSettings?.minimumConvertPadToTon || 10000)
         : (appSettings?.minimumConvertPadToBug || 1000);
     
-    if (amount < minimumConvertPAD) {
-      showNotification(`Minimum ${minimumConvertPAD.toLocaleString()} PAD required.`, "error");
+    if (amount < minimumConvertHrum) {
+      showNotification(`Minimum ${minimumConvertHrum.toLocaleString()} Hrum required.`, "error");
       return;
     }
 
     if (padBalance < amount) {
-      showNotification("Insufficient PAD balance", "error");
+      showNotification("Insufficient Hrum balance", "error");
       return;
     }
 
@@ -899,7 +899,7 @@ export default function Home() {
         extraAdsWatchedToday: data.extraAdsWatchedToday
       }));
       
-      showNotification(`You received ${data.rewardPAD} PAD for Extra Earn!`, "success");
+      showNotification(`You received ${data.rewardHrum} Hrum for Extra Earn!`, "success");
     } catch (error: any) {
       console.error('Extra earn error:', error);
       showNotification(error.message || "Extra Earn ad failed", "error");
@@ -1188,7 +1188,7 @@ export default function Home() {
                                 <div className="flex items-center gap-3 mt-1">
                                   <div className="flex items-center gap-1.5">
                                     <DiamondIcon size={14} />
-                                    <span className="text-[13px] font-black text-white">+{task.rewardPAD.toLocaleString()}</span>
+                                    <span className="text-[13px] font-black text-white">+{task.rewardHrum.toLocaleString()}</span>
                                   </div>
                                   {task.rewardBUG && task.rewardBUG > 0 && (
                                     <div className="flex items-center gap-1.5">
@@ -1239,7 +1239,7 @@ export default function Home() {
               <div className="flex flex-col items-center text-center pt-4">
                 <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
                 <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
-                  10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardPAD || 50} PAD</span> instantly
+                  10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
                 </p>
 
                 <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
@@ -1293,7 +1293,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Share with Friends</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.referralRewardPAD || '5'} PAD</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.referralRewardHrum || '5'} Hrum</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
@@ -1328,7 +1328,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Daily Check-in</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} PAD</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.dailyCheckinReward || '5'} Hrum</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
@@ -1369,7 +1369,7 @@ export default function Home() {
                     <p className="text-white text-sm font-medium truncate">Check for Updates</p>
                   </div>
                   <div className="text-xs text-gray-400 ml-6">
-                    <p>Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} PAD</span></p>
+                    <p>Reward: <span className="text-white font-medium">{appSettings?.checkForUpdatesReward || '5'} Hrum</span></p>
                   </div>
                 </div>
                 <div className="ml-3 flex-shrink-0">
@@ -1458,15 +1458,15 @@ export default function Home() {
           <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a]">
             <div className="flex items-center justify-center gap-2 mb-6">
               <RefreshCw className="w-5 h-5 text-[#4cd3ff]" />
-              <h2 className="text-lg font-bold text-white">Convert PAD</h2>
+              <h2 className="text-lg font-bold text-white">Convert Hrum</h2>
             </div>
 
             <div className="flex bg-[#1a1a1a] p-1 rounded-xl mb-6">
               <button
-                onClick={() => setSelectedConvertType('USD')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'USD' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
+                onClick={() => setSelectedConvertType('TON')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'TON' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
               >
-                TO USD
+                TO TON
               </button>
               <button
                 onClick={() => setSelectedConvertType('TON')}
@@ -1504,7 +1504,7 @@ export default function Home() {
                   </button>
                 </div>
                 <p className="text-[10px] text-gray-500 mt-2 ml-1">
-                  Balance: <span className="text-white">{padBalance.toLocaleString()} PAD</span>
+                  Balance: <span className="text-white">{padBalance.toLocaleString()} Hrum</span>
                 </p>
               </div>
 
@@ -1512,8 +1512,8 @@ export default function Home() {
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-medium">Estimated Value</span>
                   <span className="text-white font-bold">
-                    {selectedConvertType === 'USD' 
-                      ? `$${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
+                    {selectedConvertType === 'TON' 
+                      ? `TON ${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
                       : selectedConvertType === 'TON'
                         ? `${(parseFloat(convertAmount || "0") / (appSettings?.padToTonRate || 1000000)).toFixed(4)} TON`
                         : `${(parseFloat(convertAmount || "0") / (appSettings?.padToBugRate || 1000)).toFixed(2)} BUG`
