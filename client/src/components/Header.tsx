@@ -16,9 +16,8 @@ export default function Header() {
   const { isAdmin } = useAdmin();
   const [showSettings, setShowSettings] = useState(false);
 
-  const usdBalance = parseFloat(user?.usdBalance || "0");
-  const rawBalance = parseFloat(user?.balance || "0");
-  const padBalance = rawBalance < 1 ? Math.round(rawBalance * 10000000) : Math.round(rawBalance);
+  const tonBalance = parseFloat(user?.tonBalance || "0");
+  const hrumBalance = parseFloat(user?.balance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
 
   const formatBalance = (balance: number) => {
@@ -37,7 +36,7 @@ export default function Header() {
           <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[80px] max-w-[110px]">
             <DiamondIcon size={16} withGlow />
             <span className="text-sm text-white font-semibold truncate">
-              {formatBalance(padBalance)}
+              {formatBalance(hrumBalance)}
             </span>
           </div>
           
@@ -49,9 +48,9 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-2 bg-[#1A1A1A] px-5 h-8 rounded-lg min-w-[80px]">
-            <span className="text-green-400 font-semibold text-sm">$</span>
+            <span className="text-green-400 font-semibold text-xs">TON</span>
             <span className="text-sm text-white font-semibold">
-              {usdBalance.toFixed(3)}
+              {tonBalance.toFixed(3)}
             </span>
           </div>
         </div>
