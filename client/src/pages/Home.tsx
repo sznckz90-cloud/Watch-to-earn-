@@ -8,13 +8,14 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { showNotification } from "@/components/AppNotification";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Unified Task Interface
 interface UnifiedTask {
@@ -421,6 +422,42 @@ export default function Home() {
 
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
   const [adStartTime, setAdStartTime] = useState<number>(0);
+  const { data: stats } = useQuery<any>({
+    queryKey: ['/api/referrals/stats'],
+    retry: false,
+  });
+
+  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MoneyAdzbot';
+  const referralLink = user?.referralCode 
+    ? `https://t.me/${botUsername}?start=${user.referralCode}`
+    : '';
+
+  const copyReferralLink = () => {
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      showNotification('Link copied!', 'success');
+    }
+  };
+
+  const [isSharing, setIsSharing] = useState(false);
+
+  const shareReferralLink = async () => {
+    if (!referralLink || isSharing) return;
+    setIsSharing(true);
+    try {
+      const tgWebApp = (window as any).Telegram?.WebApp;
+      const shareTitle = `💵 Get paid for completing tasks and watching ads.`;
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareTitle)}`;
+      if (tgWebApp?.openTelegramLink) {
+        tgWebApp.openTelegramLink(shareUrl);
+      } else {
+        window.open(shareUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+    setIsSharing(false);
+  };
 
   const watchAdMutation = useMutation({
     mutationFn: async (adType: string) => {
@@ -831,8 +868,6 @@ export default function Home() {
     }
   };
 
-  const referralLink = userData?.referralCode ? `https://t.me/MoneyAdzBot?start=${userData.referralCode}` : "";
-
   const handleShareWithFriends = useCallback(() => {
     if (!referralLink) return;
     const tgWebApp = (window as any).Telegram?.WebApp;
@@ -961,27 +996,28 @@ export default function Home() {
         <div className="bg-[#0d0d0d] rounded-[24px] p-4 mb-3 border border-[#1a1a1a]">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2.5">
-              {photoUrl ? (
-                <img 
-                  src={photoUrl} 
-                  alt="Profile" 
-                  className={`w-11 h-11 rounded-full object-cover shadow-md ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                  onClick={() => isAdmin && setLocation("/admin")}
-                />
-              ) : (
-                <div 
-                  className={`w-11 h-11 rounded-full bg-[#1a1a1a] flex items-center justify-center border border-white/5 ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                  onClick={() => isAdmin && setLocation("/admin")}
-                >
-                  <UserIcon className="w-6 h-6 text-gray-400" />
-                </div>
-              )}
+              <div 
+                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
+                onClick={() => isAdmin && setLocation("/admin")}
+              >
+                {photoUrl ? (
+                  <img 
+                    src={photoUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+                    <UserIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
+              </div>
               <div className="flex flex-col -space-y-0.5">
                 <span 
                   className={`text-white font-bold text-base leading-none ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
                   onClick={() => isAdmin && setLocation("/admin")}
                 >
-                  {(user as User)?.firstName || (user as User)?.username || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
+                  {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
                 </span>
               </div>
             </div>
@@ -1041,182 +1077,181 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-3">
-          <AdWatchingSection user={user as User} />
-        </div>
-
-        {/* Ad Providers Integrated from AdList */}
         <div className="mt-6">
-          <div className="flex items-center gap-2 mb-4 justify-between">
-            <div className="flex items-center gap-2">
-              <Play className="w-5 h-5 text-[#B9FF66]" />
-              <h2 className="text-lg font-bold text-white">Ad Providers</h2>
-            </div>
-            <div className="text-[10px] font-bold text-[#8E8E93] bg-white/5 px-2 py-1 rounded-lg border border-white/5">
-              TODAY: <span className="text-[#B9FF66]">{adsWatchedToday}/{dailyLimit}</span>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            {[
-              {
-                id: "monetag",
-                name: "Monetag Ads",
-                description: "Watch video ads to earn rewards",
-                expectedReward: "500-1000 PAD",
-                icon: <Film className="w-5 h-5 text-purple-400" />,
-                iconBg: "bg-purple-500/20"
-              },
-              {
-                id: "adsgram",
-                name: "Adsgram",
-                description: "Interactive ad experiences",
-                expectedReward: "300-800 PAD",
-                icon: <Tv className="w-5 h-5 text-blue-400" />,
-                iconBg: "bg-blue-500/20"
-              },
-              {
-                id: "adexora",
-                name: "Adexora",
-                description: "Premium brand advertisements",
-                expectedReward: "400-900 PAD",
-                icon: <Target className="w-5 h-5 text-green-400" />,
-                iconBg: "bg-green-500/20"
-              },
-              {
-                id: "adextra",
-                name: "AdExtra",
-                description: "Bonus reward advertisements",
-                expectedReward: "200-600 PAD",
-                icon: <Star className="w-5 h-5 text-yellow-400" />,
-                iconBg: "bg-yellow-500/20"
-              }
-            ].map((provider) => (
-              <div 
-                key={provider.id}
-                className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-3 flex items-center justify-between gap-3"
+          <Tabs defaultValue="earn" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-14 p-0 rounded-none mb-6">
+              <TabsTrigger 
+                value="earn" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
               >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className={`w-12 h-12 rounded-xl ${provider.iconBg} border border-white/5 flex items-center justify-center flex-shrink-0`}>
-                    {provider.icon}
+                <LayoutDashboard className="w-4 h-4" />
+                Earn
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tasks" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+              >
+                <ClipboardList className="w-4 h-4" />
+                Tasks
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="referrals" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+              >
+                <HeartHandshake className="w-4 h-4" />
+                Referrals
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="earn" className="mt-0 outline-none">
+              <div className="space-y-4">
+                <AdWatchingSection user={user as User} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tasks" className="mt-0 outline-none">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Active Tasks</h2>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-white leading-tight">{provider.name}</h3>
-                    <p className="text-[11px] text-[#8E8E93] mb-1 leading-tight">{provider.description}</p>
-                    <div className="flex items-center gap-1.5">
-                      <Gift className="w-3 h-3 text-[#B9FF66] flex-shrink-0" />
-                      <span className="text-[11px] font-bold text-[#B9FF66]">{provider.expectedReward}</span>
-                    </div>
+                  <div className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider tabular-nums">
+                    {unifiedTasksData?.tasks?.length || 0} Available
                   </div>
                 </div>
-                <Button
-                  onClick={() => handleWatchAd(provider.id)}
-                  disabled={loadingProvider !== null || adsWatchedToday >= dailyLimit}
-                  className="bg-[#B9FF66] hover:bg-[#a8e65a] text-black font-bold h-9 px-4 rounded-xl text-xs transition-transform active:scale-95"
-                >
-                  {loadingProvider === provider.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Start'}
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-3 px-0">
-          <div className="bg-[#0d0d0d] rounded-xl border border-[#1a1a1a] p-3">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-6 h-6 rounded-lg bg-[#4cd3ff]/20 flex items-center justify-center">
-                <Flame className="w-3.5 h-3.5 text-[#4cd3ff]" />
-              </div>
-              <span className="text-sm font-semibold text-white">Tasks</span>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <AnimatePresence mode="popLayout">
-                {isLoadingTasks ? (
-                  <motion.div
-                    key="loading"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="bg-[#1a1a1a] rounded-lg p-4 text-center"
-                  >
-                    <Loader2 className="w-5 h-5 text-[#4cd3ff] animate-spin mx-auto" />
-                  </motion.div>
-                ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
-                  unifiedTasksData.tasks.map((task) => (
-                    <motion.div
-                      key={task.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="bg-[#1a1a1a] rounded-lg p-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-green-500/20">
-                            <span className="text-green-400">
-                              {getTaskIcon(task)}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-medium text-sm truncate">{task.title}</h3>
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1">
-                                <DiamondIcon size={12} />
-                                <span className="text-xs font-semibold text-[#4cd3ff]">+{task.rewardPAD.toLocaleString()}</span>
-                              </div>
-                              {task.rewardBUG && task.rewardBUG > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Bug className="w-3 h-3 text-purple-400" />
-                                  <span className="text-xs font-semibold text-purple-400">+{task.rewardBUG}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => handleUnifiedTask(task)}
-                          disabled={isTaskPending || claimAdvertiserTaskMutation.isPending || completedTasks.has(task.id)}
-                          className={`h-8 px-4 text-xs font-bold rounded-lg transition-all ${
-                            completedTasks.has(task.id)
-                              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                              : clickedTasks.has(task.id)
-                                ? "bg-blue-500 text-white"
-                                : "bg-green-400 hover:bg-green-300 text-black"
-                          }`}
-                        >
-                          {completedTasks.has(task.id) ? (
-                            <div className="flex items-center gap-1">
-                              <Check className="w-3 h-3" />
-                              <span>Done</span>
-                            </div>
-                          ) : (isTaskPending || claimAdvertiserTaskMutation.isPending) ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : clickedTasks.has(task.id) ? (
-                            "Claim"
-                          ) : (
-                            "Start"
-                          )}
-                        </Button>
+                
+                <div className="flex flex-col gap-3">
+                  <AnimatePresence mode="popLayout">
+                    {isLoadingTasks ? (
+                      <div className="py-12 flex justify-center">
+                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
                       </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <motion.div
-                    key="no-tasks"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-[#1a1a1a] rounded-lg p-4 text-center"
-                  >
-                    <span className="text-gray-400 text-sm">No tasks available</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+                    ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
+                      unifiedTasksData.tasks.map((task) => (
+                        <motion.div
+                          key={task.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5">
+                                <span className="text-white/80">
+                                  {getTaskIcon(task)}
+                                </span>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">{task.title}</h3>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <DiamondIcon size={14} />
+                                    <span className="text-[13px] font-black text-white">+{task.rewardPAD.toLocaleString()}</span>
+                                  </div>
+                                  {task.rewardBUG && task.rewardBUG > 0 && (
+                                    <div className="flex items-center gap-1.5">
+                                      <Bug className="w-3.5 h-3.5 text-blue-400" />
+                                      <span className="text-[13px] font-black text-blue-400">+{task.rewardBUG}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => handleUnifiedTask(task)}
+                              disabled={isTaskPending || claimAdvertiserTaskMutation.isPending || completedTasks.has(task.id)}
+                              className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
+                                completedTasks.has(task.id)
+                                  ? "bg-white/5 text-white/40 border border-white/5"
+                                  : clickedTasks.has(task.id)
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white text-black hover:bg-gray-200"
+                              }`}
+                            >
+                              {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? "Claim" : "Start"}
+                            </Button>
+                          </div>
+                        </motion.div>
+                      ))
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="py-16 px-6 text-center"
+                      >
+                        <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+                          <Check className="w-10 h-10 text-white/20" />
+                        </div>
+                        <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
+                        <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
+                          You've completed all available missions. Check back soon for new opportunities to earn!
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="referrals" className="mt-0 outline-none">
+              <div className="space-y-4">
+                <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/10">
+                      <Users className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-white uppercase tracking-tight">Referral Program</h3>
+                      <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Earn from friends</p>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-[#8E8E93] leading-relaxed mb-6">
+                    Invite friends and get <span className="text-[#B9FF66] font-bold">{appSettings?.affiliateCommission || 10}%</span> of their earnings automatically.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
+                      <p className="text-[9px] font-bold text-[#8E8E93] uppercase mb-1">Total Invites</p>
+                      <p className="text-xl font-black text-white">{stats?.totalInvites || 0}</p>
+                    </div>
+                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
+                      <p className="text-[9px] font-bold text-[#8E8E93] uppercase mb-1">Successful</p>
+                      <p className="text-xl font-black text-[#B9FF66]">{stats?.successfulInvites || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5 flex items-center justify-between overflow-hidden">
+                      <span className="text-[10px] text-[#8E8E93] font-mono truncate mr-2">
+                        {referralLink || "No link available"}
+                      </span>
+                      <Button
+                        onClick={copyReferralLink}
+                        className="bg-white/5 hover:bg-white/10 text-white h-7 px-3 rounded-lg text-[10px] font-bold border border-white/5"
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                    
+                    <Button
+                      onClick={shareReferralLink}
+                      disabled={!referralLink || isSharing}
+                      className="w-full bg-[#B9FF66] hover:bg-[#a8e65a] text-black font-black h-12 rounded-xl transition-transform active:scale-95"
+                    >
+                      {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4 mr-2" />}
+                      Share with Friends
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
