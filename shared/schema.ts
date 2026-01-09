@@ -37,11 +37,9 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
   personalCode: text("personal_code"),
-  balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // Hrum stored as BIGINT (integer with large precision)
+  balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // Hrum stored as BIGINT
   tonBalance: decimal("ton_balance", { precision: 30, scale: 10 }).default("0"),
-  tonBalanceLegacy: decimal("ton_balance_legacy", { precision: 30, scale: 10 }).default("0"), // Legacy TON field renamed
-  hrumBalance: decimal("hrum_balance", { precision: 30, scale: 10 }).default("0"),
-  bugBalance: decimal("bug_balance", { precision: 30, scale: 10 }).default("0"), // BUG currency for withdrawal requirements
+  bugBalance: decimal("bug_balance", { precision: 30, scale: 10 }).default("0"),
   withdrawBalance: decimal("withdraw_balance", { precision: 30, scale: 10 }),
   totalEarnings: decimal("total_earnings", { precision: 30, scale: 10 }),
   totalEarned: decimal("total_earned", { precision: 30, scale: 10 }).default("0"),
