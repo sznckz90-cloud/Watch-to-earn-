@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield } from "lucide-react";
+import { Play, Clock, Shield, Zap } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
@@ -167,49 +168,68 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <Card className="rounded-2xl minimal-card mb-3">
-      <CardContent className="p-4">
-        <div className="text-center mb-3">
-          <h2 className="text-base font-bold text-white mb-1">Viewing ads</h2>
-          <p className="text-[#AAAAAA] text-xs">Get PAD for watching commercials</p>
-        </div>
-        
-        <div className="flex justify-center mb-3">
-          <button
-            onClick={handleStartEarning}
-            disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-            className="btn-primary px-6 py-3 flex items-center gap-2 min-w-[160px] justify-center text-base disabled:opacity-50"
-            data-testid="button-watch-ad"
-          >
-            {isShowingAds ? (
-              <>
-                {currentAdStep === 'verifying' ? (
-                  <Shield size={16} className="animate-pulse text-green-400" />
+    <div className="space-y-4">
+      <Card className="minimal-card mb-0 hover:bg-[#1A1A1A]/50 transition-all">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-white/5">
+                <img 
+                  src="/images/hrum-logo.jpg" 
+                  alt="Hrum" 
+                  className="w-full h-full object-cover scale-150"
+                  style={{ objectPosition: 'center' }}
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-semibold text-sm truncate">Monetag Adz</h3>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="flex items-center gap-1 bg-[#0D0D0D] px-1.5 py-0.5 rounded border border-white/5">
+                    <span className="text-[11px] text-white font-black leading-none">{adsWatchedToday}</span>
+                    <span className="text-[10px] text-gray-500 font-bold leading-none">/</span>
+                    <span className="text-[11px] text-gray-400 font-bold leading-none">{dailyLimit}</span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Daily Limit</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <Button
+                onClick={handleStartEarning}
+                disabled={isShowingAds || adsWatchedToday >= dailyLimit}
+                className={`h-9 px-4 text-xs min-w-[90px] font-bold rounded-xl border-0 shadow-md transition-all active:scale-95 ${
+                  isShowingAds
+                    ? "bg-gradient-to-r from-gray-500 to-gray-600"
+                    : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                } text-white`}
+              >
+                {isShowingAds ? (
+                  <div className="flex items-center gap-1">
+                    {currentAdStep === 'verifying' ? (
+                      <Shield className="w-3.5 h-3.5 animate-pulse text-green-400" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5 animate-spin" />
+                    )}
+                    <span>
+                      {currentAdStep === 'monetag' ? 'Wait...' : 
+                       currentAdStep === 'verifying' ? 'Verifying' : 'Loading'}
+                    </span>
+                  </div>
                 ) : (
-                  <Clock size={16} className="animate-spin" />
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5" />
+                    <span>+{appSettings?.rewardPerAd || 2} PAD</span>
+                  </div>
                 )}
-                <span className="text-sm font-semibold">
-                  {currentAdStep === 'monetag' ? 'Monetag...' : 
-                   currentAdStep === 'adsgram' ? 'AdGram...' :
-                   currentAdStep === 'verifying' ? 'Verifying...' : 'Loading...'}
-                </span>
-              </>
-            ) : (
-              <>
-                <Play size={16} className="group-hover:scale-110 transition-transform" />
-                <span className="text-sm font-semibold">Start Earning</span>
-              </>
-            )}
-          </button>
-        </div>
-        
-        {/* Watched counter - Always visible */}
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground">
-            Watched: {adsWatchedToday}/{dailyLimit}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <p className="px-1 text-[9px] text-center text-gray-500 font-medium italic">
+        Watch {dailyLimit - adsWatchedToday} more ads to reach your daily goal
+      </p>
+    </div>
   );
 }
