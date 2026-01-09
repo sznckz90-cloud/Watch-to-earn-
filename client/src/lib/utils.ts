@@ -1,44 +1,44 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { PAD_TO_USD, padToUSD } from "@shared/constants"
+import { hrumToTON } from "@shared/constants"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 /**
- * Format currency values - displays PAD amount in pure numeric format
- * No TON-style formatting - PAD is always an integer value
- * Examples: 1000 → "1,000 PAD", 500000 → "500,000 PAD"
+ * Format currency values - displays Hrum amount in pure numeric format
+ * No TON-style formatting - Hrum is always an integer value
+ * Examples: 1000 → "1,000 Hrum", 500000 → "500,000 Hrum"
  */
 export function formatCurrency(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 PAD' : '0';
+    return includeSymbol ? '0 Hrum' : '0';
   }
   
-  // PAD is always an integer - no TON conversion
-  const padValue = Math.round(numValue);
+  // Hrum is always an integer - no TON conversion
+  const hrumValue = Math.round(numValue);
   
-  const symbol = includeSymbol ? ' PAD' : '';
-  return `${padValue.toLocaleString()}${symbol}`;
+  const symbol = includeSymbol ? ' Hrum' : '';
+  return `${hrumValue.toLocaleString()}${symbol}`;
 }
 
 /**
- * Format large PAD numbers with compact notation (K, M, B, T)
+ * Format large Hrum numbers with compact notation (K, M, B, T)
  * Handles overflow and prevents NaN/Infinity display
  * Examples: 1000 → "1K", 1000000 → "1M", 1000000000 → "1B"
  */
-export function formatLargePAD(value: string | number, includeSymbol: boolean = true): string {
+export function formatLargeHrum(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 PAD' : '0';
+    return includeSymbol ? '0 Hrum' : '0';
   }
   
   const absValue = Math.abs(numValue);
-  const symbol = includeSymbol ? ' PAD' : '';
+  const symbol = includeSymbol ? ' Hrum' : '';
   const sign = numValue < 0 ? '-' : '';
   
   if (absValue >= 1000000000000) {
@@ -58,31 +58,31 @@ export function formatLargePAD(value: string | number, includeSymbol: boolean = 
 }
 
 /**
- * Format task rewards - displays PAD amount in pure numeric format
- * No TON-style formatting - PAD is always an integer value
- * Examples: 1000 → "1,000 PAD", 500 → "500 PAD"
+ * Format task rewards - displays Hrum amount in pure numeric format
+ * No TON-style formatting - Hrum is always an integer value
+ * Examples: 1000 → "1,000 Hrum", 500 → "500 Hrum"
  */
 export function formatTaskReward(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 PAD' : '0';
+    return includeSymbol ? '0 Hrum' : '0';
   }
   
-  // PAD is always an integer - no TON conversion
-  const padValue = Math.round(numValue);
+  // Hrum is always an integer - no TON conversion
+  const hrumValue = Math.round(numValue);
   
-  const symbol = includeSymbol ? ' PAD' : '';
-  return `${padValue.toLocaleString()}${symbol}`;
+  const symbol = includeSymbol ? ' Hrum' : '';
+  return `${hrumValue.toLocaleString()}${symbol}`;
 }
 
 /**
- * Convert PAD to USD
- * 100,000 PAD = $1.00
+ * Convert Hrum to TON
+ * 10,000 Hrum = 1 TON
  */
-export function formatPADtoUSD(padAmount: number | string): string {
-  const usd = padToUSD(padAmount);
-  return usd.toFixed(2);
+export function formatHrumtoTON(hrumAmount: number | string): string {
+  const ton = hrumToTON(hrumAmount);
+  return ton.toFixed(2);
 }
 
 /**
