@@ -37,9 +37,9 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   profileImageUrl: text("profile_image_url"),
   personalCode: text("personal_code"),
-  balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // PAD stored as BIGINT (integer with large precision)
-  usdBalance: decimal("usd_balance", { precision: 30, scale: 10 }).default("0"), // USD with high precision to prevent overflow
+  balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // Hrum stored as BIGINT (integer with large precision)
   tonBalance: decimal("ton_balance", { precision: 30, scale: 10 }).default("0"),
+  tonBalanceLegacy: decimal("usd_balance", { precision: 30, scale: 10 }).default("0"), // Legacy USD field renamed
   pdzBalance: decimal("pdz_balance", { precision: 30, scale: 10 }).default("0"),
   bugBalance: decimal("bug_balance", { precision: 30, scale: 10 }).default("0"), // BUG currency for withdrawal requirements
   withdrawBalance: decimal("withdraw_balance", { precision: 30, scale: 10 }),
@@ -160,8 +160,8 @@ export const promoCodes = pgTable("promo_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   code: varchar("code").notNull().unique(),
   rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).notNull(),
-  rewardType: varchar("reward_type").default('PAD').notNull(), // 'PAD' or 'PDZ'
-  rewardCurrency: varchar("reward_currency").default('USDT'),
+  rewardType: varchar("reward_type").default('Hrum').notNull(), // 'Hrum' or 'PDZ'
+  rewardCurrency: varchar("reward_currency").default('TON'),
   usageLimit: integer("usage_limit"),
   usageCount: integer("usage_count").default(0),
   perUserLimit: integer("per_user_limit").default(1),
@@ -296,7 +296,7 @@ export const spinData = pgTable("spin_data", {
 export const spinHistory = pgTable("spin_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  rewardType: varchar("reward_type").notNull(), // 'PAD' or 'TON'
+  rewardType: varchar("reward_type").notNull(), // 'Hrum' or 'TON'
   rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).notNull(),
   spinType: varchar("spin_type").notNull(), // 'free', 'ad', 'invite'
   createdAt: timestamp("created_at").defaultNow(),

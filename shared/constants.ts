@@ -1,5 +1,6 @@
 export const APP_VERSION = "1.0.0";
-export const PAD_TO_USD = 10000; // 10,000 PAD = $1 USD
+export const HRUM_TO_TON = 10000; // 10,000 Hrum = 1 TON
+
 export const APP_COLORS = {
   primary: "#4aa8ff", // light blue
   background: "#000000", // pure black
@@ -7,23 +8,23 @@ export const APP_COLORS = {
 };
 
 /**
- * Convert PAD to USD
- * @param padAmount - Amount in PAD
- * @returns Amount in USD (PAD / 10,000)
+ * Convert Hrum to TON
+ * @param hrumAmount - Amount in Hrum
+ * @returns Amount in TON (Hrum / 10,000)
  */
-export function padToUSD(padAmount: number | string): number {
-  const numValue = typeof padAmount === 'string' ? parseFloat(padAmount) : padAmount;
-  return numValue / PAD_TO_USD;
+export function hrumToTON(hrumAmount: number | string): number {
+  const numValue = typeof hrumAmount === 'string' ? parseFloat(hrumAmount) : hrumAmount;
+  return numValue / HRUM_TO_TON;
 }
 
 /**
- * Convert USD to PAD
- * @param usdAmount - Amount in USD
- * @returns Amount in PAD (USD * 10,000)
+ * Convert TON to Hrum
+ * @param tonAmount - Amount in TON
+ * @returns Amount in Hrum (TON * 10,000)
  */
-export function usdToPAD(usdAmount: number | string): number {
-  const numValue = typeof usdAmount === 'string' ? parseFloat(usdAmount) : usdAmount;
-  return Math.round(numValue * PAD_TO_USD);
+export function tonToHrum(tonAmount: number | string): number {
+  const numValue = typeof tonAmount === 'string' ? parseFloat(tonAmount) : tonAmount;
+  return Math.round(numValue * HRUM_TO_TON);
 }
 
 /**
