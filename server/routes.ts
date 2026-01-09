@@ -923,7 +923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      console.log(`🔄 Balance refresh for user ${userId}: PAD=${user.balance}, TON=${user.tonBalance}`);
+      console.log(`🔄 Balance refresh for user ${userId}: Hrum=${user.balance}, TON=${user.tonBalance}`);
       
       res.json({
         success: true,
@@ -951,30 +951,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Parse all settings with NEW defaults
       const dailyAdLimit = parseInt(getSetting('daily_ad_limit', '50'));
-      const rewardPerAd = parseInt(getSetting('reward_per_ad', '2')); // Default 2 PAD per ad
+      const rewardPerAd = parseInt(getSetting('reward_per_ad', '2')); // Default 2 Hrum per ad
       const seasonBroadcastActive = getSetting('season_broadcast_active', 'false') === 'true';
       const affiliateCommission = parseFloat(getSetting('affiliate_commission', '10'));
-      const walletChangeFeePAD = parseInt(getSetting('wallet_change_fee', '100')); // Default 100 PAD
-      const minimumWithdrawalUSD = parseFloat(getSetting('minimum_withdrawal_usd', '1.00')); // Minimum USD withdrawal
+      const walletChangeFeeHrum = parseInt(getSetting('wallet_change_fee', '100')); // Default 100 Hrum
       const minimumWithdrawalTON = parseFloat(getSetting('minimum_withdrawal_ton', '0.5')); // Minimum TON withdrawal
       const withdrawalFeeTON = parseFloat(getSetting('withdrawal_fee_ton', '5')); // TON withdrawal fee %
-      const withdrawalFeeUSD = parseFloat(getSetting('withdrawal_fee_usd', '3')); // USD withdrawal fee %
       
-      // Separate channel and bot task costs (in USD for admin, TON for users)
-      const channelTaskCostUSD = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default $0.003 per click
-      const botTaskCostUSD = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default $0.003 per click
+      // Separate channel and bot task costs (in TON for admin, TON for users)
+      const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default $0.003 per click
+      const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default $0.003 per click
       
       // TON costs for regular users
       const channelTaskCostTON = parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003 TON per click
       const botTaskCostTON = parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003 TON per click
       
-      // Separate channel and bot task rewards (in PAD)
-      const channelTaskRewardPAD = parseInt(getSetting('channel_task_reward', '30')); // Default 30 PAD per click
-      const botTaskRewardPAD = parseInt(getSetting('bot_task_reward', '20')); // Default 20 PAD per click
+      // Separate channel and bot task rewards (in Hrum)
+      const channelTaskRewardHrum = parseInt(getSetting('channel_task_reward', '30')); // Default 30 Hrum per click
+      const botTaskRewardHrum = parseInt(getSetting('bot_task_reward', '20')); // Default 20 Hrum per click
       
-      // Minimum convert amount in PAD (100 PAD = $0.01)
-      const minimumConvertPAD = parseInt(getSetting('minimum_convert_pad', '100')); // Default 100 PAD
-      const minimumConvertUSD = minimumConvertPAD / 10000; // Convert to USD (10,000 PAD = $1)
+      // Minimum convert amount in Hrum (10,000 Hrum = 1 TON)
+      const minimumConvertHrum = parseInt(getSetting('minimum_convert_pad', '100')); // Default 100 Hrum
+      const minimumConvertTON = minimumConvertHrum / 10000; 
       
       // Minimum clicks for task creation
       const minimumClicks = parseInt(getSetting('minimum_clicks', '500')); // Default 500 clicks
@@ -983,17 +981,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Referral reward settings
       const referralRewardEnabled = getSetting('referral_reward_enabled', 'false') === 'true';
-      const referralRewardUSD = parseFloat(getSetting('referral_reward_usd', '0.0005'));
-      const referralRewardPAD = parseInt(getSetting('referral_reward_pad', '50'));
+      const referralRewardTON = parseFloat(getSetting('referral_reward_usd', '0.0005'));
+      const referralRewardHrum = parseInt(getSetting('referral_reward_hrum', '50'));
       const referralAdsRequired = parseInt(getSetting('referral_ads_required', '1')); // Ads needed for affiliate bonus
       
       // Daily task rewards (for TaskSection.tsx)
-      const streakReward = parseInt(getSetting('streak_reward', '100')); // Daily streak claim reward in PAD
-      const shareTaskReward = parseInt(getSetting('share_task_reward', '1000')); // Share with friends reward in PAD
-      const communityTaskReward = parseInt(getSetting('community_task_reward', '1000')); // Join community reward in PAD
+      const streakReward = parseInt(getSetting('streak_reward', '100')); // Daily streak claim reward in Hrum
+      const shareTaskReward = parseInt(getSetting('share_task_reward', '1000')); // Share with friends reward in Hrum
+      const communityTaskReward = parseInt(getSetting('community_task_reward', '1000')); // Join community reward in Hrum
       
       // Partner task reward
-      const partnerTaskReward = parseInt(getSetting('partner_task_reward', '5')); // Partner task reward in PAD
+      const partnerTaskReward = parseInt(getSetting('partner_task_reward', '5')); // Partner task reward in Hrum
       
       // Withdrawal requirement settings
       const withdrawalAdRequirementEnabled = getSetting('withdrawal_ad_requirement_enabled', 'true') === 'true';
@@ -1002,62 +1000,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const minimumInvitesForWithdrawal = parseInt(getSetting('minimum_invites_for_withdrawal', '3'));
       
       // BUG currency settings
-      const minimumConvertPadToTon = parseInt(getSetting('minimum_convert_pad_to_ton', '10000'));
+      const minimumConvertPadToTon = parseInt(getSetting('minimum_convert_hrum_to_ton', '10000'));
       const minimumConvertPadToBug = parseInt(getSetting('minimum_convert_pad_to_bug', '1000'));
-      const padToTonRate = parseInt(getSetting('pad_to_ton_rate', '10000000')); // 10M PAD = 1 TON
-      const padToBugRate = parseInt(getSetting('pad_to_bug_rate', '1')); // 1 PAD = 1 BUG
+      // 10,000 Hrum = 1 TON
+      const padToTonRate = parseInt(getSetting('hrum_to_ton_rate', '10000')); 
+      const padToBugRate = parseInt(getSetting('hrum_to_bug_rate', '1')); // 1 Hrum = 1 BUG
       const bugRewardPerAd = parseInt(getSetting('bug_reward_per_ad', '1')); // BUG per ad watched
       const bugRewardPerTask = parseInt(getSetting('bug_reward_per_task', '10')); // BUG per task completed
       const bugRewardPerReferral = parseInt(getSetting('bug_reward_per_referral', '50')); // BUG per referral
       const minimumBugForWithdrawal = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: $0.1 = 1000 BUG
-      const bugPerUsd = parseInt(getSetting('bug_per_usd', '10000')); // Default: 1 USD = 10000 BUG
+      const bugPerUsd = parseInt(getSetting('bug_per_usd', '10000')); // Default: 1 TON = 10000 BUG
       const withdrawalBugRequirementEnabled = getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true';
       const activePromoCode = getSetting('active_promo_code', ''); // Current active promo code
       
       // Legacy compatibility - keep old values for backwards compatibility
-      const taskCostPerClick = channelTaskCostUSD; // Use channel cost as default
-      const taskRewardPerClick = channelTaskRewardPAD / 10000000; // Legacy TON format for compatibility
+      const taskCostPerClick = channelTaskCostTON; // Use channel cost as default
+      const taskRewardPerClick = channelTaskRewardHrum / 10000; // Legacy TON format for compatibility
       const minimumWithdrawal = minimumWithdrawalTON; // Legacy field
       
       res.json({
         dailyAdLimit,
         rewardPerAd,
-        rewardPerAdPAD: rewardPerAd,
+        rewardPerAdHrum: rewardPerAd,
         seasonBroadcastActive,
         affiliateCommission,
         affiliateCommissionPercent: affiliateCommission,
-        walletChangeFee: walletChangeFeePAD,
-        walletChangeFeePAD,
+        walletChangeFee: walletChangeFeeHrum,
+        walletChangeFeeHrum,
         minimumWithdrawal,
-        minimumWithdrawalUSD,
+        minimumWithdrawalTON,
         minimumWithdrawalTON,
         withdrawalFeeTON,
-        withdrawalFeeUSD,
-        channelTaskCostUSD,
-        botTaskCostUSD,
+        withdrawalFeeTON,
         channelTaskCostTON,
         botTaskCostTON,
-        channelTaskRewardPAD,
-        botTaskRewardPAD,
+        channelTaskCostTON,
+        botTaskCostTON,
+        channelTaskRewardHrum,
+        botTaskRewardHrum,
         taskCostPerClick,
         taskRewardPerClick,
-        taskRewardPAD: channelTaskRewardPAD, // Use channel reward as default
-        minimumConvert: minimumConvertUSD,
-        minimumConvertPAD,
-        minimumConvertUSD,
+        taskRewardHrum: channelTaskRewardHrum, // Use channel reward as default
+        minimumConvert: minimumConvertTON,
+        minimumConvertHrum,
+        minimumConvertTON,
         minimumClicks,
         withdrawalCurrency,
         referralRewardEnabled,
-        referralRewardUSD,
-        referralRewardPAD,
+        referralRewardTON,
+        referralRewardHrum,
         referralAdsRequired,
         // Daily task rewards
         streakReward,
         shareTaskReward,
         communityTaskReward,
         partnerTaskReward,
-        channelTaskReward: channelTaskRewardPAD,
-        botTaskReward: botTaskRewardPAD,
+        channelTaskReward: channelTaskRewardHrum,
+        botTaskReward: botTaskRewardHrum,
         // Withdrawal requirement settings
         withdrawalAdRequirementEnabled,
         minimumAdsForWithdrawal,
@@ -1143,7 +1142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bugRewardPerAdSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'bug_reward_per_ad')).limit(1);
       
       const dailyAdLimit = dailyAdLimitSetting[0]?.settingValue ? parseInt(dailyAdLimitSetting[0].settingValue) : 50;
-      const rewardPerAdPAD = rewardPerAdSetting[0]?.settingValue ? parseInt(rewardPerAdSetting[0].settingValue) : 1000;
+      const rewardPerAdHrum = rewardPerAdSetting[0]?.settingValue ? parseInt(rewardPerAdSetting[0].settingValue) : 1000;
       const bugRewardPerAd = bugRewardPerAdSetting[0]?.settingValue ? parseInt(bugRewardPerAdSetting[0].settingValue) : 1;
       
       // Enforce daily ad limit (configurable, default 50)
@@ -1156,14 +1155,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // PAD reward amount (no conversion needed - store PAD directly)
-      const adRewardPAD = rewardPerAdPAD;
+      // Hrum reward amount (no conversion needed - store Hrum directly)
+      const adRewardHrum = rewardPerAdHrum;
       
       try {
         // Process reward with error handling to ensure success response
         await storage.addEarning({
           userId,
-          amount: String(adRewardPAD),
+          amount: String(adRewardHrum),
           source: 'ad_watch',
           description: 'Watched advertisement',
         });
@@ -1197,10 +1196,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // CRITICAL: Validate referrer exists before adding commission
             const referrer = await storage.getUser(user.referredBy);
             if (referrer) {
-              const referralCommissionPAD = Math.round(adRewardPAD * 0.1);
+              const referralCommissionHrum = Math.round(adRewardHrum * 0.1);
               await storage.addEarning({
                 userId: user.referredBy,
-                amount: String(referralCommissionPAD),
+                amount: String(referralCommissionHrum),
                 source: 'referral_commission',
                 description: `10% commission from ${user.username || user.telegram_id}'s ad watch`,
               });
@@ -1231,7 +1230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         sendRealtimeUpdate(userId, {
           type: 'ad_reward',
-          amount: adRewardPAD.toString(),
+          amount: adRewardHrum.toString(),
           message: 'Ad reward earned!',
           timestamp: new Date().toISOString()
         });
@@ -1243,7 +1242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // ALWAYS return success response to ensure reward notification shows
       res.json({ 
         success: true, 
-        rewardPAD: adRewardPAD,
+        rewardHrum: adRewardHrum,
         rewardBUG: bugRewardPerAd,
         newBalance: updatedUser?.balance || user.balance || "0",
         newBugBalance: updatedUser?.bugBalance || "0",
@@ -1256,10 +1255,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return success anyway to prevent error notification from showing
       // The user watched the ad, so we should acknowledge it
-      const adRewardPAD = Math.round(parseFloat("0.00010000") * 10000000);
+      const adRewardHrum = Math.round(parseFloat("0.00010000") * 10000000);
       res.json({ 
         success: true, 
-        rewardPAD: adRewardPAD,
+        rewardHrum: adRewardHrum,
         newBalance: "0",
         adsWatchedToday: 0,
         warning: "Reward processing encountered an issue but was acknowledged"
@@ -1317,7 +1316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Streak claim endpoint (Claim Bonus - every 5 minutes, 1 PAD)
+  // Streak claim endpoint (Claim Bonus - every 5 minutes, 1 Hrum)
   app.post('/api/streak/claim', authenticateTelegram, async (req: any, res) => {
     try {
       const userId = req.user.user.id;
@@ -1459,7 +1458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(referrals.status, 'completed')
         ));
       
-      // Sum all historical USD rewards stored at time of earning
+      // Sum all historical TON rewards stored at time of earning
       let totalUsdEarned = 0;
       let totalBugEarned = 0;
       for (const ref of completedReferrals) {
@@ -1958,17 +1957,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Task eligibility: status = 'running' (approved/active), user hasn't completed, not their own task
       const advertiserTasks = await storage.getActiveTasksForUser(userId);
       
-      // Format advertiser tasks with PAD and BUG rewards from admin settings
+      // Format advertiser tasks with Hrum and BUG rewards from admin settings
       const formattedTasks = advertiserTasks.map(task => {
-        let rewardPAD = 0;
+        let rewardHrum = 0;
         if (task.taskType === 'channel') {
-          rewardPAD = parseInt(channelTaskReward);
+          rewardHrum = parseInt(channelTaskReward);
         } else if (task.taskType === 'bot') {
-          rewardPAD = parseInt(botTaskReward);
+          rewardHrum = parseInt(botTaskReward);
         } else if (task.taskType === 'partner') {
-          rewardPAD = parseInt(partnerTaskReward);
+          rewardHrum = parseInt(partnerTaskReward);
         } else {
-          rewardPAD = 20;
+          rewardHrum = 20;
         }
         
         return {
@@ -1977,9 +1976,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           taskType: task.taskType,
           title: task.title,
           link: task.link,
-          rewardPAD,
+          rewardHrum,
           rewardBUG: parseInt(bugRewardPerTask),
-          rewardType: 'PAD',
+          rewardType: 'Hrum',
           isAdminTask: false,
           isAdvertiserTask: true,
           priority: 1
@@ -2022,7 +2021,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Reward: 0.0001 TON = 1,000 PAD
+      // Reward: 0.0001 TON = 1,000 Hrum
       const rewardAmount = '0.0001';
       
       // Get BUG reward setting
@@ -2773,27 +2772,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return all settings in format expected by frontend with NEW defaults
       res.json({
         dailyAdLimit: parseInt(getSetting('daily_ad_limit', '50')),
-        rewardPerAd: parseInt(getSetting('reward_per_ad', '2')), // Default 2 PAD
+        rewardPerAd: parseInt(getSetting('reward_per_ad', '2')), // Default 2 Hrum
         affiliateCommission: parseFloat(getSetting('affiliate_commission', '10')),
-        walletChangeFee: parseInt(getSetting('wallet_change_fee', '100')), // Return as PAD, default 100
-        minimumWithdrawalUSD: parseFloat(getSetting('minimum_withdrawal_usd', '1.00')), // NEW: Min USD withdrawal
+        walletChangeFee: parseInt(getSetting('wallet_change_fee', '100')), // Return as Hrum, default 100
         minimumWithdrawalTON: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')), // NEW: Min TON withdrawal
         withdrawalFeeTON: parseFloat(getSetting('withdrawal_fee_ton', '5')), // NEW: TON withdrawal fee %
-        withdrawalFeeUSD: parseFloat(getSetting('withdrawal_fee_usd', '3')), // NEW: USD withdrawal fee %
-        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')), // NEW: Channel cost in USD (admin only)
-        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')), // NEW: Bot cost in USD (admin only)
+        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')), // NEW: Channel cost in TON (admin only)
+        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')), // NEW: Bot cost in TON (admin only)
         channelTaskCostTON: parseFloat(getSetting('channel_task_cost_ton', '0.0003')), // TON cost for regular users
         botTaskCostTON: parseFloat(getSetting('bot_task_cost_ton', '0.0003')), // TON cost for regular users
-        channelTaskReward: parseInt(getSetting('channel_task_reward', '30')), // NEW: Channel reward in PAD
-        botTaskReward: parseInt(getSetting('bot_task_reward', '20')), // NEW: Bot reward in PAD
-        partnerTaskReward: parseInt(getSetting('partner_task_reward', '5')), // NEW: Partner reward in PAD
-        minimumConvertPAD: parseInt(getSetting('minimum_convert_pad', '100')), // NEW: Min convert in PAD (100 PAD = $0.01)
-        minimumConvertUSD: parseInt(getSetting('minimum_convert_pad', '100')) / 10000, // Convert to USD
+        channelTaskReward: parseInt(getSetting('channel_task_reward', '30')), // NEW: Channel reward in Hrum
+        botTaskReward: parseInt(getSetting('bot_task_reward', '20')), // NEW: Bot reward in Hrum
+        partnerTaskReward: parseInt(getSetting('partner_task_reward', '5')), // NEW: Partner reward in Hrum
+        minimumConvertHrum: parseInt(getSetting('minimum_convert_pad', '100')), // NEW: Min convert in Hrum (100 Hrum = $0.01)
+        minimumConvertTON: parseInt(getSetting('minimum_convert_pad', '100')) / 10000, // Convert to TON
         minimumClicks: parseInt(getSetting('minimum_clicks', '500')), // NEW: Min clicks for task creation
         seasonBroadcastActive: getSetting('season_broadcast_active', 'false') === 'true',
         referralRewardEnabled: getSetting('referral_reward_enabled', 'false') === 'true',
-        referralRewardUSD: parseFloat(getSetting('referral_reward_usd', '0.0005')),
-        referralRewardPAD: parseInt(getSetting('referral_reward_pad', '50')),
+        referralRewardTON: parseFloat(getSetting('referral_reward_usd', '0.0005')),
+        referralRewardHrum: parseInt(getSetting('referral_reward_hrum', '50')),
         referralAdsRequired: parseInt(getSetting('referral_ads_required', '1')),
         // Daily task rewards
         streakReward: parseInt(getSetting('streak_reward', '100')),
@@ -2809,7 +2806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bugRewardPerTask: parseInt(getSetting('bug_reward_per_task', '10')),
         bugRewardPerReferral: parseInt(getSetting('bug_reward_per_referral', '50')),
         minimumBugForWithdrawal: parseInt(getSetting('minimum_bug_for_withdrawal', '1000')),
-        padToBugRate: parseInt(getSetting('pad_to_bug_rate', '1')),
+        padToBugRate: parseInt(getSetting('hrum_to_bug_rate', '1')),
         minimumConvertPadToBug: parseInt(getSetting('minimum_convert_pad_to_bug', '1000')),
         bugPerUsd: parseInt(getSetting('bug_per_usd', '10000')),
         withdrawalBugRequirementEnabled: getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true',
@@ -2835,10 +2832,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardPerAd, 
         affiliateCommission,
         walletChangeFee,
-        minimumWithdrawalUSD,
         minimumWithdrawalTON,
         withdrawalFeeTON,
-        withdrawalFeeUSD,
         channelTaskCost,
         botTaskCost,
         channelTaskCostTON,
@@ -2846,12 +2841,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         channelTaskReward,
         botTaskReward,
         partnerTaskReward,
-        minimumConvertPAD,
+        minimumConvertHrum,
         minimumClicks,
         seasonBroadcastActive,
         referralRewardEnabled,
-        referralRewardUSD,
-        referralRewardPAD,
+        referralRewardTON,
+        referralRewardHrum,
         referralAdsRequired,
         // Daily task rewards
         streakReward,
@@ -2892,28 +2887,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      // Update all provided settings (all values are already in correct format - PAD or USD)
+      // Update all provided settings (all values are already in correct format - Hrum or TON)
       await updateSetting('daily_ad_limit', dailyAdLimit);
-      await updateSetting('reward_per_ad', rewardPerAd); // PAD
+      await updateSetting('reward_per_ad', rewardPerAd); // Hrum
       await updateSetting('affiliate_commission', affiliateCommission);
-      await updateSetting('wallet_change_fee', walletChangeFee); // PAD
-      await updateSetting('minimum_withdrawal_usd', minimumWithdrawalUSD); // USD
+      await updateSetting('wallet_change_fee', walletChangeFee); // Hrum
       await updateSetting('minimum_withdrawal_ton', minimumWithdrawalTON); // TON
       await updateSetting('withdrawal_fee_ton', withdrawalFeeTON); // % fee for TON
-      await updateSetting('withdrawal_fee_usd', withdrawalFeeUSD); // % fee for USD
-      await updateSetting('channel_task_cost_usd', channelTaskCost); // USD (admin only)
-      await updateSetting('bot_task_cost_usd', botTaskCost); // USD (admin only)
+      await updateSetting('channel_task_cost_usd', channelTaskCost); // TON (admin only)
+      await updateSetting('bot_task_cost_usd', botTaskCost); // TON (admin only)
       await updateSetting('channel_task_cost_ton', channelTaskCostTON); // TON (regular users)
       await updateSetting('bot_task_cost_ton', botTaskCostTON); // TON (regular users)
-      await updateSetting('channel_task_reward', channelTaskReward); // PAD
-      await updateSetting('bot_task_reward', botTaskReward); // PAD
-      await updateSetting('partner_task_reward', partnerTaskReward); // PAD
-      await updateSetting('minimum_convert_pad', minimumConvertPAD); // PAD
+      await updateSetting('channel_task_reward', channelTaskReward); // Hrum
+      await updateSetting('bot_task_reward', botTaskReward); // Hrum
+      await updateSetting('partner_task_reward', partnerTaskReward); // Hrum
+      await updateSetting('minimum_convert_pad', minimumConvertHrum); // Hrum
       await updateSetting('minimum_clicks', minimumClicks); // Minimum clicks for task creation
       await updateSetting('season_broadcast_active', seasonBroadcastActive);
       await updateSetting('referral_reward_enabled', referralRewardEnabled);
-      await updateSetting('referral_reward_usd', referralRewardUSD);
-      await updateSetting('referral_reward_pad', referralRewardPAD);
+      await updateSetting('referral_reward_usd', referralRewardTON);
+      await updateSetting('referral_reward_hrum', referralRewardHrum);
       await updateSetting('referral_ads_required', validatedReferralAdsRequired);
       
       // Daily task rewards
@@ -2932,7 +2925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await updateSetting('bug_reward_per_task', bugRewardPerTask);
       await updateSetting('bug_reward_per_referral', bugRewardPerReferral);
       await updateSetting('minimum_bug_for_withdrawal', minimumBugForWithdrawal);
-      await updateSetting('pad_to_bug_rate', padToBugRate);
+      await updateSetting('hrum_to_bug_rate', padToBugRate);
       await updateSetting('minimum_convert_pad_to_bug', minimumConvertPadToBug);
       await updateSetting('bug_per_usd', bugPerUsd);
       await updateSetting('withdrawal_bug_requirement_enabled', withdrawalBugRequirementEnabled);
@@ -4086,7 +4079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Change wallet endpoint - requires dynamic PAD fee from admin settings
+  // Change wallet endpoint - requires dynamic Hrum fee from admin settings
   app.post('/api/wallet/change', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
@@ -4119,12 +4112,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Get wallet change fee from admin settings (stored in PAD)
+      // Get wallet change fee from admin settings (stored in Hrum)
       const walletChangeFee = await storage.getAppSetting('walletChangeFee', 5000);
       const feeInPad = parseInt(walletChangeFee);
       const feeInTon = feeInPad / 10000000;
       
-      console.log(`💰 Wallet change fee: ${feeInPad} PAD (${feeInTon} TON)`);
+      console.log(`💰 Wallet change fee: ${feeInPad} Hrum (${feeInTon} TON)`);
       
       // Use database transaction to ensure atomicity
       const result = await db.transaction(async (tx) => {
@@ -4171,7 +4164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentBalancePad = Math.floor(currentBalance * 10000000);
         
         if (currentBalancePad < feeInPad) {
-          throw new Error(`Insufficient balance. You need ${feeInPad} PAD to change wallet. Current balance: ${currentBalancePad} PAD`);
+          throw new Error(`Insufficient balance. You need ${feeInPad} Hrum to change wallet. Current balance: ${currentBalancePad} Hrum`);
         }
         
         // Deduct fee from balance
@@ -4194,7 +4187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           amount: feeInTon.toFixed(8),
           type: 'deduction',
           source: 'wallet_change_fee',
-          description: `Fee for changing wallet ID (${feeInPad} PAD)`,
+          description: `Fee for changing wallet ID (${feeInPad} Hrum)`,
           metadata: { oldWallet: user.cwalletId, newWallet: newWalletId.trim(), feePad: feeInPad }
         });
         
@@ -4215,7 +4208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if ((client as any).userId === userId && client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({
               type: 'wallet_changed',
-              message: `Wallet updated successfully! ${result.feePad} PAD fee deducted.`,
+              message: `Wallet updated successfully! ${result.feePad} Hrum fee deducted.`,
               data: {
                 newWalletId: result.newWallet,
                 newBalance: result.newBalance,
@@ -4247,7 +4240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
 
-  // PAD conversion endpoint (supports USD, TON, BUG)
+  // Hrum conversion endpoint (supports TON, TON, BUG)
   app.post('/api/convert-to-usd', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
@@ -4257,15 +4250,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, skipAuth: true });
       }
 
-      const { padAmount, convertTo = 'USD' } = req.body;
+      const { padAmount, convertTo = 'TON' } = req.body;
       
-      console.log('💵 PAD conversion request:', { userId, padAmount, convertTo });
+      console.log('💵 Hrum conversion request:', { userId, padAmount, convertTo });
       
       const convertAmount = parseFloat(padAmount);
       if (!padAmount || isNaN(convertAmount) || convertAmount <= 0) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid PAD amount'
+          message: 'Please enter a valid Hrum amount'
         });
       }
       
@@ -4275,7 +4268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [user] = await tx
           .select({ 
             balance: users.balance,
-            usdBalance: users.usdBalance,
+            tonBalance: users.tonBalance,
             tonBalance: users.tonBalance,
             bugBalance: users.bugBalance
           })
@@ -4290,7 +4283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentPadBalance = parseFloat(user.balance || '0');
         
         if (currentPadBalance < convertAmount) {
-          throw new Error('Insufficient PAD balance');
+          throw new Error('Insufficient Hrum balance');
         }
         
         const newPadBalance = currentPadBalance - convertAmount;
@@ -4302,27 +4295,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let convertedAmount = 0;
         let convertedCurrency = convertTo;
         
-        if (convertTo === 'USD') {
+        if (convertTo === 'TON') {
           const conversionRateSetting = await storage.getAppSetting('pad_to_usd_rate', '10000');
-          const PAD_TO_USD_RATE = parseFloat(conversionRateSetting);
-          convertedAmount = convertAmount / PAD_TO_USD_RATE;
-          const currentUsdBalance = parseFloat(user.usdBalance || '0');
-          updateData.usdBalance = (currentUsdBalance + convertedAmount).toFixed(10);
-          console.log(`✅ PAD to USD: ${convertAmount} PAD → $${convertedAmount.toFixed(4)} USD`);
+          const Hrum_TO_TON_RATE = parseFloat(conversionRateSetting);
+          convertedAmount = convertAmount / Hrum_TO_TON_RATE;
+          const currentUsdBalance = parseFloat(user.tonBalance || '0');
+          updateData.tonBalance = (currentUsdBalance + convertedAmount).toFixed(10);
+          console.log(`✅ Hrum to TON: ${convertAmount} Hrum → $${convertedAmount.toFixed(4)} TON`);
         } else if (convertTo === 'TON') {
-          const padToTonRateSetting = await storage.getAppSetting('pad_to_ton_rate', '10000000');
-          const PAD_TO_TON_RATE = parseFloat(padToTonRateSetting);
-          convertedAmount = convertAmount / PAD_TO_TON_RATE;
+          const padToTonRateSetting = await storage.getAppSetting('hrum_to_ton_rate', '10000000');
+          const Hrum_TO_TON_RATE = parseFloat(padToTonRateSetting);
+          convertedAmount = convertAmount / Hrum_TO_TON_RATE;
           const currentTonBalance = parseFloat(user.tonBalance || '0');
           updateData.tonBalance = (currentTonBalance + convertedAmount).toFixed(10);
-          console.log(`✅ PAD to TON: ${convertAmount} PAD → ${convertedAmount.toFixed(6)} TON`);
+          console.log(`✅ Hrum to TON: ${convertAmount} Hrum → ${convertedAmount.toFixed(6)} TON`);
         } else if (convertTo === 'BUG') {
-          const padToBugRateSetting = await storage.getAppSetting('pad_to_bug_rate', '1');
-          const PAD_TO_BUG_RATE = parseFloat(padToBugRateSetting);
-          convertedAmount = convertAmount * PAD_TO_BUG_RATE;
+          const padToBugRateSetting = await storage.getAppSetting('hrum_to_bug_rate', '1');
+          const Hrum_TO_BUG_RATE = parseFloat(padToBugRateSetting);
+          convertedAmount = convertAmount * Hrum_TO_BUG_RATE;
           const currentBugBalance = parseFloat(user.bugBalance || '0');
           updateData.bugBalance = (currentBugBalance + convertedAmount).toFixed(10);
-          console.log(`✅ PAD to BUG: ${convertAmount} PAD → ${convertedAmount.toFixed(0)} BUG`);
+          console.log(`✅ Hrum to BUG: ${convertAmount} Hrum → ${convertedAmount.toFixed(0)} BUG`);
         }
         
         await tx.update(users).set(updateData).where(eq(users.id, userId));
@@ -4344,16 +4337,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error('❌ Error converting PAD:', error);
+      console.error('❌ Error converting Hrum:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to convert';
-      res.status(errorMessage === 'Insufficient PAD balance' ? 400 : 500).json({ 
+      res.status(errorMessage === 'Insufficient Hrum balance' ? 400 : 500).json({ 
         success: false, 
         message: errorMessage
       });
     }
   });
 
-  // PAD to TON conversion endpoint
+  // Hrum to TON conversion endpoint
   app.post('/api/convert-to-ton', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
@@ -4365,33 +4358,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { padAmount } = req.body;
       
-      console.log('💎 PAD to TON conversion request:', { userId, padAmount });
+      console.log('💎 Hrum to TON conversion request:', { userId, padAmount });
       
       const convertAmount = parseFloat(padAmount);
       if (!padAmount || isNaN(convertAmount) || convertAmount <= 0) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid PAD amount'
+          message: 'Please enter a valid Hrum amount'
         });
       }
 
       // Get minimum conversion from admin settings
-      const minConvertSetting = await storage.getAppSetting('minimum_convert_pad_to_ton', '10000');
-      const minimumConvertPAD = parseFloat(minConvertSetting);
+      const minConvertSetting = await storage.getAppSetting('minimum_convert_hrum_to_ton', '10000');
+      const minimumConvertHrum = parseFloat(minConvertSetting);
 
-      if (convertAmount < minimumConvertPAD) {
+      if (convertAmount < minimumConvertHrum) {
         return res.status(400).json({
           success: false,
-          message: `Minimum ${minimumConvertPAD.toLocaleString()} PAD required for TON conversion`
+          message: `Minimum ${minimumConvertHrum.toLocaleString()} Hrum required for TON conversion`
         });
       }
       
-      // Get conversion rate from admin settings (default: 10,000,000 PAD = 1 TON)
-      const conversionRateSetting = await storage.getAppSetting('pad_to_ton_rate', '10000000');
-      const PAD_TO_TON_RATE = parseFloat(conversionRateSetting);
-      const tonAmount = convertAmount / PAD_TO_TON_RATE;
+      // Get conversion rate from admin settings (default: 10,000,000 Hrum = 1 TON)
+      const conversionRateSetting = await storage.getAppSetting('hrum_to_ton_rate', '10000000');
+      const Hrum_TO_TON_RATE = parseFloat(conversionRateSetting);
+      const tonAmount = convertAmount / Hrum_TO_TON_RATE;
       
-      console.log(`📊 Using conversion rate: ${PAD_TO_TON_RATE} PAD = 1 TON`);
+      console.log(`📊 Using conversion rate: ${Hrum_TO_TON_RATE} Hrum = 1 TON`);
       
       // Use transaction to ensure atomicity
       const result = await db.transaction(async (tx) => {
@@ -4412,7 +4405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentTonBalance = parseFloat(user.tonBalance || '0');
         
         if (currentPadBalance < convertAmount) {
-          throw new Error('Insufficient PAD balance');
+          throw new Error('Insufficient Hrum balance');
         }
         
         const newPadBalance = currentPadBalance - convertAmount;
@@ -4427,7 +4420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .where(eq(users.id, userId));
         
-        console.log(`✅ PAD to TON conversion successful: ${convertAmount} PAD → ${tonAmount.toFixed(6)} TON`);
+        console.log(`✅ Hrum to TON conversion successful: ${convertAmount} Hrum → ${tonAmount.toFixed(6)} TON`);
         
         return {
           padAmount: convertAmount,
@@ -4450,17 +4443,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error('❌ Error converting PAD to TON:', error);
+      console.error('❌ Error converting Hrum to TON:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to convert';
       
-      res.status(errorMessage === 'Insufficient PAD balance' ? 400 : 500).json({ 
+      res.status(errorMessage === 'Insufficient Hrum balance' ? 400 : 500).json({ 
         success: false, 
         message: errorMessage
       });
     }
   });
 
-  // PAD to BUG conversion endpoint
+  // Hrum to BUG conversion endpoint
   app.post('/api/convert-to-bug', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
@@ -4472,33 +4465,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { padAmount } = req.body;
       
-      console.log('🐛 PAD to BUG conversion request:', { userId, padAmount });
+      console.log('🐛 Hrum to BUG conversion request:', { userId, padAmount });
       
       const convertAmount = parseFloat(padAmount);
       if (!padAmount || isNaN(convertAmount) || convertAmount <= 0) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid PAD amount'
+          message: 'Please enter a valid Hrum amount'
         });
       }
 
       // Get minimum conversion from admin settings
       const minConvertSetting = await storage.getAppSetting('minimum_convert_pad_to_bug', '1000');
-      const minimumConvertPAD = parseFloat(minConvertSetting);
+      const minimumConvertHrum = parseFloat(minConvertSetting);
 
-      if (convertAmount < minimumConvertPAD) {
+      if (convertAmount < minimumConvertHrum) {
         return res.status(400).json({
           success: false,
-          message: `Minimum ${minimumConvertPAD.toLocaleString()} PAD required for BUG conversion`
+          message: `Minimum ${minimumConvertHrum.toLocaleString()} Hrum required for BUG conversion`
         });
       }
       
-      // Get conversion rate from admin settings (default: 1 PAD = 1 BUG)
-      const conversionRateSetting = await storage.getAppSetting('pad_to_bug_rate', '1');
-      const PAD_TO_BUG_RATE = parseFloat(conversionRateSetting);
-      const bugAmount = convertAmount / PAD_TO_BUG_RATE;
+      // Get conversion rate from admin settings (default: 1 Hrum = 1 BUG)
+      const conversionRateSetting = await storage.getAppSetting('hrum_to_bug_rate', '1');
+      const Hrum_TO_BUG_RATE = parseFloat(conversionRateSetting);
+      const bugAmount = convertAmount / Hrum_TO_BUG_RATE;
       
-      console.log(`📊 Using conversion rate: ${PAD_TO_BUG_RATE} PAD = 1 BUG`);
+      console.log(`📊 Using conversion rate: ${Hrum_TO_BUG_RATE} Hrum = 1 BUG`);
       
       // Use transaction to ensure atomicity
       const result = await db.transaction(async (tx) => {
@@ -4519,7 +4512,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const currentBugBalance = parseFloat(user.bugBalance || '0');
         
         if (currentPadBalance < convertAmount) {
-          throw new Error('Insufficient PAD balance');
+          throw new Error('Insufficient Hrum balance');
         }
         
         const newPadBalance = currentPadBalance - convertAmount;
@@ -4534,7 +4527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .where(eq(users.id, userId));
         
-        console.log(`✅ PAD to BUG conversion successful: ${convertAmount} PAD → ${bugAmount.toFixed(0)} BUG`);
+        console.log(`✅ Hrum to BUG conversion successful: ${convertAmount} Hrum → ${bugAmount.toFixed(0)} BUG`);
         
         return {
           padAmount: convertAmount,
@@ -4557,17 +4550,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
     } catch (error) {
-      console.error('❌ Error converting PAD to BUG:', error);
+      console.error('❌ Error converting Hrum to BUG:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to convert';
       
-      res.status(errorMessage === 'Insufficient PAD balance' ? 400 : 500).json({ 
+      res.status(errorMessage === 'Insufficient Hrum balance' ? 400 : 500).json({ 
         success: false, 
         message: errorMessage
       });
     }
   });
 
-  // Setup USDT wallet (Optimism network only)
+  // Setup TONT wallet (Optimism network only)
   app.post('/api/wallet/usdt', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
@@ -4584,15 +4577,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!usdtAddress || !usdtAddress.trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter your USDT wallet address'
+          message: 'Please enter your TONT wallet address'
         });
       }
       
-      // Validate Optimism USDT address (0x... format, 42 characters)
+      // Validate Optimism TONT address (0x... format, 42 characters)
       if (!/^0x[a-fA-F0-9]{40}$/.test(usdtAddress.trim())) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid Optimism USDT address'
+          message: 'Please enter a valid Optimism TONT address'
         });
       }
       
@@ -4609,11 +4602,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (existingWallet) {
         return res.status(400).json({
           success: false,
-          message: 'This USDT address is already linked to another account'
+          message: 'This TONT address is already linked to another account'
         });
       }
       
-      // Check if user already has a USDT wallet - if yes, charge fee for change
+      // Check if user already has a TONT wallet - if yes, charge fee for change
       const [currentUser] = await db
         .select({ 
           usdtWalletAddress: users.usdtWalletAddress,
@@ -4635,11 +4628,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (currentBalancePad < feeInPad) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient balance. You need ${feeInPad} PAD to change wallet. Current balance: ${currentBalancePad} PAD`
+            message: `Insufficient balance. You need ${feeInPad} Hrum to change wallet. Current balance: ${currentBalancePad} Hrum`
           });
         }
         
-        // Deduct fee from balance (stored as PAD integer)
+        // Deduct fee from balance (stored as Hrum integer)
         const newBalancePad = currentBalancePad - feeInPad;
         
         // Update wallet and deduct fee
@@ -4658,11 +4651,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: userId,
           amount: feeInPad.toString(),
           type: 'deduction',
-          description: `USDT wallet change fee`,
+          description: `TONT wallet change fee`,
           createdAt: new Date()
         });
         
-        console.log(`✅ USDT wallet changed for user ${userId} - Fee: ${feeInPad} PAD deducted`);
+        console.log(`✅ TONT wallet changed for user ${userId} - Fee: ${feeInPad} Hrum deducted`);
         
         // Send real-time update
         sendRealtimeUpdate(userId, {
@@ -4680,19 +4673,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .where(eq(users.id, userId));
         
-        console.log(`✅ USDT wallet set for user ${userId} (first time - no fee)`);
+        console.log(`✅ TONT wallet set for user ${userId} (first time - no fee)`);
       }
       
       res.json({
         success: true,
-        message: 'USDT wallet saved successfully'
+        message: 'TONT wallet saved successfully'
       });
       
     } catch (error) {
-      console.error('❌ Error setting USDT wallet:', error);
+      console.error('❌ Error setting TONT wallet:', error);
       res.status(500).json({
         success: false,
-        message: error instanceof Error ? error.message : 'Failed to save USDT wallet'
+        message: error instanceof Error ? error.message : 'Failed to save TONT wallet'
       });
     }
   });
@@ -4754,11 +4747,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (currentBalancePad < feeInPad) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient balance. You need ${feeInPad} PAD to change username. Current balance: ${currentBalancePad} PAD`
+            message: `Insufficient balance. You need ${feeInPad} Hrum to change username. Current balance: ${currentBalancePad} Hrum`
           });
         }
         
-        // Deduct fee from balance (stored as PAD integer)
+        // Deduct fee from balance (stored as Hrum integer)
         const newBalancePad = currentBalancePad - feeInPad;
         
         // Update username and deduct fee
@@ -4781,7 +4774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date()
         });
         
-        console.log(`✅ Telegram Stars username changed for user ${userId} - Fee: ${feeInPad} PAD deducted`);
+        console.log(`✅ Telegram Stars username changed for user ${userId} - Fee: ${feeInPad} Hrum deducted`);
         
         // Send real-time update
         sendRealtimeUpdate(userId, {
@@ -4870,7 +4863,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user data to check if admin early for partner task validation
       const [userData] = await db
         .select({ 
-          usdBalance: users.usdBalance, 
+          tonBalance: users.tonBalance, 
           tonBalance: users.tonBalance, 
           telegram_id: users.telegram_id 
         })
@@ -4906,7 +4899,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Partner tasks are free and always reward 5 PAD
+      // Partner tasks are free and always reward 5 Hrum
       if (taskType === "partner") {
         const task = await storage.createTask({
           advertiserId: userId,
@@ -4937,58 +4930,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = userData;
       const isAdmin = userIsAdmin;
 
-      // Admin users: use USD balance and USD-based costs
+      // Admin users: use TON balance and TON-based costs
       // Regular users: use TON tokens
       if (isAdmin) {
-        // Fetch USD-based costs for admin
+        // Fetch TON-based costs for admin
         const channelCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'channel_task_cost_usd')).limit(1);
         const botCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'bot_task_cost_usd')).limit(1);
         
-        const channelCostPerClickUSD = parseFloat(channelCostSetting[0]?.settingValue || "0.003");
-        const botCostPerClickUSD = parseFloat(botCostSetting[0]?.settingValue || "0.003");
+        const channelCostPerClickTON = parseFloat(channelCostSetting[0]?.settingValue || "0.003");
+        const botCostPerClickTON = parseFloat(botCostSetting[0]?.settingValue || "0.003");
         
-        const costPerClickUSD = taskType === "channel" ? channelCostPerClickUSD : botCostPerClickUSD;
-        const totalCostUSD = costPerClickUSD * totalClicksRequired;
+        const costPerClickTON = taskType === "channel" ? channelCostPerClickTON : botCostPerClickTON;
+        const totalCostTON = costPerClickTON * totalClicksRequired;
 
-        console.log('🔑 Admin task creation - using USD balance');
-        const currentUSDBalance = parseFloat(user.usdBalance || '0');
+        console.log('🔑 Admin task creation - using TON balance');
+        const currentTONBalance = parseFloat(user.tonBalance || '0');
 
-        console.log('💰 Payment check (USD):', { currentUSDBalance, totalCostUSD, sufficient: currentUSDBalance >= totalCostUSD });
+        console.log('💰 Payment check (TON):', { currentTONBalance, totalCostTON, sufficient: currentTONBalance >= totalCostTON });
 
-        if (currentUSDBalance < totalCostUSD) {
+        if (currentTONBalance < totalCostTON) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient USD balance. You need $${totalCostUSD.toFixed(2)} USD to create this task.`
+            message: `Insufficient TON balance. You need $${totalCostTON.toFixed(2)} TON to create this task.`
           });
         }
 
-        // Deduct USD balance
-        const newUSDBalance = (currentUSDBalance - totalCostUSD).toFixed(10);
+        // Deduct TON balance
+        const newTONBalance = (currentTONBalance - totalCostTON).toFixed(10);
         await db
           .update(users)
-          .set({ usdBalance: newUSDBalance })
+          .set({ tonBalance: newTONBalance })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (USD):', { oldBalance: currentUSDBalance, newBalance: newUSDBalance, deducted: totalCostUSD });
+        console.log('✅ Payment deducted (TON):', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: totalCostTON });
 
         await storage.logTransaction({
           userId,
-          amount: totalCostUSD.toFixed(10),
+          amount: totalCostTON.toFixed(10),
           type: "deduction",
           source: "task_creation",
           description: `Created ${taskType} task: ${title}`,
-          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: 'USD' }
+          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: 'TON' }
         });
 
-        // Create task with USD cost
+        // Create task with TON cost
         const task = await storage.createTask({
           advertiserId: userId,
           taskType,
           title,
           link,
           totalClicksRequired,
-          costPerClick: costPerClickUSD.toFixed(10),
-          totalCost: totalCostUSD.toFixed(10),
+          costPerClick: costPerClickTON.toFixed(10),
+          totalCost: totalCostTON.toFixed(10),
           status: "running",
         });
 
@@ -5149,7 +5142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const rewardPAD = parseInt(taskClick[0].rewardAmount || '0');
+      const rewardHrum = parseInt(taskClick[0].rewardAmount || '0');
       
       // Mark as claimed
       await db
@@ -5167,7 +5160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(users.id, userId));
 
       const currentBalance = parseInt(user?.balance || '0');
-      const newBalance = currentBalance + rewardPAD;
+      const newBalance = currentBalance + rewardHrum;
 
       await db
         .update(users)
@@ -5181,17 +5174,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const task = await storage.getTaskById(taskId);
       await db.insert(earnings).values({
         userId: userId,
-        amount: rewardPAD.toString(),
+        amount: rewardHrum.toString(),
         source: 'task_completion',
         description: `Completed ${task?.taskType || 'advertiser'} task: ${task?.title || 'Task'}`,
       });
 
-      console.log(`✅ Task reward claimed: ${taskId} by ${userId} - Reward: ${rewardPAD} PAD`);
+      console.log(`✅ Task reward claimed: ${taskId} by ${userId} - Reward: ${rewardHrum} Hrum`);
 
       res.json({
         success: true,
-        message: `Reward claimed! +${rewardPAD} PAD`,
-        reward: rewardPAD,
+        message: `Reward claimed! +${rewardHrum} Hrum`,
+        reward: rewardHrum,
         newBalance: newBalance.toString()
       });
     } catch (error) {
@@ -5260,33 +5253,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
       const requiredAmount = parseFloat(additionalCost);
 
-      // Admin users: use USD balance
+      // Admin users: use TON balance
       // Regular users: use TON balance
       if (isAdmin) {
-        console.log('🔑 Admin adding clicks - using USD balance');
+        console.log('🔑 Admin adding clicks - using TON balance');
         const [adminUserData] = await db
-          .select({ usdBalance: users.usdBalance })
+          .select({ tonBalance: users.tonBalance })
           .from(users)
           .where(eq(users.id, userId));
         
-        const currentUSDBalance = parseFloat(adminUserData?.usdBalance || '0');
+        const currentTONBalance = parseFloat(adminUserData?.tonBalance || '0');
 
-        // Check if admin has sufficient USD balance
-        if (currentUSDBalance < requiredAmount) {
+        // Check if admin has sufficient TON balance
+        if (currentTONBalance < requiredAmount) {
           return res.status(400).json({
             success: false,
-            message: "Insufficient USD balance. Please top up your USD balance."
+            message: "Insufficient TON balance. Please top up your TON balance."
           });
         }
 
-        // Deduct USD balance
-        const newUSDBalance = (currentUSDBalance - requiredAmount).toFixed(10);
+        // Deduct TON balance
+        const newTONBalance = (currentTONBalance - requiredAmount).toFixed(10);
         await db
           .update(users)
-          .set({ usdBalance: newUSDBalance, updatedAt: new Date() })
+          .set({ tonBalance: newTONBalance, updatedAt: new Date() })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (USD):', { oldBalance: currentUSDBalance, newBalance: newUSDBalance, deducted: additionalCost });
+        console.log('✅ Payment deducted (TON):', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: additionalCost });
       } else {
         console.log('👤 Regular user adding clicks - using TON balance');
         const currentTonBalance = parseFloat(user.tonBalance || '0');
@@ -5481,19 +5474,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
 
             if (isAdmin) {
-              // Admin: Refund to USD balance
+              // Admin: Refund to TON balance
               const [adminUser] = await tx
-                .select({ usdBalance: users.usdBalance })
+                .select({ tonBalance: users.tonBalance })
                 .from(users)
                 .where(eq(users.id, userId));
               
-              const newUSDBalance = (parseFloat(adminUser?.usdBalance || '0') + parseFloat(refundAmount)).toFixed(10);
+              const newTONBalance = (parseFloat(adminUser?.tonBalance || '0') + parseFloat(refundAmount)).toFixed(10);
               await tx
                 .update(users)
-                .set({ usdBalance: newUSDBalance, updatedAt: new Date() })
+                .set({ tonBalance: newTONBalance, updatedAt: new Date() })
                 .where(eq(users.id, userId));
 
-              console.log('✅ Admin refund processed (USD):', { oldBalance: adminUser?.usdBalance, refundAmount, newBalance: newUSDBalance });
+              console.log('✅ Admin refund processed (TON):', { oldBalance: adminUser?.tonBalance, refundAmount, newBalance: newTONBalance });
             } else {
               // Non-admin: Refund to TON balance
               const newTONBalance = (parseFloat(user.tonBalance || '0') + parseFloat(refundAmount)).toFixed(8);
@@ -5511,8 +5504,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               amount: refundAmount,
               type: "credit",
               source: "task_deletion_refund",
-              description: `Refund for deleting task: ${task.title} (${isAdmin ? 'USD' : 'TON'})`,
-              metadata: { taskId, remainingClicks, currency: isAdmin ? 'USD' : 'TON' }
+              description: `Refund for deleting task: ${task.title} (${isAdmin ? 'TON' : 'TON'})`,
+              metadata: { taskId, remainingClicks, currency: isAdmin ? 'TON' : 'TON' }
             });
           }
         }
@@ -5730,7 +5723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Withdrawal request received:', { userId, method, starPackage, withdrawalPackage });
 
       // Validate withdrawal method
-      const validMethods = ['TON', 'USDT', 'STARS'];
+      const validMethods = ['TON', 'TONT', 'STARS'];
       if (!method || !validMethods.includes(method)) {
         return res.status(400).json({
           success: false,
@@ -5761,7 +5754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const [user] = await tx
           .select({ 
             balance: users.balance,
-            usdBalance: users.usdBalance,
+            tonBalance: users.tonBalance,
             bugBalance: users.bugBalance,
             cwalletId: users.cwalletId,
             usdtWalletAddress: users.usdtWalletAddress,
@@ -5920,10 +5913,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(adminSettings)
           .where(eq(adminSettings.settingKey, 'bug_per_usd'))
           .limit(1);
-        const bugPerUsd = parseInt(bugPerUsdSetting?.settingValue || '10000'); // Default: 1 USD = 10000 BUG
+        const bugPerUsd = parseInt(bugPerUsdSetting?.settingValue || '10000'); // Default: 1 TON = 10000 BUG
         
         // Determine BUG requirement based on package or FULL withdrawal
-        const currentUsdBalanceForBug = parseFloat(user.usdBalance || '0');
+        const currentUsdBalanceForBug = parseFloat(user.tonBalance || '0');
         let minimumBugForWithdrawal: number;
         let packageUsdAmount: number | null = null;
         
@@ -5936,12 +5929,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           minimumBugForWithdrawal = selectedPkg.bug;
           packageUsdAmount = selectedPkg.usd;
           
-          // Check if user has enough USD balance for this package
+          // Check if user has enough TON balance for this package
           if (currentUsdBalanceForBug < packageUsdAmount) {
             throw new Error(`Insufficient balance. You need $${packageUsdAmount.toFixed(2)} for this package.`);
           }
         } else {
-          // FULL withdrawal: dynamic BUG requirement based on full USD balance
+          // FULL withdrawal: dynamic BUG requirement based on full TON balance
           minimumBugForWithdrawal = Math.ceil(currentUsdBalanceForBug * bugPerUsd);
         }
         
@@ -5959,9 +5952,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error('TON address not set');
           }
           walletAddress = user.cwalletId;
-        } else if (method === 'USD' || method === 'USDT') {
+        } else if (method === 'TON' || method === 'TONT') {
           if (!user.usdtWalletAddress) {
-            throw new Error('USD address not set');
+            throw new Error('TON address not set');
           }
           walletAddress = user.usdtWalletAddress;
         } else if (method === 'STARS') {
@@ -5973,22 +5966,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           throw new Error('Invalid withdrawal method');
         }
 
-        const currentUsdBalance = parseFloat(user.usdBalance || '0');
+        const currentUsdBalance = parseFloat(user.tonBalance || '0');
         
         // Get minimum withdrawal and fee settings from admin settings
         const [minWithdrawalSetting] = await tx
           .select({ settingValue: adminSettings.settingValue })
           .from(adminSettings)
-          .where(eq(adminSettings.settingKey, 'minimum_withdrawal_usd'))
-          .limit(1);
-        const minimumWithdrawalUSD = parseFloat(minWithdrawalSetting?.settingValue || '1.00');
-        
-        const [minWithdrawalTONSetting] = await tx
-          .select({ settingValue: adminSettings.settingValue })
-          .from(adminSettings)
           .where(eq(adminSettings.settingKey, 'minimum_withdrawal_ton'))
           .limit(1);
-        const minimumWithdrawalTON = parseFloat(minWithdrawalTONSetting?.settingValue || '0.5');
+        const minimumWithdrawalTON = parseFloat(minWithdrawalSetting?.settingValue || '0.5');
         
         const [feePercentTONSetting] = await tx
           .select({ settingValue: adminSettings.settingValue })
@@ -5997,15 +5983,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
         const feePercentTON = parseFloat(feePercentTONSetting?.settingValue || '5') / 100;
         
-        const [feePercentUSDSetting] = await tx
-          .select({ settingValue: adminSettings.settingValue })
-          .from(adminSettings)
-          .where(eq(adminSettings.settingKey, 'withdrawal_fee_usd'))
-          .limit(1);
-        const feePercentUSD = parseFloat(feePercentUSDSetting?.settingValue || '3') / 100;
-        
-        // Calculate withdrawal amount and fee (ALL IN USD ONLY)
-        let withdrawalAmount: number; // Always in USD
+        // Calculate withdrawal amount and fee (ALL IN TON ONLY)
+        let withdrawalAmount: number; // Always in TON
         let fee: number;
         let usdToDeduct: number;
         let withdrawalDetails: any = {
@@ -6036,19 +6015,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error(`Insufficient balance. You need $${totalCost.toFixed(2)} (including 5% fee)`);
           }
           
-          withdrawalAmount = selectedPkg.usdCost; // USD amount
+          withdrawalAmount = selectedPkg.usdCost; // TON amount
           fee = selectedPkg.usdCost * 0.05;
           usdToDeduct = totalCost;
           withdrawalDetails.starPackage = starPackage;
           withdrawalDetails.stars = starPackage;
           withdrawalDetails.telegramUsername = walletAddress;
         } else {
-          // TON or USD withdrawal - package-based or FULL balance
+          // TON or TON withdrawal - package-based or FULL balance
           if (currentUsdBalance <= 0) {
             throw new Error('Insufficient balance for withdrawal');
           }
           
-          // Determine the USD amount to withdraw based on package selection
+          // Determine the TON amount to withdraw based on package selection
           let baseAmount: number;
           if (packageUsdAmount !== null) {
             // Package-based withdrawal: use exact package amount
@@ -6058,16 +6037,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             baseAmount = currentUsdBalance;
             
             // Check minimum withdrawal requirement only for FULL withdrawals
-            const requiredMinimum = method === 'TON' ? minimumWithdrawalTON : minimumWithdrawalUSD;
+            const requiredMinimum = minimumWithdrawalTON;
             if (baseAmount < requiredMinimum) {
               throw new Error(`Minimum ${requiredMinimum.toFixed(2)}`);
             }
           }
           
-          // Use admin-configured fees: TON and USD have different fees
-          const feePercent = method === 'TON' ? feePercentTON : feePercentUSD;
+          // Use admin-configured fees
+          const feePercent = feePercentTON;
           fee = baseAmount * feePercent;
-          withdrawalAmount = baseAmount - fee; // USD amount after fee
+          withdrawalAmount = baseAmount - fee; // TON amount after fee
           usdToDeduct = baseAmount;
           
           // Store package info if applicable
@@ -6080,15 +6059,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Store wallet address based on method
           if (method === 'TON') {
             withdrawalDetails.tonWalletAddress = walletAddress;
-          } else if (method === 'USD' || method === 'USDT') {
+          } else if (method === 'TON' || method === 'TONT') {
             withdrawalDetails.usdtWalletAddress = walletAddress;
           }
         }
 
-        console.log(`📝 Creating withdrawal request for $${withdrawalAmount.toFixed(2)} USD via ${method} (balance will be deducted on approval)`);
+        console.log(`📝 Creating withdrawal request for $${withdrawalAmount.toFixed(2)} TON via ${method} (balance will be deducted on approval)`);
 
         // Store the fee percentage from admin settings for consistent display
-        const feePercentForDetails = method === 'TON' ? feePercentTON : (method === 'STARS' ? 0.05 : feePercentUSD);
+        const feePercentForDetails = method === 'TON' ? feePercentTON : (method === 'STARS' ? 0.05 : feePercentTON);
         withdrawalDetails.totalDeducted = usdToDeduct.toFixed(10);
         withdrawalDetails.fee = fee.toFixed(10);
         withdrawalDetails.feePercent = (feePercentForDetails * 100).toString(); // Store exact percentage (e.g., "5" or "2.5")
@@ -6109,11 +6088,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // NOTE: Balance is NOT deducted here - it will be deducted ONLY when admin approves the withdrawal
         // This prevents "insufficient balance" errors during approval when balance was already deducted at request time
-        console.log(`📋 Withdrawal request created for $${usdToDeduct.toFixed(2)} USD (balance will be deducted on admin approval)`);
+        console.log(`📋 Withdrawal request created for $${usdToDeduct.toFixed(2)} TON (balance will be deducted on admin approval)`);
         
         return { 
           withdrawal, 
-          withdrawnAmount: withdrawalAmount, // USD amount
+          withdrawnAmount: withdrawalAmount, // TON amount
           fee: fee,
           feePercent: (feePercentForDetails * 100).toString(), // Fee percentage as string (exact value)
           method: method,
@@ -6152,7 +6131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} USD
+💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyAdzbot`;
@@ -6192,7 +6171,7 @@ ${walletAddress}
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} USD
+💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyAdzbot`;
@@ -7019,14 +6998,14 @@ ${walletAddress}
         });
       }
       
-      // Add reward based on type - PAD, TON, USD supported (PDZ is deprecated, treated as TON)
-      let rewardType = promoCode.rewardType || 'PAD';
+      // Add reward based on type - Hrum, TON, TON supported (PDZ is deprecated, treated as TON)
+      let rewardType = promoCode.rewardType || 'Hrum';
       // Convert any legacy PDZ to TON
       if (rewardType === 'PDZ') rewardType = 'TON';
       const rewardAmount = result.reward;
       
-      if (rewardType === 'PAD') {
-        // Add PAD balance - addEarning handles BOTH earnings tracking AND balance update
+      if (rewardType === 'Hrum') {
+        // Add Hrum balance - addEarning handles BOTH earnings tracking AND balance update
         const rewardPad = parseInt(rewardAmount || '0');
         
         await storage.addEarning({
@@ -7038,12 +7017,12 @@ ${walletAddress}
         
         res.json({ 
           success: true, 
-          message: `${rewardPad} PAD added to your balance!`,
+          message: `${rewardPad} Hrum added to your balance!`,
           reward: rewardAmount,
-          rewardType: 'PAD'
+          rewardType: 'Hrum'
         });
       } else if (rewardType === 'TON') {
-        // Add TON balance - direct update required since addEarning only handles PAD balance
+        // Add TON balance - direct update required since addEarning only handles Hrum balance
         const [currentUser] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
@@ -7073,15 +7052,15 @@ ${walletAddress}
           reward: rewardAmount,
           rewardType: 'TON'
         });
-      } else if (rewardType === 'USD') {
-        // Add USD balance
-        await storage.addUSDBalance(userId, rewardAmount || '0', 'promo_code', `Redeemed promo code: ${code}`);
+      } else if (rewardType === 'TON') {
+        // Add TON balance
+        await storage.addTONBalance(userId, rewardAmount || '0', 'promo_code', `Redeemed promo code: ${code}`);
         
         res.json({ 
           success: true, 
-          message: `$${rewardAmount} USD added to your balance!`,
+          message: `$${rewardAmount} TON added to your balance!`,
           reward: rewardAmount,
-          rewardType: 'USD'
+          rewardType: 'TON'
         });
       } else if (rewardType === 'BUG') {
         // Add BUG balance
@@ -7115,7 +7094,7 @@ ${walletAddress}
           rewardType: 'BUG'
         });
       } else {
-        // Default: Add PAD balance
+        // Default: Add Hrum balance
         const rewardPad = parseInt(rewardAmount || '0');
         
         await storage.addEarning({
@@ -7127,9 +7106,9 @@ ${walletAddress}
         
         res.json({ 
           success: true, 
-          message: `${rewardPad} PAD added to your balance!`,
+          message: `${rewardPad} Hrum added to your balance!`,
           reward: rewardAmount,
-          rewardType: 'PAD'
+          rewardType: 'Hrum'
         });
       }
     } catch (error) {
@@ -7164,12 +7143,12 @@ ${walletAddress}
         console.log('🎲 Auto-generated promo code:', finalCode);
       }
       
-      // Validate reward type - PAD, TON, USD, BUG supported (PDZ is deprecated)
+      // Validate reward type - Hrum, TON, TON, BUG supported (PDZ is deprecated)
       let finalRewardType = rewardType || 'TON';
       // Convert legacy PDZ to TON
       if (finalRewardType === 'PDZ') finalRewardType = 'TON';
-      if (finalRewardType !== 'PAD' && finalRewardType !== 'TON' && finalRewardType !== 'USD' && finalRewardType !== 'BUG') {
-        return res.status(400).json({ message: 'Reward type must be PAD, TON, USD, or BUG' });
+      if (finalRewardType !== 'Hrum' && finalRewardType !== 'TON' && finalRewardType !== 'TON' && finalRewardType !== 'BUG') {
+        return res.status(400).json({ message: 'Reward type must be Hrum, TON, TON, or BUG' });
       }
       
       const promoCode = await storage.createPromoCode({
@@ -7205,7 +7184,7 @@ ${walletAddress}
         const usageLimit = promo.usageLimit || 0;
         const remainingCount = usageLimit > 0 ? Math.max(0, usageLimit - usageCount) : Infinity;
         const totalDistributed = parseFloat(promo.rewardAmount) * usageCount;
-        const rewardType = promo.rewardType || 'PAD';
+        const rewardType = promo.rewardType || 'Hrum';
         
         return {
           ...promo,
@@ -7443,12 +7422,12 @@ ${walletAddress}
 
   // Spin reward configuration - heavily biased toward low rewards (DISABLED)
   const SPIN_REWARDS = [
-    { type: 'PAD', amount: 1, rarity: 'common', weight: 400 },      // VERY HIGH CHANCE
-    { type: 'PAD', amount: 20, rarity: 'common', weight: 350 },     // VERY HIGH CHANCE
-    { type: 'PAD', amount: 200, rarity: 'rare', weight: 15 },       // VERY LOW CHANCE
-    { type: 'PAD', amount: 800, rarity: 'rare', weight: 8 },        // VERY LOW CHANCE
-    { type: 'PAD', amount: 1000, rarity: 'rare', weight: 3 },       // EXTREMELY LOW CHANCE
-    { type: 'PAD', amount: 10000, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
+    { type: 'Hrum', amount: 1, rarity: 'common', weight: 400 },      // VERY HIGH CHANCE
+    { type: 'Hrum', amount: 20, rarity: 'common', weight: 350 },     // VERY HIGH CHANCE
+    { type: 'Hrum', amount: 200, rarity: 'rare', weight: 15 },       // VERY LOW CHANCE
+    { type: 'Hrum', amount: 800, rarity: 'rare', weight: 8 },        // VERY LOW CHANCE
+    { type: 'Hrum', amount: 1000, rarity: 'rare', weight: 3 },       // EXTREMELY LOW CHANCE
+    { type: 'Hrum', amount: 10000, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
     { type: 'TON', amount: 0.01, rarity: 'rare', weight: 5 },       // VERY LOW CHANCE
     { type: 'TON', amount: 0.10, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
   ];
@@ -7609,7 +7588,7 @@ ${walletAddress}
         return res.status(404).json({ error: 'User not found' });
       }
 
-      if (reward.type === 'PAD') {
+      if (reward.type === 'Hrum') {
         const currentBalance = parseFloat(user.balance?.toString() || '0');
         const newBalance = currentBalance + reward.amount;
         await db.update(users).set({
@@ -7846,7 +7825,7 @@ ${walletAddress}
       }
 
       const today = getTodayDate();
-      const reward = 5; // 5 PAD
+      const reward = 5; // 5 Hrum
 
       // Check if already claimed
       const existingMission = await db.query.dailyMissions.findFirst({
@@ -7899,7 +7878,7 @@ ${walletAddress}
       res.json({
         success: true,
         reward,
-        message: `You earned ${reward} PAD!`,
+        message: `You earned ${reward} Hrum!`,
       });
     } catch (error) {
       console.error('❌ Error claiming share story reward:', error);
@@ -7916,7 +7895,7 @@ ${walletAddress}
       }
 
       const today = getTodayDate();
-      const reward = 5; // 5 PAD
+      const reward = 5; // 5 Hrum
 
       // Check if already claimed
       const existingMission = await db.query.dailyMissions.findFirst({
@@ -7969,7 +7948,7 @@ ${walletAddress}
       res.json({
         success: true,
         reward,
-        message: `You earned ${reward} PAD!`,
+        message: `You earned ${reward} Hrum!`,
       });
     } catch (error) {
       console.error('❌ Error claiming daily check-in reward:', error);
@@ -7986,7 +7965,7 @@ ${walletAddress}
       }
 
       const today = getTodayDate();
-      const reward = 5; // 5 PAD
+      const reward = 5; // 5 Hrum
 
       // Check if already claimed
       const existingMission = await db.query.dailyMissions.findFirst({
@@ -8039,7 +8018,7 @@ ${walletAddress}
       res.json({
         success: true,
         reward,
-        message: `You earned ${reward} PAD!`,
+        message: `You earned ${reward} Hrum!`,
       });
     } catch (error) {
       console.error('❌ Error claiming check for updates reward:', error);
@@ -8099,7 +8078,7 @@ ${walletAddress}
         photo_url: shareImageUrl,
         thumbnail_url: shareImageUrl,
         title: '💵 Get Paid with Money Adz!',
-        description: 'Join Money Adz and earn $PAD tokens by watching ads or completing simple tasks!',
+        description: 'Join Money Adz and earn $Hrum tokens by watching ads or completing simple tasks!',
         caption: '💵 Get paid for completing tasks and watching ads.',
         parse_mode: 'HTML',
         reply_markup: {
