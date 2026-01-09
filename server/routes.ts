@@ -345,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       await storage.incrementExtraAdsWatched(user.id);
-      const rewardAmount = "2";
+      const rewardAmount = "10"; // Updated reward
       await storage.addEarning({
         userId: user.id,
         amount: rewardAmount,

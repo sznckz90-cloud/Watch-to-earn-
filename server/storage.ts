@@ -376,7 +376,7 @@ export class DatabaseStorage implements IStorage {
       .values(transaction)
       .returning();
     
-    console.log(`📊 Transaction recorded: ${transaction.type} of $${transaction.amount} for user ${transaction.userId} - ${transaction.source}`);
+    console.log(`📊 Transaction recorded: ${transaction.type} of ${transaction.amount} Hrum for user ${transaction.userId} - ${transaction.source}`);
     return newTransaction;
   }
 
