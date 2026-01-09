@@ -2,7 +2,6 @@
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 
-
 export async function ensureDatabaseSchema(): Promise<void> {
   try {
     console.log('🔄 [MIGRATION] Ensuring all database tables exist...');
