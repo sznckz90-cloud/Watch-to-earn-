@@ -8,7 +8,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { showNotification } from "@/components/AppNotification";
@@ -419,6 +419,219 @@ export default function Home() {
     });
   };
 
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+  const [adStartTime, setAdStartTime] = useState<number>(0);
+
+  const watchAdMutation = useMutation({
+    mutationFn: async (adType: string) => {
+      const response = await apiRequest("POST", "/api/ads/watch", { adType });
+      if (!response.ok) {
+        const error = await response.json();
+        throw { status: response.status, ...error };
+      }
+      return response.json();
+    },
+    onSuccess: async (data) => {
+      queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
+        ...old,
+        balance: data.newBalance,
+        adsWatchedToday: data.adsWatchedToday
+      }));
+      
+      queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
+      
+      showNotification(`You received ${data.rewardPAD || 1000} PAD on your balance`, "success");
+      setLoadingProvider(null);
+    },
+    onError: (error: any) => {
+      if (error.status === 429) {
+        const limit = error.limit || appSettings?.dailyAdLimit || 50;
+        showNotification(`Daily ad limit reached (${limit} ads/day)`, "error");
+      } else if (error.status === 401 || error.status === 403) {
+        showNotification("Authentication error. Please refresh the page.", "error");
+      } else if (error.message) {
+        showNotification(`Error: ${error.message}`, "error");
+      } else {
+        showNotification("Network error. Check your connection and try again.", "error");
+      }
+      setLoadingProvider(null);
+    },
+  });
+
+  const handleWatchAd = async (providerId: string) => {
+    if (loadingProvider) return;
+    
+    setLoadingProvider(providerId);
+    const startTime = Date.now();
+    setAdStartTime(startTime);
+    
+    const handleAdCompletion = () => {
+      const watchDuration = Date.now() - startTime;
+      if (watchDuration < 3000) {
+        showNotification("Claiming too fast!", "error");
+        setLoadingProvider(null);
+        return;
+      }
+      watchAdMutation.mutate(providerId);
+    };
+
+    const handleAdError = (error?: any) => {
+      showNotification("Ad failed to load. Please try again.", "error");
+      setLoadingProvider(null);
+    };
+    
+    try {
+      switch (providerId) {
+        case 'monetag':
+          if (typeof (window as any).show_10013974 === 'function') {
+            (window as any).show_10013974()
+              .then(() => {
+                handleAdCompletion();
+              })
+              .catch((error: any) => {
+                console.error('❌ Monetag ad error:', error);
+                handleAdError(error);
+              });
+          } else {
+            showNotification("Monetag not available. Try again later.", "error");
+            setLoadingProvider(null);
+          }
+          break;
+          
+        case 'adexora':
+          if (typeof (window as any).showAdexora === 'function') {
+            (window as any).showAdexora()
+              .then(() => {
+                handleAdCompletion();
+              })
+              .catch((error: any) => {
+                console.error('❌ Adexora ad error:', error);
+                handleAdError(error);
+              });
+          } else {
+            showNotification("Adexora not available. Please open in Telegram app.", "error");
+            setLoadingProvider(null);
+          }
+          break;
+          
+        case 'adextra':
+          const adExtraContainer = document.getElementById('353c332d4f2440f448057df79cb605e5d3d64ef0');
+          if (adExtraContainer) {
+            adExtraContainer.style.display = 'flex';
+            adExtraContainer.style.alignItems = 'center';
+            adExtraContainer.style.justifyContent = 'center';
+            
+            let closeBtn = document.getElementById('adextra-close-btn') as HTMLButtonElement | null;
+            let skipBtn = document.getElementById('adextra-skip-btn') as HTMLButtonElement | null;
+            
+            if (!closeBtn) {
+              closeBtn = document.createElement('button');
+              closeBtn.id = 'adextra-close-btn';
+              closeBtn.style.cssText = 'position:absolute;top:20px;right:20px;background:#4cd3ff;color:#000;border:none;padding:12px 24px;border-radius:8px;font-weight:bold;cursor:pointer;z-index:10000;display:none;';
+              closeBtn.textContent = 'Claim Reward';
+              adExtraContainer.appendChild(closeBtn);
+            }
+            
+            if (!skipBtn) {
+              skipBtn = document.createElement('button');
+              skipBtn.id = 'adextra-skip-btn';
+              skipBtn.style.cssText = 'position:absolute;top:20px;left:20px;background:#333;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;z-index:10000;';
+              skipBtn.textContent = 'Close';
+              adExtraContainer.appendChild(skipBtn);
+            }
+            
+            closeBtn.style.display = 'none';
+            skipBtn.style.display = 'block';
+            let adLoadedAndViewed = false;
+            let contentCheckInterval: NodeJS.Timeout | null = null;
+            
+            const checkForAdContent = () => {
+              const hasContent = adExtraContainer.querySelector('iframe, img, video, div[class]');
+              return hasContent !== null && adExtraContainer.childElementCount > 2;
+            };
+            
+            contentCheckInterval = setInterval(() => {
+              if (checkForAdContent()) {
+                if (contentCheckInterval) clearInterval(contentCheckInterval);
+                setTimeout(() => {
+                  if (closeBtn) {
+                    closeBtn.style.display = 'block';
+                    adLoadedAndViewed = true;
+                  }
+                }, 5000);
+              }
+            }, 500);
+            
+            setTimeout(() => {
+              if (contentCheckInterval) clearInterval(contentCheckInterval);
+              if (!adLoadedAndViewed && closeBtn) {
+                closeBtn.style.display = 'none';
+              }
+            }, 15000);
+            
+            const handleClaim = () => {
+              if (contentCheckInterval) clearInterval(contentCheckInterval);
+              adExtraContainer.style.display = 'none';
+              if (closeBtn) closeBtn.style.display = 'none';
+              if (skipBtn) skipBtn.style.display = 'none';
+              closeBtn?.removeEventListener('click', handleClaim);
+              skipBtn?.removeEventListener('click', handleSkip);
+              
+              if (adLoadedAndViewed) {
+                handleAdCompletion();
+              } else {
+                showNotification("Ad did not load properly", "error");
+                setLoadingProvider(null);
+              }
+            };
+            
+            const handleSkip = () => {
+              if (contentCheckInterval) clearInterval(contentCheckInterval);
+              adExtraContainer.style.display = 'none';
+              if (closeBtn) closeBtn.style.display = 'none';
+              if (skipBtn) skipBtn.style.display = 'none';
+              closeBtn?.removeEventListener('click', handleClaim);
+              skipBtn?.removeEventListener('click', handleSkip);
+              showNotification("Ad skipped - no reward earned", "info");
+              setLoadingProvider(null);
+            };
+            
+            closeBtn.addEventListener('click', handleClaim);
+            skipBtn.addEventListener('click', handleSkip);
+          } else {
+            showNotification("AdExtra not available. Try again later.", "error");
+            setLoadingProvider(null);
+          }
+          break;
+          
+        case 'adsgram':
+          if ((window as any).Adsgram) {
+            try {
+              await (window as any).Adsgram.init({ blockId: "int-18225" }).show();
+              handleAdCompletion();
+            } catch (error) {
+              handleAdError(error);
+            }
+          } else {
+            showNotification("Adsgram not available. Try again later.", "error");
+            setLoadingProvider(null);
+          }
+          break;
+          
+        default:
+          showNotification("Unknown ad provider", "error");
+          setLoadingProvider(null);
+      }
+    } catch (error) {
+      showNotification("Ad display failed. Please try again.", "error");
+      setLoadingProvider(null);
+    }
+  };
+
+  const adsWatchedToday = (user as any)?.adsWatchedToday || 0;
+  const dailyLimit = appSettings?.dailyAdLimit || 50;
+
   const handleConvertClick = () => {
     setConvertPopupOpen(true);
   };
@@ -428,8 +641,7 @@ export default function Home() {
   const balanceUSD = parseFloat((user as User)?.usdBalance || "0");
   const balanceBUG = parseFloat((user as User)?.bugBalance || "0");
   
-  const userUID = (user as User)?.referralCode || "00000";
-  const displayName = (user as User)?.firstName || (user as User)?.username || "User";
+  const displayName = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || (user as User)?.firstName || (user as User)?.username || "User";
   const photoUrl = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
 
   const handleConvertConfirm = async () => {
@@ -771,27 +983,9 @@ export default function Home() {
                 >
                   {(user as User)?.firstName || (user as User)?.username || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
                 </span>
-                <div 
-                  className={`bg-[#B9FF66]/10 px-2 py-0.5 rounded-full w-fit mt-1 ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
-                  onClick={() => isAdmin && setLocation("/admin")}
-                >
-                  <span className="text-[#B9FF66] text-[9px] font-bold tracking-tight">
-                    UID: {userUID}
-                  </span>
-                </div>
               </div>
             </div>
             <div className="flex items-center gap-2 relative z-[100]">
-              <div 
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Connect wallet clicked");
-                }}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-full px-5 py-2.5 text-sm font-bold border border-[#B9FF66]/20 transition-all shadow-sm cursor-pointer"
-              >
-                Connect wallet
-              </div>
               <div
                 onClick={(e) => {
                   e.preventDefault();
@@ -839,7 +1033,7 @@ export default function Home() {
             </Button>
             <Button
               onClick={() => setPromoPopupOpen(true)}
-              className="bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border-none h-auto transition-transform active:scale-95 shadow-md shadow-[#B9FF66]/5"
+              className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
             >
               <Ticket className="w-4 h-4" />
               Promo
@@ -849,6 +1043,82 @@ export default function Home() {
 
         <div className="mt-3">
           <AdWatchingSection user={user as User} />
+        </div>
+
+        {/* Ad Providers Integrated from AdList */}
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-4 justify-between">
+            <div className="flex items-center gap-2">
+              <Play className="w-5 h-5 text-[#B9FF66]" />
+              <h2 className="text-lg font-bold text-white">Ad Providers</h2>
+            </div>
+            <div className="text-[10px] font-bold text-[#8E8E93] bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+              TODAY: <span className="text-[#B9FF66]">{adsWatchedToday}/{dailyLimit}</span>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {[
+              {
+                id: "monetag",
+                name: "Monetag Ads",
+                description: "Watch video ads to earn rewards",
+                expectedReward: "500-1000 PAD",
+                icon: <Film className="w-5 h-5 text-purple-400" />,
+                iconBg: "bg-purple-500/20"
+              },
+              {
+                id: "adsgram",
+                name: "Adsgram",
+                description: "Interactive ad experiences",
+                expectedReward: "300-800 PAD",
+                icon: <Tv className="w-5 h-5 text-blue-400" />,
+                iconBg: "bg-blue-500/20"
+              },
+              {
+                id: "adexora",
+                name: "Adexora",
+                description: "Premium brand advertisements",
+                expectedReward: "400-900 PAD",
+                icon: <Target className="w-5 h-5 text-green-400" />,
+                iconBg: "bg-green-500/20"
+              },
+              {
+                id: "adextra",
+                name: "AdExtra",
+                description: "Bonus reward advertisements",
+                expectedReward: "200-600 PAD",
+                icon: <Star className="w-5 h-5 text-yellow-400" />,
+                iconBg: "bg-yellow-500/20"
+              }
+            ].map((provider) => (
+              <div 
+                key={provider.id}
+                className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-3 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-12 h-12 rounded-xl ${provider.iconBg} border border-white/5 flex items-center justify-center flex-shrink-0`}>
+                    {provider.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-white leading-tight">{provider.name}</h3>
+                    <p className="text-[11px] text-[#8E8E93] mb-1 leading-tight">{provider.description}</p>
+                    <div className="flex items-center gap-1.5">
+                      <Gift className="w-3 h-3 text-[#B9FF66] flex-shrink-0" />
+                      <span className="text-[11px] font-bold text-[#B9FF66]">{provider.expectedReward}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => handleWatchAd(provider.id)}
+                  disabled={loadingProvider !== null || adsWatchedToday >= dailyLimit}
+                  className="bg-[#B9FF66] hover:bg-[#a8e65a] text-black font-bold h-9 px-4 rounded-xl text-xs transition-transform active:scale-95"
+                >
+                  {loadingProvider === provider.id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Start'}
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-3 px-0">
