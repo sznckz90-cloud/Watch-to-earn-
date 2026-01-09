@@ -39,8 +39,8 @@ export const users = pgTable("users", {
   personalCode: text("personal_code"),
   balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // Hrum stored as BIGINT (integer with large precision)
   tonBalance: decimal("ton_balance", { precision: 30, scale: 10 }).default("0"),
-  tonBalanceLegacy: decimal("usd_balance", { precision: 30, scale: 10 }).default("0"), // Legacy USD field renamed
-  pdzBalance: decimal("pdz_balance", { precision: 30, scale: 10 }).default("0"),
+  tonBalanceLegacy: decimal("ton_balance_legacy", { precision: 30, scale: 10 }).default("0"), // Legacy TON field renamed
+  hrumBalance: decimal("hrum_balance", { precision: 30, scale: 10 }).default("0"),
   bugBalance: decimal("bug_balance", { precision: 30, scale: 10 }).default("0"), // BUG currency for withdrawal requirements
   withdrawBalance: decimal("withdraw_balance", { precision: 30, scale: 10 }),
   totalEarnings: decimal("total_earnings", { precision: 30, scale: 10 }),
@@ -160,7 +160,7 @@ export const promoCodes = pgTable("promo_codes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   code: varchar("code").notNull().unique(),
   rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).notNull(),
-  rewardType: varchar("reward_type").default('Hrum').notNull(), // 'Hrum' or 'PDZ'
+  rewardType: varchar("reward_type").default('Hrum').notNull(), // 'Hrum'
   rewardCurrency: varchar("reward_currency").default('TON'),
   usageLimit: integer("usage_limit"),
   usageCount: integer("usage_count").default(0),
@@ -253,7 +253,7 @@ export const taskClicks = pgTable("task_clicks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   taskId: varchar("task_id").references(() => advertiserTasks.id, { onDelete: 'cascade' }).notNull(),
   publisherId: varchar("publisher_id").references(() => users.id).notNull(),
-  rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).default("0.0001750").notNull(), // 1750 PAD = 0.000175 TON
+  rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).default("0.0001750").notNull(), // 1750 Hrum = 0.000175 TON
   clickedAt: timestamp("clicked_at").defaultNow(),
 }, (table) => [
   unique("task_clicks_unique").on(table.taskId, table.publisherId),
@@ -343,39 +343,39 @@ export const insertDailyMissionSchema = createInsertSchema(dailyMissions).omit({
 export const insertBlockedCountrySchema = createInsertSchema(blockedCountries).omit({ id: true, createdAt: true });
 
 // Types
-export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.TON inferInsert;
+export type User = typeof users.TON inferSelect;
 export type InsertEarning = z.infer<typeof insertEarningSchema>;
-export type Earning = typeof earnings.$inferSelect;
+export type Earning = typeof earnings.TON inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
-export type Withdrawal = typeof withdrawals.$inferSelect;
-export type Referral = typeof referrals.$inferSelect;
+export type Withdrawal = typeof withdrawals.TON inferSelect;
+export type Referral = typeof referrals.TON inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
-export type ReferralCommission = typeof referralCommissions.$inferSelect;
+export type ReferralCommission = typeof referralCommissions.TON inferSelect;
 export type InsertReferralCommission = z.infer<typeof insertReferralCommissionSchema>;
-export type PromoCode = typeof promoCodes.$inferSelect;
+export type PromoCode = typeof promoCodes.TON inferSelect;
 export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
-export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect;
+export type PromoCodeUsage = typeof promoCodeUsage.TON inferSelect;
 export type InsertPromoCodeUsage = z.infer<typeof insertPromoCodeUsageSchema>;
-export type Transaction = typeof transactions.$inferSelect;
+export type Transaction = typeof transactions.TON inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type UserBalance = typeof userBalances.$inferSelect;
+export type UserBalance = typeof userBalances.TON inferSelect;
 export type InsertUserBalance = z.infer<typeof insertUserBalanceSchema>;
-export type DailyTask = typeof dailyTasks.$inferSelect;
+export type DailyTask = typeof dailyTasks.TON inferSelect;
 export type InsertDailyTask = z.infer<typeof insertDailyTaskSchema>;
-export type AdminSetting = typeof adminSettings.$inferSelect;
+export type AdminSetting = typeof adminSettings.TON inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
-export type AdvertiserTask = typeof advertiserTasks.$inferSelect;
+export type AdvertiserTask = typeof advertiserTasks.TON inferSelect;
 export type InsertAdvertiserTask = z.infer<typeof insertAdvertiserTaskSchema>;
-export type TaskClick = typeof taskClicks.$inferSelect;
+export type TaskClick = typeof taskClicks.TON inferSelect;
 export type InsertTaskClick = z.infer<typeof insertTaskClickSchema>;
-export type BanLog = typeof banLogs.$inferSelect;
+export type BanLog = typeof banLogs.TON inferSelect;
 export type InsertBanLog = z.infer<typeof insertBanLogSchema>;
-export type SpinData = typeof spinData.$inferSelect;
+export type SpinData = typeof spinData.TON inferSelect;
 export type InsertSpinData = z.infer<typeof insertSpinDataSchema>;
-export type SpinHistory = typeof spinHistory.$inferSelect;
+export type SpinHistory = typeof spinHistory.TON inferSelect;
 export type InsertSpinHistory = z.infer<typeof insertSpinHistorySchema>;
-export type DailyMission = typeof dailyMissions.$inferSelect;
+export type DailyMission = typeof dailyMissions.TON inferSelect;
 export type InsertDailyMission = z.infer<typeof insertDailyMissionSchema>;
-export type BlockedCountry = typeof blockedCountries.$inferSelect;
+export type BlockedCountry = typeof blockedCountries.TON inferSelect;
 export type InsertBlockedCountry = z.infer<typeof insertBlockedCountrySchema>;
