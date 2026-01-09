@@ -18,15 +18,15 @@ declare global {
 }
 
 interface WalletSectionProps {
-  padBalance: number;
-  usdBalance: number;
+  hrumBalance: number;
+  tonBalance: number;
   uid: string;
   isAdmin?: boolean;
   onAdminClick?: () => void;
   onWithdraw: () => void;
 }
 
-export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, onAdminClick, onWithdraw }: WalletSectionProps) {
+export default function WalletSection({ hrumBalance, tonBalance, uid, isAdmin, onAdminClick, onWithdraw }: WalletSectionProps) {
   const queryClient = useQueryClient();
   const [isShowingAds, setIsShowingAds] = useState(false);
   const [currentAdStep, setCurrentAdStep] = useState<'idle' | 'monetag' | 'adsgram' | 'converting'>('idle');
@@ -38,11 +38,11 @@ export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, on
 
   const convertMutation = useMutation({
     mutationFn: async (amount: number) => {
-      const res = await fetch("/api/convert-to-usd", {
+      const res = await fetch("/api/convert-to-ton", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ padAmount: amount }),
+        body: JSON.stringify({ hrumAmount: amount }),
       });
 
       const data = await res.json();
@@ -103,10 +103,10 @@ export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, on
   };
 
   const handleConvert = async () => {
-    const minimumConvertPAD = appSettings?.minimumConvertPAD || 10000;
+    const minimumConvertHrum = appSettings?.minimumConvertHrum || 10000;
     
-    if (padBalance < minimumConvertPAD) {
-      showNotification(`Minimum ${minimumConvertPAD.toLocaleString()} PAD required.`, "error");
+    if (hrumBalance < minimumConvertHrum) {
+      showNotification(`Minimum TON {minimumConvertHrum.toLocaleString()} Hrum required.`, "error");
       return;
     }
 
@@ -135,7 +135,7 @@ export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, on
       if (monetagResult.unavailable) {
         // If Monetag unavailable, proceed with just AdsGram
         setCurrentAdStep('converting');
-        convertMutation.mutate(padBalance);
+        convertMutation.mutate(hrumBalance);
         return;
       }
       
@@ -147,7 +147,7 @@ export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, on
       }
       
       setCurrentAdStep('converting');
-      convertMutation.mutate(padBalance);
+      convertMutation.mutate(hrumBalance);
       
     } catch (error) {
       console.error('Convert error:', error);
@@ -162,10 +162,10 @@ export default function WalletSection({ padBalance, usdBalance, uid, isAdmin, on
     <Card className="minimal-card mb-3">
       <CardContent className="pt-3 pb-3">
         <div className="flex items-center justify-between gap-3">
-          {/* PAD Balance */}
+          {/* Hrum Balance */}
           <div className="flex items-center gap-2">
             <DiamondIcon size={18} withGlow />
-            <div className="text-white font-bold text-xl">{Math.floor(padBalance).toLocaleString()} PAD</div>
+            <div className="text-white font-bold text-xl">{Math.floor(hrumBalance).toLocaleString()} Hrum</div>
           </div>
 
           {/* Convert Button - Same size as Streak Claim button */}

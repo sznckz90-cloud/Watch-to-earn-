@@ -49,30 +49,23 @@ export default function CryptoConversionWidget() {
 
       {/* Current TON Price */}
       <div className="bg-white/5 rounded-xl p-3 mb-4">
-        <div className="text-gray-400 text-xs mb-1">1 TON in USD</div>
+        <div className="text-gray-400 text-xs mb-1">1 TON in TON</div>
         <div className="text-2xl font-black text-white">
-          ${conversions.tonPriceUSD}
+          TON {conversions.tonPriceTON}
         </div>
       </div>
 
       {/* Conversions */}
       <div className="space-y-2 mb-4">
         <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
-          <span className="text-xs text-gray-400">10,000 PAD</span>
-          <span className="text-sm font-bold text-[#ADFF2F]">= $1</span>
-        </div>
-        
-        <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
-          <span className="text-xs text-gray-400">$1</span>
-          <span className="text-sm font-bold text-blue-400">
-            ≈ {conversions.tonPerDollar} TON
-          </span>
+          <span className="text-xs text-gray-400">10,000 Hrum</span>
+          <span className="text-sm font-bold text-[#ADFF2F]">= 1 TON</span>
         </div>
         
         <div className="flex justify-between items-center p-2 bg-white/5 rounded-lg">
           <span className="text-xs text-gray-400">1 TON</span>
-          <span className="text-sm font-bold text-emerald-400">
-            ≈ {conversions.padPerTon.toLocaleString()} PAD
+          <span className="text-sm font-bold text-blue-400">
+            ≈ 10,000 Hrum
           </span>
         </div>
       </div>
