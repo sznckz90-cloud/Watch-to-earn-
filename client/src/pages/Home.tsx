@@ -185,11 +185,11 @@ export default function Home() {
 
   const convertMutation = useMutation({
     mutationFn: async ({ amount, convertTo }: { amount: number; convertTo: string }) => {
-      const res = await fetch("/api/convert-to-usd", {
+      const res = await fetch("/api/convert-to-ton", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ padAmount: amount, convertTo }),
+        body: JSON.stringify({ hrumAmount: amount, convertTo }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -229,8 +229,8 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       const rewardAmount = parseFloat(data.rewardEarned || '0');
       if (rewardAmount > 0) {
-        const earnedPAD = Math.round(rewardAmount);
-        showNotification(`You've claimed +${earnedPAD} PAD!`, "success");
+        const earnedHrum = Math.round(rewardAmount);
+        showNotification(`You've claimed +${earnedHrum} Hrum!`, "success");
       } else {
         showNotification("You've claimed your streak bonus!", "success");
       }
@@ -335,8 +335,8 @@ export default function Home() {
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       await queryClient.refetchQueries({ queryKey: ['/api/tasks/home/unified'] });
-      const padReward = Number(data.reward ?? 0);
-      showNotification(`+${padReward.toLocaleString()} PAD earned!`, 'success');
+      const hrumReward = Number(data.reward ?? 0);
+      showNotification(`+${hrumReward.toLocaleString()} Hrum earned!`, 'success');
     },
     onError: (error: any) => {
       showNotification(error.message || 'Failed to claim reward', 'error');
@@ -516,7 +516,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
       
-      showNotification(`You received ${data.rewardPAD || 1000} PAD on your balance`, "success");
+      showNotification(`You received ${data.rewardHrum || 1000} Hrum on your balance`, "success");
       setLoadingProvider(null);
     },
     onError: (error: any) => {

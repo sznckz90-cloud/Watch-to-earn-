@@ -97,8 +97,8 @@ export default function Withdraw() {
   });
 
   const walletChangeFee = appSettings?.walletChangeFee || 5000;
-  const padBalance = parseFloat(user?.balance || "0");
-  const usdBalance = parseFloat(user?.usdBalance || "0");
+  const hrumBalance = parseFloat(user?.balance || "0");
+  const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
   
@@ -109,36 +109,36 @@ export default function Withdraw() {
   
   // Dynamic BUG requirement: scales with selected package or full balance
   const withdrawalBugRequirementEnabled = appSettings?.withdrawalBugRequirementEnabled !== false;
-  const bugPerUsd = appSettings?.bugPerUsd ?? 10000;
+  const bugPerTON = appSettings?.bugPerTON ?? 10000;
   
-  // Withdrawal packages from admin settings - compute BUG requirements using bugPerUsd
+  // Withdrawal packages from admin settings - compute BUG requirements using bugPerTON
   const defaultPackages = [
-    {usd: 0.2},
-    {usd: 0.4},
-    {usd: 0.8}
+    {ton: 0.2},
+    {ton: 0.4},
+    {ton: 0.8}
   ];
   const rawPackages = appSettings?.withdrawalPackages || defaultPackages;
-  const withdrawalPackages = rawPackages.map((pkg: {usd: number, bug?: number}) => ({
-    usd: pkg.usd,
-    bug: pkg.bug ?? Math.ceil(pkg.usd * bugPerUsd)
+  const withdrawalPackages = rawPackages.map((pkg: {ton: number, bug?: number}) => ({
+    ton: pkg.ton,
+    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPerTON)
   }));
   
   // Get the withdrawal amount based on selected package
-  const getWithdrawalUsdAmount = () => {
+  const getWithdrawalTONAmount = () => {
     if (selectedPackage === 'FULL') {
-      return usdBalance;
+      return tonBalance;
     }
     return selectedPackage;
   };
   
-  // Calculate BUG requirement based on selected package - always use bugPerUsd for consistency
-  const getBugRequirementForAmount = (usdAmount: number) => {
-    return Math.ceil(usdAmount * bugPerUsd);
+  // Calculate BUG requirement based on selected package - always use bugPerTON for consistency
+  const getBugRequirementForAmount = (tonAmount: number) => {
+    return Math.ceil(tonAmount * bugPerTON);
   };
   
   const getPackageBugRequirement = () => {
     if (selectedPackage === 'FULL') {
-      return getBugRequirementForAmount(usdBalance);
+      return getBugRequirementForAmount(tonBalance);
     }
     return getBugRequirementForAmount(selectedPackage as number);
   };
@@ -312,7 +312,7 @@ export default function Withdraw() {
       } else if (errorMessage.toLowerCase().includes("pending")) {
         showNotification("You already have a pending withdrawal. Please wait for it to be processed.", "error");
       } else if (errorMessage.toLowerCase().includes("insufficient")) {
-        showNotification("Insufficient balance for withdrawal. Please convert PAD to USD first.", "error");
+        showNotification("Insufficient balance for withdrawal. Please convert Hrum to TON first.", "error");
       } else {
         showNotification(errorMessage, "error");
       }
@@ -373,8 +373,8 @@ export default function Withdraw() {
       return;
     }
 
-    const withdrawAmount = getWithdrawalUsdAmount();
-    if (withdrawAmount <= 0 || usdBalance < withdrawAmount) {
+    const withdrawAmount = getWithdrawalTONAmount();
+    if (withdrawAmount <= 0 || tonBalance < withdrawAmount) {
       showNotification("Insufficient balance for this withdrawal package", "error");
       return;
     }
@@ -387,21 +387,21 @@ export default function Withdraw() {
   
   const calculateWithdrawalAmount = () => {
     const feePercent = selectedPaymentSystem?.fee || 5;
-    const withdrawAmount = getWithdrawalUsdAmount();
+    const withdrawAmount = getWithdrawalTONAmount();
     return withdrawAmount * (1 - feePercent / 100);
   };
   
   // Check if user can afford a package
-  const canAffordPackage = (pkgUsd: number | 'FULL') => {
-    if (pkgUsd === 'FULL') return usdBalance > 0;
-    return usdBalance >= pkgUsd;
+  const canAffordPackage = (pkgTON: number | 'FULL') => {
+    if (pkgTON === 'FULL') return tonBalance > 0;
+    return tonBalance >= pkgTON;
   };
   
-  // Check if user has enough BUG for a package - use consistent bugPerUsd calculation
-  const hasEnoughBugForPackage = (pkgUsd: number | 'FULL') => {
+  // Check if user has enough BUG for a package - use consistent bugPerTON calculation
+  const hasEnoughBugForPackage = (pkgTON: number | 'FULL') => {
     if (!withdrawalBugRequirementEnabled) return true;
-    const usdAmount = pkgUsd === 'FULL' ? usdBalance : pkgUsd;
-    const required = getBugRequirementForAmount(usdAmount);
+    const tonAmount = pkgTON === 'FULL' ? tonBalance : pkgTON;
+    const required = getBugRequirementForAmount(tonAmount);
     return bugBalance >= required;
   };
 
@@ -429,7 +429,7 @@ export default function Withdraw() {
     return 'text-gray-500';
   };
 
-  const formatUSD = (amount: string) => {
+  const formatTON = (amount: string) => {
     return parseFloat(amount).toFixed(2);
   };
 
@@ -526,16 +526,16 @@ export default function Withdraw() {
                 
                 <div className="grid grid-cols-3 gap-2">
                   {withdrawalPackages.map((pkg) => {
-                    const isSelected = selectedPackage === pkg.usd;
-                    const canAfford = canAffordPackage(pkg.usd);
-                    const hasBug = hasEnoughBugForPackage(pkg.usd);
-                    const bugRequired = getBugRequirementForAmount(pkg.usd);
+                    const isSelected = selectedPackage === pkg.ton;
+                    const canAfford = canAffordPackage(pkg.ton);
+                    const hasBug = hasEnoughBugForPackage(pkg.ton);
+                    const bugRequired = getBugRequirementForAmount(pkg.ton);
                     const isDisabled = !canAfford;
                     
                     return (
                       <button
-                        key={pkg.usd}
-                        onClick={() => !isDisabled && setSelectedPackage(pkg.usd)}
+                        key={pkg.ton}
+                        onClick={() => !isDisabled && setSelectedPackage(pkg.ton)}
                         disabled={isDisabled}
                         className={`relative p-2 rounded-lg border transition-all text-center ${
                           isSelected
@@ -550,7 +550,7 @@ export default function Withdraw() {
                             <Check className="w-2.5 h-2.5 text-black" />
                           </div>
                         )}
-                        <div className="text-sm font-bold text-white">${pkg.usd.toFixed(2)}</div>
+                        <div className="text-sm font-bold text-white">{pkg.ton.toFixed(2)} TON</div>
                         <div className={`text-[10px] flex items-center justify-center gap-0.5 ${hasBug ? 'text-green-400' : 'text-red-400'}`}>
                           <Bug className="w-2.5 h-2.5" />
                           {bugRequired.toLocaleString()}
@@ -561,12 +561,12 @@ export default function Withdraw() {
                 </div>
                   
                 <button
-                  onClick={() => usdBalance > 0 && setSelectedPackage('FULL')}
-                  disabled={usdBalance <= 0}
+                  onClick={() => tonBalance > 0 && setSelectedPackage('FULL')}
+                  disabled={tonBalance <= 0}
                   className={`relative w-full p-2 rounded-lg border transition-all text-center ${
                     selectedPackage === 'FULL'
                       ? 'border-[#4cd3ff] bg-[#4cd3ff]/10 ring-1 ring-[#4cd3ff]/50'
-                      : usdBalance <= 0
+                      : tonBalance <= 0
                         ? 'border-[#2a2a2a] bg-[#0d0d0d] opacity-40 cursor-not-allowed'
                         : 'border-[#2a2a2a] bg-[#0d0d0d] hover:border-[#4cd3ff]/50'
                   }`}
@@ -577,10 +577,10 @@ export default function Withdraw() {
                     </div>
                   )}
                   <div className="text-sm font-bold text-white">FULL BALANCE</div>
-                  <div className="text-[10px] text-gray-400">${usdBalance.toFixed(2)}</div>
+                  <div className="text-[10px] text-gray-400">{tonBalance.toFixed(2)} TON</div>
                   <div className={`text-[10px] flex items-center justify-center gap-0.5 ${hasEnoughBugForPackage('FULL') ? 'text-green-400' : 'text-red-400'}`}>
                     <Bug className="w-2.5 h-2.5" />
-                    {Math.ceil(usdBalance * bugPerUsd).toLocaleString()} BUG
+                    {getPackageBugRequirement().toLocaleString()} BUG
                   </div>
                 </button>
                 
