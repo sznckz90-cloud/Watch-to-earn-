@@ -565,6 +565,47 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userBalances.userId, userId));
   }
 
+  async convertHrumToTON(userId: string, hrumAmount: number): Promise<{ success: boolean; message: string; tonAmount?: number }> {
+    const user = await this.getUser(userId);
+    if (!user) return { success: false, message: "User not found" };
+
+    const currentBalance = parseFloat(user.balance || "0");
+    if (currentBalance < hrumAmount) {
+      return { success: false, message: "Insufficient Hrum balance" };
+    }
+
+    const tonAmount = hrumAmount / 10000;
+
+    await db.transaction(async (tx) => {
+      // Deduct Hrum
+      await tx.update(users)
+        .set({
+          balance: sql`${users.balance} - ${hrumAmount.toString()}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      // Add TON
+      await tx.update(users)
+        .set({
+          tonBalance: sql`${users.tonBalance} + ${tonAmount.toString()}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, userId));
+
+      // Record transaction
+      await tx.insert(transactions).values({
+        userId,
+        amount: hrumAmount.toString(),
+        type: 'deduction',
+        source: 'conversion',
+        description: `Converted ${hrumAmount} Hrum to ${tonAmount} TON`,
+      });
+    });
+
+    return { success: true, message: "Conversion successful", tonAmount };
+  }
+
   // Helper function to get the correct day bucket start (12:00 PM UTC)
   private getDayBucketStart(date: Date): Date {
     const bucketStart = new Date(date);
@@ -615,7 +656,7 @@ export class DatabaseStorage implements IStorage {
         userId,
         amount: rewardEarned,
         source: 'bonus_claim',
-        description: `Bonus claim - earned 1 PAD`,
+        description: `Bonus claim - earned 1 Hrum`,
       });
     }
 

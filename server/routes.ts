@@ -358,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         newBalance: updatedUser?.balance,
         extraAdsWatchedToday: updatedUser?.extraAdsWatchedToday,
-        rewardPAD: rewardAmount,
+        rewardHrum: rewardAmount,
       });
     } catch (error) {
       console.error("Extra earn ad reward error:", error);
@@ -553,29 +553,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Secure verify-channel endpoint for task completion
-  app.post('/api/tasks/verify/channel', authenticateTelegram, async (req: any, res) => {
+  app.post("/api/convert-to-ton", authenticateTelegram, async (req: any, res) => {
     try {
-      const { channelId } = req.body;
-      const sessionUser = req.user?.user;
-      const telegramId = sessionUser?.telegram_id;
-      
-      if (!telegramId || !channelId) {
-        return res.status(400).json({ success: false, message: 'Missing telegramId or channelId' });
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+
+      const { hrumAmount } = req.body;
+      if (!hrumAmount || isNaN(hrumAmount) || hrumAmount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
       }
-      
-      const botToken = process.env.TELEGRAM_BOT_TOKEN;
-      if (!botToken) {
-        return res.status(500).json({ success: false, message: 'Bot token not configured' });
+
+      const result = await storage.convertHrumToTON(user.id, parseFloat(hrumAmount));
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
       }
-      
-      const userId = parseInt(telegramId, 10);
-      const isJoined = await verifyChannelMembership(userId, channelId, botToken);
-      
-      res.json({ success: true, isJoined });
+
+      res.json(result);
     } catch (error) {
-      console.error('❌ verify-channel error:', error);
-      res.status(500).json({ success: false, message: 'Failed to verify channel membership' });
+      console.error("Conversion error:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
