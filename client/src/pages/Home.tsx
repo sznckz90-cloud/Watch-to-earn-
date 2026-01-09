@@ -11,6 +11,7 @@ import { SettingsPopup } from "@/components/SettingsPopup";
 import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { showNotification } from "@/components/AppNotification";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
@@ -425,6 +426,7 @@ export default function Home() {
   const { data: stats } = useQuery<any>({
     queryKey: ['/api/referrals/stats'],
     retry: false,
+    staleTime: 60000,
   });
 
   const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MoneyAdzbot';
@@ -444,10 +446,45 @@ export default function Home() {
   const shareReferralLink = async () => {
     if (!referralLink || isSharing) return;
     setIsSharing(true);
+    
     try {
       const tgWebApp = (window as any).Telegram?.WebApp;
+      
+      // Native Telegram share: Use shareMessage() with prepared message from backend
+      if (tgWebApp?.shareMessage) {
+        try {
+          // First, prepare the message on the backend
+          const response = await fetch('/api/share/prepare-message', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const data = await response.json();
+          
+          if (data.success && data.messageId) {
+            // Use the native Telegram share dialog with prepared message
+            tgWebApp.shareMessage(data.messageId, (success: boolean) => {
+              if (success) {
+                showNotification('Message shared successfully!', 'success');
+              }
+              setIsSharing(false);
+            });
+            return;
+          } else if (data.fallbackUrl) {
+            // Backend returned fallback URL
+            tgWebApp.openTelegramLink(data.fallbackUrl);
+            setIsSharing(false);
+            return;
+          }
+        } catch (error) {
+          console.error('Prepare message error:', error);
+        }
+      }
+      
+      // Fallback: Use Telegram's native share URL dialog
       const shareTitle = `💵 Get paid for completing tasks and watching ads.`;
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareTitle)}`;
+      
       if (tgWebApp?.openTelegramLink) {
         tgWebApp.openTelegramLink(shareUrl);
       } else {
@@ -456,6 +493,7 @@ export default function Home() {
     } catch (error) {
       console.error('Share error:', error);
     }
+    
     setIsSharing(false);
   };
 
@@ -993,7 +1031,7 @@ export default function Home() {
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
         {/* Profile Card Section */}
-        <div className="bg-[#0d0d0d] rounded-[24px] p-4 mb-3 border border-[#1a1a1a]">
+        <div className="bg-[#0d0d0d] rounded-[24px] p-4 border border-[#1a1a1a]">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2.5">
               <div 
@@ -1077,9 +1115,9 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-2">
           <Tabs defaultValue="earn" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-14 p-0 rounded-none mb-6">
+            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
               <TabsTrigger 
                 value="earn" 
                 className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
@@ -1198,56 +1236,39 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="referrals" className="mt-0 outline-none">
-              <div className="space-y-4">
-                <div className="bg-[#0d0d0d] border border-[#1a1a1a] rounded-2xl p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/10">
-                      <Users className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-white uppercase tracking-tight">Referral Program</h3>
-                      <p className="text-[10px] text-[#8E8E93] font-bold uppercase tracking-wider">Earn from friends</p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-xs text-[#8E8E93] leading-relaxed mb-6">
-                    Invite friends and get <span className="text-[#B9FF66] font-bold">{appSettings?.affiliateCommission || 10}%</span> of their earnings automatically.
-                  </p>
+              <div className="flex flex-col items-center text-center pt-4">
+                <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
+                <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
+                  10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardPAD || 50} PAD</span> instantly
+                </p>
 
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
-                      <p className="text-[9px] font-bold text-[#8E8E93] uppercase mb-1">Total Invites</p>
-                      <p className="text-xl font-black text-white">{stats?.totalInvites || 0}</p>
-                    </div>
-                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
-                      <p className="text-[9px] font-bold text-[#8E8E93] uppercase mb-1">Successful</p>
-                      <p className="text-xl font-black text-[#B9FF66]">{stats?.successfulInvites || 0}</p>
-                    </div>
+                <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">User referred</p>
+                    <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
                   </div>
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">Successful</p>
+                    <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
+                  </div>
+                </div>
 
-                  <div className="space-y-3">
-                    <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5 flex items-center justify-between overflow-hidden">
-                      <span className="text-[10px] text-[#8E8E93] font-mono truncate mr-2">
-                        {referralLink || "No link available"}
-                      </span>
-                      <Button
-                        onClick={copyReferralLink}
-                        className="bg-white/5 hover:bg-white/10 text-white h-7 px-3 rounded-lg text-[10px] font-bold border border-white/5"
-                      >
-                        <Copy className="w-3 h-3 mr-1" />
-                        Copy
-                      </Button>
-                    </div>
-                    
-                    <Button
-                      onClick={shareReferralLink}
-                      disabled={!referralLink || isSharing}
-                      className="w-full bg-[#B9FF66] hover:bg-[#a8e65a] text-black font-black h-12 rounded-xl transition-transform active:scale-95"
-                    >
-                      {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4 mr-2" />}
-                      Share with Friends
-                    </Button>
-                  </div>
+                <div className="flex w-full gap-2">
+                  <Button
+                    onClick={copyReferralLink}
+                    disabled={!referralLink}
+                    className="flex-1 h-12 bg-[#111111] hover:bg-[#1a1a1a] text-white rounded-2xl font-bold text-sm gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copy Link
+                  </Button>
+                  <Button
+                    onClick={shareReferralLink}
+                    disabled={!referralLink || isSharing}
+                    className="flex-1 h-12 bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl font-bold text-sm"
+                  >
+                    {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Invite Friends +"}
+                  </Button>
                 </div>
               </div>
             </TabsContent>
