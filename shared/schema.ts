@@ -148,8 +148,8 @@ export const referrals = pgTable("referrals", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   referrerId: varchar("referrer_id").references(() => users.id).notNull(),
   refereeId: varchar("referee_id").references(() => users.id).notNull(),
-  rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).default("0.50"),
-  usdRewardAmount: decimal("usd_reward_amount", { precision: 30, scale: 10 }).default("0"),
+  rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).default("1000"),
+  tonRewardAmount: decimal("ton_reward_amount", { precision: 30, scale: 10 }).default("0"),
   bugRewardAmount: decimal("bug_reward_amount", { precision: 30, scale: 10 }).default("0"),
   status: varchar("status").default('pending'),
   createdAt: timestamp("created_at").defaultNow(),
@@ -343,39 +343,39 @@ export const insertDailyMissionSchema = createInsertSchema(dailyMissions).omit({
 export const insertBlockedCountrySchema = createInsertSchema(blockedCountries).omit({ id: true, createdAt: true });
 
 // Types
-export type UpsertUser = typeof users.TON inferInsert;
-export type User = typeof users.TON inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
 export type InsertEarning = z.infer<typeof insertEarningSchema>;
-export type Earning = typeof earnings.TON inferSelect;
+export type Earning = typeof earnings.$inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
-export type Withdrawal = typeof withdrawals.TON inferSelect;
-export type Referral = typeof referrals.TON inferSelect;
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
-export type ReferralCommission = typeof referralCommissions.TON inferSelect;
+export type ReferralCommission = typeof referralCommissions.$inferSelect;
 export type InsertReferralCommission = z.infer<typeof insertReferralCommissionSchema>;
-export type PromoCode = typeof promoCodes.TON inferSelect;
+export type PromoCode = typeof promoCodes.$inferSelect;
 export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
-export type PromoCodeUsage = typeof promoCodeUsage.TON inferSelect;
+export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect;
 export type InsertPromoCodeUsage = z.infer<typeof insertPromoCodeUsageSchema>;
-export type Transaction = typeof transactions.TON inferSelect;
+export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type UserBalance = typeof userBalances.TON inferSelect;
+export type UserBalance = typeof userBalances.$inferSelect;
 export type InsertUserBalance = z.infer<typeof insertUserBalanceSchema>;
-export type DailyTask = typeof dailyTasks.TON inferSelect;
+export type DailyTask = typeof dailyTasks.$inferSelect;
 export type InsertDailyTask = z.infer<typeof insertDailyTaskSchema>;
-export type AdminSetting = typeof adminSettings.TON inferSelect;
+export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
-export type AdvertiserTask = typeof advertiserTasks.TON inferSelect;
+export type AdvertiserTask = typeof advertiserTasks.$inferSelect;
 export type InsertAdvertiserTask = z.infer<typeof insertAdvertiserTaskSchema>;
-export type TaskClick = typeof taskClicks.TON inferSelect;
+export type TaskClick = typeof taskClicks.$inferSelect;
 export type InsertTaskClick = z.infer<typeof insertTaskClickSchema>;
-export type BanLog = typeof banLogs.TON inferSelect;
+export type BanLog = typeof banLogs.$inferSelect;
 export type InsertBanLog = z.infer<typeof insertBanLogSchema>;
-export type SpinData = typeof spinData.TON inferSelect;
+export type SpinData = typeof spinData.$inferSelect;
 export type InsertSpinData = z.infer<typeof insertSpinDataSchema>;
-export type SpinHistory = typeof spinHistory.TON inferSelect;
+export type SpinHistory = typeof spinHistory.$inferSelect;
 export type InsertSpinHistory = z.infer<typeof insertSpinHistorySchema>;
-export type DailyMission = typeof dailyMissions.TON inferSelect;
+export type DailyMission = typeof dailyMissions.$inferSelect;
 export type InsertDailyMission = z.infer<typeof insertDailyMissionSchema>;
-export type BlockedCountry = typeof blockedCountries.TON inferSelect;
+export type BlockedCountry = typeof blockedCountries.$inferSelect;
 export type InsertBlockedCountry = z.infer<typeof insertBlockedCountrySchema>;

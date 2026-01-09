@@ -1,6 +1,27 @@
 export const APP_VERSION = "1.0.0";
 export const HRUM_TO_TON = 10000; // 10,000 Hrum = 1 TON
 
+/**
+ * Convert Hrum to TON
+ * @param hrumAmount - Amount in Hrum
+ * @returns Amount in TON (Hrum / 10,000)
+ */
+export function hrumToTON(hrumAmount: number | string): number {
+  const numValue = typeof hrumAmount === 'string' ? parseFloat(hrumAmount) : hrumAmount;
+  return numValue / HRUM_TO_TON;
+}
+
+/**
+ * Convert TON to Hrum
+ * @param tonAmount - Amount in TON
+ * @returns Amount in Hrum (TON * 10,000)
+ */
+export function tonToHrum(tonAmount: number | string): number {
+  const numValue = typeof tonAmount === 'string' ? parseFloat(tonAmount) : tonAmount;
+  return Math.round(numValue * HRUM_TO_TON);
+}
+
+
 export const APP_COLORS = {
   primary: "#4aa8ff", // light blue
   background: "#000000", // pure black
