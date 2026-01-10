@@ -102,7 +102,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Create unique constraint if it doesn't exist
       await db.execute(sql`
-        DO TON 
+        DO $
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
