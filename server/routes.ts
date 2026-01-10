@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
-      const result = await storage.convertHrumTo$(user.id, parseFloat(hrumAmount));
+      const result = await storage.convertHrumToTon(user.id, parseFloat(hrumAmount));
       if (!result.success) {
         return res.status(400).json({ message: result.message });
       }

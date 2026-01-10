@@ -565,7 +565,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userBalances.userId, userId));
   }
 
-  async convertHrumTo$(userId: string, hrumAmount: number): Promise<{ success: boolean; message: string; tonAmount?: number }> {
+  async convertHrumToTon(userId: string, hrumAmount: number): Promise<{ success: boolean; message: string; tonAmount?: number }> {
     const user = await this.getUser(userId);
     if (!user) return { success: false, message: "User not found" };
 
