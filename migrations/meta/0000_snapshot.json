@@ -179,7 +179,7 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": false,
-          "default": "'USDT'"
+          "default": "'TONT'"
         },
         "usage_limit": {
           "name": "usage_limit",
