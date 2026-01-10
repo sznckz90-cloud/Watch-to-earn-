@@ -575,6 +575,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/mining/state", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      const state = await storage.getMiningState(user.id);
+      res.json(state);
+    } catch (error) {
+      console.error("Mining state error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/mining/claim", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      const result = await storage.claimMining(user.id);
+      res.json(result);
+    } catch (error) {
+      console.error("Mining claim error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Debug route to check database columns
   app.get('/api/debug/db-schema', async (req: any, res) => {
     try {

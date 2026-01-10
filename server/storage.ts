@@ -128,6 +128,19 @@ export interface IStorage {
     totalPayouts: string;
     newUsersLast24h: number;
   }>;
+
+  // Mining operations
+  getMiningState(userId: string): Promise<{
+    currentMining: string;
+    miningRate: string;
+    lastClaim: Date;
+    maxMining: string;
+  }>;
+  claimMining(userId: string): Promise<{
+    success: boolean;
+    amount: string;
+    message: string;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -367,6 +380,59 @@ export class DatabaseStorage implements IStorage {
         }
       }
     }
+  }
+
+  // Mining operations
+  async getMiningState(userId: string) {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+
+    const lastClaim = user.lastMiningClaim || new Date();
+    const miningRate = parseFloat(user.miningRate || "0.00001");
+    const now = new Date();
+    const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
+    
+    // Max 24 hours of mining accumulation
+    const maxSeconds = 24 * 60 * 60;
+    const accumulationSeconds = Math.min(secondsPassed, maxSeconds);
+    
+    const currentMining = (accumulationSeconds * miningRate).toFixed(5);
+    const maxMining = (maxSeconds * miningRate).toFixed(2);
+
+    return {
+      currentMining,
+      miningRate: (miningRate * 3600).toFixed(2), // rate per hour
+      lastClaim,
+      maxMining
+    };
+  }
+
+  async claimMining(userId: string) {
+    const state = await this.getMiningState(userId);
+    const amount = state.currentMining;
+
+    if (parseFloat(amount) <= 0) {
+      return { success: false, amount: "0", message: "Nothing to claim yet" };
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.update(users)
+        .set({
+          balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
+          lastMiningClaim: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      await tx.insert(earnings).values({
+        userId,
+        amount,
+        source: "mining",
+        description: "Mining claim",
+      });
+    });
+
+    return { success: true, amount, message: `Successfully claimed ${amount} Hrum` };
   }
 
   // Transaction operations
