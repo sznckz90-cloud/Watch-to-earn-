@@ -1010,6 +1010,47 @@ export default function Home() {
     checkForUpdatesMutation.mutate();
   }, [checkForUpdatesMutation]);
 
+  const [miningBalance, setMiningBalance] = useState<number>(0);
+
+  useEffect(() => {
+    const updateMining = () => {
+      if (user?.lastMiningClaim) {
+        const lastClaim = new Date(user.lastMiningClaim).getTime();
+        const rate = parseFloat(user.miningRate || "0.00001");
+        const now = Date.now();
+        const secondsPassed = (now - lastClaim) / 1000;
+        const earned = Math.max(0, secondsPassed * rate);
+        setMiningBalance(earned);
+      }
+    };
+
+    updateMining();
+    const interval = setInterval(updateMining, 1000);
+    return () => clearInterval(interval);
+  }, [user?.lastMiningClaim, user?.miningRate]);
+
+  const claimMiningMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/mining/claim", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to claim mining");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      showNotification(`Claimed ${parseFloat(data.amount).toFixed(5)} Hrum!`, "success");
+      setMiningBalance(0);
+    },
+    onError: (error: any) => {
+      showNotification(error.message, "error");
+    }
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -1032,7 +1073,7 @@ export default function Home() {
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
         {/* Unified Profile & Balance Section */}
         <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-4 relative">
             <div className="flex items-center gap-3">
               <div 
                 className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
@@ -1062,26 +1103,59 @@ export default function Home() {
                 </span>
               </div>
             </div>
+
+            {/* Top Rate Badge - Centered between Avatar/Username and Settings icon */}
+            <div className="absolute left-1/2 -translate-x-1/2 -top-6">
+              <div className="bg-[#7c3aed] text-white px-4 py-1 rounded-full text-[13px] font-bold shadow-lg flex items-center gap-2 border border-white/20 whitespace-nowrap">
+                <span>{(parseFloat(user?.miningRate || "0.00001") * 3600).toFixed(2)} MF/H</span>
+              </div>
+            </div>
+
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white/60 hover:text-white hover:bg-white/10"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings className="w-6 h-6" />
+            </Button>
           </div>
 
-          <div className="bg-[#141414] rounded-2xl px-4 py-4 flex justify-between items-center mb-4 border border-white/5">
-            <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total Points Earned</span>
-              <span className="text-white text-lg font-black tabular-nums">
-                {padBalance.toLocaleString()}
-              </span>
-            </div>
-            <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
-            <div className="flex flex-col items-center flex-1">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">Total BUZZ Earned</span>
-                <div className="bg-[#B9FF66] rounded-full p-0.5 flex-shrink-0">
-                  <Info className="w-2 h-2 text-black" />
+          <div className="bg-[#1A1A1A]/40 backdrop-blur-md rounded-xl p-3 border border-white/5 shadow-lg mb-4 relative overflow-hidden">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-white/5">
+                  <img 
+                    src="/images/hrum-logo.jpg" 
+                    alt="Hrum" 
+                    className="w-full h-full object-cover scale-150"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-semibold text-sm truncate">Hrum Mining</h3>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1 bg-[#0D0D0D] px-1.5 py-0.5 rounded border border-white/5">
+                      <span className="text-[11px] text-white font-black leading-none">{miningBalance.toFixed(2)}</span>
+                      <span className="text-[10px] text-gray-500 font-bold leading-none">/</span>
+                      <span className="text-[11px] text-gray-400 font-bold leading-none">117.84</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Hrum</span>
+                  </div>
                 </div>
               </div>
-              <span className="text-white text-lg font-black tabular-nums">
-                {balanceBUG.toFixed(1)}
-              </span>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <Button 
+                  className="h-9 px-4 text-xs min-w-[90px] font-bold rounded-xl border-0 shadow-md transition-all active:scale-95 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
+                  onClick={() => claimMiningMutation.mutate()}
+                  disabled={claimMiningMutation.isPending || miningBalance < 0.001}
+                >
+                  {claimMiningMutation.isPending ? (
+                    <Clock className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <span>Claim</span>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
 
