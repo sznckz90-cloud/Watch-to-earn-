@@ -1015,8 +1015,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const activePromoCode = getSetting('active_promo_code', ''); // Current active promo code
       
       // Legacy compatibility - keep old values for backwards compatibility
-      const taskCostPerClick = channelTaskCostTON; // Use channel cost as default
-      const taskRewardPerClick = channelTaskRewardHrum / 10000; // Legacy $format for compatibility
+      const channelTaskCostTON_val = parseFloat(getSetting('channel_task_cost', '0.0003'));
+      const channelTaskRewardHrum_val = parseInt(getSetting('channel_task_reward', '30'));
+      const minWithdrawalAmount_val = parseFloat(getSetting('min_withdrawal_amount', '0.01'));
+      const withdrawalFeeTON_val = parseFloat(getSetting('withdrawal_fee', '0.005'));
+      const botTaskCostTON_val = parseFloat(getSetting('bot_task_cost', '0.0003'));
+      const botTaskRewardHrum_val = parseInt(getSetting('bot_task_reward', '20'));
+      const minimumConvertTON_val = parseFloat(getSetting('minimum_convert_ton', '0.1'));
+      const referralRewardTON_val = parseFloat(getSetting('referral_reward_ton', '0.0005'));
+
+      const taskCostPerClick = channelTaskCostTON_val; // Use channel cost as default
+      const taskRewardPerClick = channelTaskRewardHrum_val / 10000; // Legacy $format for compatibility
       
       res.json({
         dailyAdLimit,
@@ -1027,23 +1036,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affiliateCommissionPercent: affiliateCommission,
         walletChangeFee: walletChangeFeeHrum,
         walletChangeFeeHrum,
-        minWithdrawalAmount: minWithdrawalAmount,
-        minWithdrawalAmountTON: minWithdrawalAmount,
-        withdrawalFeeTON,
-        channelTaskCostTON,
-        botTaskCostTON,
-        channelTaskRewardHrum,
-        botTaskRewardHrum,
+        minWithdrawalAmount: minWithdrawalAmount_val,
+        minWithdrawalAmountTON: minWithdrawalAmount_val,
+        withdrawalFeeTON: withdrawalFeeTON_val,
+        channelTaskCostTON: channelTaskCostTON_val,
+        botTaskCostTON: botTaskCostTON_val,
+        channelTaskRewardHrum: channelTaskRewardHrum_val,
+        botTaskRewardHrum: botTaskRewardHrum_val,
         taskCostPerClick,
         taskRewardPerClick,
-        taskRewardHrum: channelTaskRewardHrum, // Use channel reward as default
-        minimumConvert: minimumConvertTON,
+        taskRewardHrum: channelTaskRewardHrum_val, // Use channel reward as default
+        minimumConvert: minimumConvertTON_val,
         minimumConvertHrum,
-        minimumConvertTON,
+        minimumConvertTON: minimumConvertTON_val,
         minimumClicks,
         withdrawalCurrency,
         referralRewardEnabled,
-        referralRewardTON,
+        referralRewardTON: referralRewardTON_val,
         referralRewardHrum,
         referralAdsRequired,
         // Daily task rewards
@@ -1051,8 +1060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shareTaskReward,
         communityTaskReward,
         partnerTaskReward,
-        channelTaskReward: channelTaskRewardHrum,
-        botTaskReward: botTaskRewardHrum,
+        channelTaskReward: channelTaskRewardHrum_val,
+        botTaskReward: botTaskRewardHrum_val,
         // Withdrawal requirement settings
         withdrawalAdRequirementEnabled,
         minimumAdsForWithdrawal,
