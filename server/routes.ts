@@ -563,7 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
-      const result = await storage.convertHrumToTON(user.id, parseFloat(hrumAmount));
+      const result = await storage.convertHrumTo$(user.id, parseFloat(hrumAmount));
       if (!result.success) {
         return res.status(400).json({ message: result.message });
       }
@@ -956,15 +956,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const affiliateCommission = parseFloat(getSetting('affiliate_commission', '10'));
       const walletChangeFeeHrum = parseInt(getSetting('wallet_change_fee', '100')); // Default 100 Hrum
       const minWithdrawalAmount = parseFloat(getSetting('minimum_withdrawal_ton', '0.5')); // Minimum  withdrawal
-      const withdrawalFeeTON = parseFloat(getSetting('withdrawal_fee_ton', '5')); //  withdrawal fee %
+      const withdrawalFee$= parseFloat(getSetting('withdrawal_fee_ton', '5')); //  withdrawal fee %
       
       // Separate channel and bot task costs (in  for admin,  for users)
       const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default TON0.003 per click
       const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default TON0.003 per click
       
       //  costs for regular users
-      const channelTaskCostTON = parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003  per click
-      const botTaskCostTON = parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003  per click
+      const channelTaskCost$= parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003  per click
+      const botTaskCost$= parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003  per click
       
       // Separate channel and bot task rewards (in Hrum)
       const channelTaskRewardHrum = parseInt(getSetting('channel_task_reward', '30')); // Default 30 Hrum per click
@@ -972,7 +972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Minimum convert amount in Hrum (10,000 Hrum = 1 )
       const minimumConvertHrum = parseInt(getSetting('minimum_convert_pad', '100')); // Default 100 Hrum
-      const minimumConvertTON = minimumConvertHrum / 10000; 
+      const minimumConvert$= minimumConvertHrum / 10000; 
       
       // Minimum clicks for task creation
       const minimumClicks = parseInt(getSetting('minimum_clicks', '500')); // Default 500 clicks
@@ -982,7 +982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Referral reward settings
       const referralRewardEnabled = getSetting('referral_reward_enabled', 'false') === 'true';
       const referralReward = parseFloat(getSetting('referral_reward_usd', '0.0005'));
-      const referralRewardTON = referralReward;
+      const referralReward$= referralReward;
       const referralRewardHrum = parseInt(getSetting('referral_reward_hrum', '50'));
       const referralAdsRequired = parseInt(getSetting('referral_ads_required', '1')); // Ads needed for affiliate bonus
       
@@ -1016,7 +1016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Legacy compatibility - keep old values for backwards compatibility
       const taskCostPerClick = channelTaskCostTON; // Use channel cost as default
-      const taskRewardPerClick = channelTaskRewardHrum / 10000; // Legacy TON format for compatibility
+      const taskRewardPerClick = channelTaskRewardHrum / 10000; // Legacy $format for compatibility
       
       res.json({
         dailyAdLimit,

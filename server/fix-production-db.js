@@ -91,13 +91,13 @@ async function fixProductionDatabase() {
     console.log('🧪 Testing database...');
     
     const withdrawalTest = await pool.query('SELECT COUNT(*) FROM withdrawals');
-    console.log(`✓ Withdrawals table: ${withdrawalTest.rows[0].count} records`);
+    console.log(`✓ Withdrawals table: TON{withdrawalTest.rows[0].count} records`);
     
     const referralTest = await pool.query('SELECT COUNT(*) FROM referrals');
-    console.log(`✓ Referrals table: ${referralTest.rows[0].count} records`);
+    console.log(`✓ Referrals table: TON{referralTest.rows[0].count} records`);
     
     const userTest = await pool.query('SELECT COUNT(*) FROM users');
-    console.log(`✓ Users table: ${userTest.rows[0].count} records`);
+    console.log(`✓ Users table: TON{userTest.rows[0].count} records`);
 
     console.log('🎉 Production database fixed successfully!');
     console.log('🚀 Your app should now work perfectly!');
@@ -110,7 +110,7 @@ async function fixProductionDatabase() {
 }
 
 // Run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://TON{process.argv[1]}`) {
   fixProductionDatabase();
 }
 

@@ -142,7 +142,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Create unique constraint if it doesn't exist
       await db.execute(sql`
-        DO TON 
+        DO $$  
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
@@ -150,7 +150,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
           ) THEN
             ALTER TABLE users ADD CONSTRAINT users_referral_code_unique UNIQUE (referral_code);
           END IF;
-        END TON
+        END $$ 
       `);
       
       console.log('✅ [MIGRATION] Referral code column and constraints ensured');
@@ -400,7 +400,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Add unique constraint if it doesn't exist
       await db.execute(sql`
-        DO TON 
+        DO $$  
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
@@ -408,7 +408,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
           ) THEN
             ALTER TABLE admin_settings ADD CONSTRAINT admin_settings_setting_key_unique UNIQUE (setting_key);
           END IF;
-        END TON
+        END $$ 
       `);
       
       console.log('✅ [MIGRATION] admin_settings unique constraint ensured');
@@ -421,9 +421,9 @@ export async function ensureDatabaseSchema(): Promise<void> {
       INSERT INTO admin_settings (setting_key, setting_value, description)
       VALUES 
         ('daily_ad_limit', '50', 'Maximum number of ads a user can watch per day'),
-        ('ad_reward_pad', '1000', 'Hrum reward amount per ad watched'),
-        ('ad_reward_ton', '0.00010000', ' reward amount per ad watched'),
-        ('withdrawal_currency', '', 'Currency used for withdrawal displays ( or Hrum)')
+        ('ad_reward_hrum', '1000', 'Hrum reward amount per ad watched'),
+        ('ad_reward_ton', '0.00010000', '$reward amount per ad watched'),
+        ('withdrawal_currency', 'TON', 'Currency used for withdrawal displays ($or Hrum)')
       ON CONFLICT (setting_key) DO NOTHING
     `);
     

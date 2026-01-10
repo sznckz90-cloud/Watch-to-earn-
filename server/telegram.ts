@@ -21,7 +21,7 @@ const pendingRejections = new Map<string, {
 const pendingBroadcasts = new Map<string, { timestamp: number }>();
 
 // Utility function to format  amounts
-function formatTON(value: string | number): string {
+function format$(value: string | number): string {
   const num = parseFloat(String(value));
   return num.toFixed(2);
 }
@@ -876,9 +876,9 @@ Share your unique referral link and earn Hrum when your friends join:
           const totalHrum = Math.round(parseFloat(totalHrumSum[0]?.total || '0') * 100000);
           const todayHrum = Math.round(parseFloat((todayHrumQuery.rows[0] as any)?.total || '0') * 100000);
           const yesterdayHrum = Math.round(parseFloat((yesterdayHrumQuery.rows[0] as any)?.total || '0') * 100000);
-          const totalPayouts = formatTON(totalPayoutsSum[0]?.total || '0');
-          const todayPayouts = formatTON(todayPayoutsSum[0]?.total || '0');
-          const yesterdayPayouts = formatTON(yesterdayPayoutsSum[0]?.total || '0');
+          const totalPayouts = format$(totalPayoutsSum[0]?.total || '0');
+          const todayPayouts = format$(todayPayoutsSum[0]?.total || '0');
+          const yesterdayPayouts = format$(yesterdayPayoutsSum[0]?.total || '0');
           const totalTasks = totalTasksCount[0]?.count || 0;
           const todayTasks = todayTasksCount[0]?.count || 0;
           const yesterdayTasks = yesterdayTasksCount[0]?.count || 0;
@@ -1768,9 +1768,9 @@ ${walletAddress}
         const totalHrum = Math.round(parseFloat(totalHrumSum[0]?.total || '0') * 100000);
         const todayHrum = Math.round(parseFloat((todayHrumQuery.rows[0] as any)?.total || '0') * 100000);
         const yesterdayHrum = Math.round(parseFloat((yesterdayHrumQuery.rows[0] as any)?.total || '0') * 100000);
-        const totalPayouts = formatTON(totalPayoutsSum[0]?.total || '0');
-        const todayPayouts = formatTON(todayPayoutsSum[0]?.total || '0');
-        const yesterdayPayouts = formatTON(yesterdayPayoutsSum[0]?.total || '0');
+        const totalPayouts = format$(totalPayoutsSum[0]?.total || '0');
+        const todayPayouts = format$(todayPayoutsSum[0]?.total || '0');
+        const yesterdayPayouts = format$(yesterdayPayoutsSum[0]?.total || '0');
         const totalTasks = totalTasksCount[0]?.count || 0;
         const todayTasks = todayTasksCount[0]?.count || 0;
         const yesterdayTasks = yesterdayTasksCount[0]?.count || 0;
