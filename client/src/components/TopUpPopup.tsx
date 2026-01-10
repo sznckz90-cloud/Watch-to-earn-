@@ -129,7 +129,7 @@ export default function TopUpPopup({ open, onOpenChange }: TopUpPopupProps) {
       <DialogContent className="sm:max-w-md rounded-[20px] bg-black/95 border-white/10">
         <DialogHeader>
           <DialogTitle className="text-white text-center flex items-center justify-center gap-2">
-            <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover rounded-full" />
+            <img src="/images/ton.png" alt="TON" className="w-6 h-6 object-cover rounded-full" />
             Top up advertising balance
           </DialogTitle>
           <DialogDescription className="text-gray-400 text-center">
