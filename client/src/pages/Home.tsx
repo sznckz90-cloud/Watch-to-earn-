@@ -1030,12 +1030,12 @@ export default function Home() {
   return (
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
-        {/* Profile Card Section */}
-        <div className="bg-[#0d0d0d] rounded-[24px] p-4 border border-[#1a1a1a]">
-          <div className="flex justify-between items-center mb-3">
-            <div className="flex items-center gap-2.5">
+        {/* Unified Profile & Balance Section */}
+        <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
               <div 
-                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
+                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
                 onClick={() => isAdmin && setLocation("/admin")}
               >
                 {photoUrl ? (
@@ -1045,37 +1045,26 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#1a1a1a] flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center">
                     <UserIcon className="w-6 h-6 text-gray-400" />
                   </div>
                 )}
               </div>
-              <div className="flex flex-col -space-y-0.5">
+              <div className="flex flex-col">
                 <span 
-                  className={`text-white font-bold text-base leading-none ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  className={`text-white font-black text-base leading-none tracking-tight ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
                   onClick={() => isAdmin && setLocation("/admin")}
                 >
                   {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
                 </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 relative z-[100]">
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Settings clicked, opening popup...");
-                  setSettingsOpen(true);
-                }}
-                className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 text-[#8E8E93] hover:text-white hover:bg-[#222] transition-colors flex items-center justify-center cursor-pointer"
-              >
-                <Settings className="w-5 h-5" />
+                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">
+                  ID: {(user as User)?.id?.substring(0, 8) || "N/A"}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Balance Card Section */}
-          <div className="bg-[#141414] rounded-2xl px-4 py-3 flex justify-between items-center mb-4 border border-white/5">
+          <div className="bg-[#141414] rounded-2xl px-4 py-4 flex justify-between items-center mb-4 border border-white/5">
             <div className="flex flex-col items-center flex-1">
               <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total Points Earned</span>
               <span className="text-white text-lg font-black tabular-nums">
