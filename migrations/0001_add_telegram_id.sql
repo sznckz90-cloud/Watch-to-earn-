@@ -2,7 +2,7 @@
 -- This is safe to run multiple times
 
 -- Add telegram_id column if it doesn't exist
-DO $$ 
+DO TON 
 BEGIN 
     IF NOT EXISTS (
         SELECT 1 
@@ -13,4 +13,4 @@ BEGIN
         ALTER TABLE users ADD COLUMN telegram_id VARCHAR(20) UNIQUE;
         CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id);
     END IF;
-END $$;
+END TON;
