@@ -16,7 +16,7 @@ export interface StarPackage {
 export const STAR_PACKAGES: StarPackage[] = [];
 
 export const DEFAULT_PAYMENT_SYSTEMS: PaymentSystem[] = [
-  { id: 'TON', name: 'TON', icon: 'Gem', minWithdrawal: 0.5, fee: 5, feeType: 'percentage' }
+  { id: '', name: '', icon: 'Gem', minWithdrawal: 0.5, fee: 5, feeType: 'percentage' }
 ];
 
 export function getPaymentSystems(appSettings?: any): PaymentSystem[] {
@@ -26,11 +26,11 @@ export function getPaymentSystems(appSettings?: any): PaymentSystem[] {
   
   return [
     { 
-      id: 'TON', 
-      name: 'TON', 
+      id: '', 
+      name: '', 
       icon: 'Gem', 
-      minWithdrawal: appSettings.minimumWithdrawalTON ?? 0.5, 
-      fee: appSettings.withdrawalFeeTON ?? 5, 
+      minWithdrawal: appSettings.minWithdrawalAmount ?? 0.5, 
+      fee: appSettings.withdrawalFee ?? 5, 
       feeType: 'percentage' 
     }
   ];
@@ -38,4 +38,4 @@ export function getPaymentSystems(appSettings?: any): PaymentSystem[] {
 
 export const PAYMENT_SYSTEMS = DEFAULT_PAYMENT_SYSTEMS;
 
-export const PAD_TO_USD_RATE = 10000; // 10,000 PAD = $1
+export const Hrum_TO_TON_RATE = 10000; // 10,000 Hrum = 1 TON
