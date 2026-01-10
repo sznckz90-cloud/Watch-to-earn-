@@ -40,7 +40,7 @@ export default function TopUpPopup({ open, onOpenChange }: TopUpPopupProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*/.test(value)) {
       setTonAmount(value);
       setValidationError("");
     }
@@ -53,7 +53,7 @@ export default function TopUpPopup({ open, onOpenChange }: TopUpPopupProps) {
 
   const validateAmount = (): boolean => {
     if (!tonAmount || tonAmount.trim() === "") {
-      setValidationError("Enter amount (Min 0.1 TON)");
+      setValidationError("Enter amount (Min 0.1 )");
       return false;
     }
 
@@ -129,7 +129,7 @@ export default function TopUpPopup({ open, onOpenChange }: TopUpPopupProps) {
       <DialogContent className="sm:max-w-md rounded-[20px] bg-black/95 border-white/10">
         <DialogHeader>
           <DialogTitle className="text-white text-center flex items-center justify-center gap-2">
-            <img src="/images/ton.png" alt="TON" className="w-6 h-6 object-cover rounded-full" />
+            <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover rounded-full" />
             Top up advertising balance
           </DialogTitle>
           <DialogDescription className="text-gray-400 text-center">
@@ -186,7 +186,7 @@ export default function TopUpPopup({ open, onOpenChange }: TopUpPopupProps) {
           </div>
 
           <p className="text-[10px] text-center text-gray-500">
-            Min 0.1 TON • Secured by ArcPay
+            Min 0.1  • Secured by ArcPay
           </p>
 
           {deposits.length > 0 && (

@@ -49,9 +49,9 @@ export default function CryptoConversionWidget() {
 
       {/* Current TON Price */}
       <div className="bg-white/5 rounded-xl p-3 mb-4">
-        <div className="text-gray-400 text-xs mb-1">1 TON in TON</div>
+        <div className="text-gray-400 text-xs mb-1">1 Hrum in TON</div>
         <div className="text-2xl font-black text-white">
-          TON {conversions.tonPriceTON}
+          {conversions.tonPrice}
         </div>
       </div>
 

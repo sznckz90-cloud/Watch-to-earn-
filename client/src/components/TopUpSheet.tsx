@@ -44,7 +44,7 @@ export default function TopUpSheet({ trigger }: TopUpSheetProps) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*/.test(value)) {
       setTonAmount(value);
       setValidationError("");
     }
@@ -57,7 +57,7 @@ export default function TopUpSheet({ trigger }: TopUpSheetProps) {
 
   const validateAmount = (): boolean => {
     if (!tonAmount || tonAmount.trim() === "") {
-      setValidationError("Enter amount (Min 0.1 TON)");
+      setValidationError("Enter amount (Min 0.1 )");
       return false;
     }
 
@@ -144,7 +144,7 @@ export default function TopUpSheet({ trigger }: TopUpSheetProps) {
         <div className="px-6 pb-6 pt-4 overflow-y-auto">
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-white text-center flex items-center justify-center gap-2">
-              <img src="/images/ton.png" alt="TON" className="w-6 h-6 object-cover rounded-full" />
+              <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover rounded-full" />
               Top-Up TON
             </h2>
 
@@ -196,7 +196,7 @@ export default function TopUpSheet({ trigger }: TopUpSheetProps) {
             </div>
 
             <p className="text-[10px] text-center text-gray-500">
-              Min 0.1 TON • Secured by ArcPay
+              Min 0.1  • Secured by ArcPay
             </p>
 
             {deposits.length > 0 && (

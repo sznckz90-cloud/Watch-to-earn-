@@ -48,8 +48,8 @@ export default function StreakCard({ user }: StreakCardProps) {
       
       const rewardAmount = parseFloat(data.rewardEarned || '0');
       if (rewardAmount > 0) {
-        const earnedPAD = Math.round(rewardAmount);
-        showNotification(`You've claimed +${earnedPAD} PAD!`, "success");
+        const earnedHrum = Math.round(rewardAmount);
+        showNotification(`You've claimed +${earnedHrum} Hrum!`, "success");
       } else {
         showNotification("You've claimed your streak bonus!", "success");
       }

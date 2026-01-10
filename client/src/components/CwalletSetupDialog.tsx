@@ -12,18 +12,18 @@ interface CwalletSetupDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type WalletType = 'TON' | 'USDT' | 'STARS';
+type WalletType = '' | 'TONT' | 'STARS';
 
 export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupDialogProps) {
   const queryClient = useQueryClient();
-  const [selectedWalletType, setSelectedWalletType] = useState<WalletType>('TON');
+  const [selectedWalletType, setSelectedWalletType] = useState<WalletType>('');
   
-  // TON wallet states
+  //  wallet states
   const [tonWalletId, setTonWalletId] = useState('');
   const [newTonWalletId, setNewTonWalletId] = useState('');
   const [isChangingTonWallet, setIsChangingTonWallet] = useState(false);
   
-  // USDT wallet states
+  // TONT wallet states
   const [usdtWalletAddress, setUsdtWalletAddress] = useState('');
   const [newUsdtWalletAddress, setNewUsdtWalletAddress] = useState('');
   const [isChangingUsdtWallet, setIsChangingUsdtWallet] = useState(false);
@@ -69,7 +69,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
     }
   }, [open]);
 
-  // TON wallet mutations
+  //  wallet mutations
   const saveTonWalletMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/wallet/cwallet', {
@@ -78,7 +78,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
       return response.json();
     },
     onSuccess: () => {
-      showNotification("TON wallet saved successfully.", "success");
+      showNotification(" wallet saved successfully.", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       onOpenChange(false);
@@ -96,7 +96,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
       return response.json();
     },
     onSuccess: () => {
-      showNotification("TON wallet updated successfully", "success");
+      showNotification(" wallet updated successfully", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setIsChangingTonWallet(false);
@@ -108,7 +108,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
     },
   });
 
-  // USDT wallet mutations
+  // TONT wallet mutations
   const saveUsdtWalletMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', '/api/wallet/usdt', {
@@ -117,7 +117,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
       return response.json();
     },
     onSuccess: () => {
-      showNotification("USDT wallet saved successfully.", "success");
+      showNotification("TONT wallet saved successfully.", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       onOpenChange(false);
@@ -135,7 +135,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
       return response.json();
     },
     onSuccess: () => {
-      showNotification("USDT wallet updated successfully", "success");
+      showNotification("TONT wallet updated successfully", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setIsChangingUsdtWallet(false);
@@ -188,13 +188,13 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
 
   const handleSaveTonWallet = () => {
     if (!tonWalletId.trim()) {
-      showNotification("Please enter your TON wallet address", "error");
+      showNotification("Please enter your  wallet address", "error");
       return;
     }
     
-    // Validate TON wallet address (must start with UQ or EQ)
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(tonWalletId.trim())) {
-      showNotification("Please enter a valid TON wallet address", "error");
+    // Validate  wallet address (must start with UQ or EQ)
+    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(tonWalletId.trim())) {
+      showNotification("Please enter a valid  wallet address", "error");
       return;
     }
     
@@ -203,13 +203,13 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
 
   const handleChangeTonWallet = () => {
     if (!newTonWalletId.trim()) {
-      showNotification("Please enter a new TON wallet address", "error");
+      showNotification("Please enter a new  wallet address", "error");
       return;
     }
     
-    // Validate TON wallet address (must start with UQ or EQ)
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(newTonWalletId.trim())) {
-      showNotification("Please enter a valid TON wallet address", "error");
+    // Validate  wallet address (must start with UQ or EQ)
+    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(newTonWalletId.trim())) {
+      showNotification("Please enter a valid  wallet address", "error");
       return;
     }
     
@@ -218,13 +218,13 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
 
   const handleSaveUsdtWallet = () => {
     if (!usdtWalletAddress.trim()) {
-      showNotification("Please enter your USDT wallet address", "error");
+      showNotification("Please enter your TONT wallet address", "error");
       return;
     }
     
-    // Validate Optimism USDT address (0x... format, 42 characters)
-    if (!/^0x[a-fA-F0-9]{40}$/.test(usdtWalletAddress.trim())) {
-      showNotification("Please enter a valid Optimism USDT address (0x...)", "error");
+    // Validate Optimism TONT address (0x... format, 42 characters)
+    if (!/^0x[a-fA-F0-9]{40}/.test(usdtWalletAddress.trim())) {
+      showNotification("Please enter a valid Optimism TONT address (0x...)", "error");
       return;
     }
     
@@ -233,13 +233,13 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
 
   const handleChangeUsdtWallet = () => {
     if (!newUsdtWalletAddress.trim()) {
-      showNotification("Please enter a new USDT wallet address", "error");
+      showNotification("Please enter a new TONT wallet address", "error");
       return;
     }
     
-    // Validate Optimism USDT address
-    if (!/^0x[a-fA-F0-9]{40}$/.test(newUsdtWalletAddress.trim())) {
-      showNotification("Please enter a valid Optimism USDT address (0x...)", "error");
+    // Validate Optimism TONT address
+    if (!/^0x[a-fA-F0-9]{40}/.test(newUsdtWalletAddress.trim())) {
+      showNotification("Please enter a valid Optimism TONT address (0x...)", "error");
       return;
     }
     
@@ -291,39 +291,39 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
             <label className="text-xs text-[#c0c0c0]">Select Wallet Type</label>
             <div className="space-y-2">
               <button
-                onClick={() => setSelectedWalletType('TON')}
+                onClick={() => setSelectedWalletType('')}
                 className={`w-full flex items-center space-x-2 p-3 rounded-lg border-2 transition-all ${
-                  selectedWalletType === 'TON'
+                  selectedWalletType === ''
                     ? 'border-[#4cd3ff] bg-[#4cd3ff]/10'
                     : 'border-[#2a2a2a] bg-[#1a1a1a] hover:border-[#4cd3ff]/50'
                 }`}
               >
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  selectedWalletType === 'TON' ? 'border-[#4cd3ff] bg-[#4cd3ff]' : 'border-[#aaa]'
+                  selectedWalletType === '' ? 'border-[#4cd3ff] bg-[#4cd3ff]' : 'border-[#aaa]'
                 }`}>
-                  {selectedWalletType === 'TON' && <Check className="w-3 h-3 text-black" />}
+                  {selectedWalletType === '' && <Check className="w-3 h-3 text-black" />}
                 </div>
                 <div className="flex-1 flex items-center gap-2">
                   <Gem className="w-5 h-5 text-[#4cd3ff]" />
-                  <span className="text-white">TON Wallet</span>
+                  <span className="text-white"> Wallet</span>
                 </div>
               </button>
               <button
-                onClick={() => setSelectedWalletType('USDT')}
+                onClick={() => setSelectedWalletType('TONT')}
                 className={`w-full flex items-center space-x-2 p-3 rounded-lg border-2 transition-all ${
-                  selectedWalletType === 'USDT'
+                  selectedWalletType === 'TONT'
                     ? 'border-[#4cd3ff] bg-[#4cd3ff]/10'
                     : 'border-[#2a2a2a] bg-[#1a1a1a] hover:border-[#4cd3ff]/50'
                 }`}
               >
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                  selectedWalletType === 'USDT' ? 'border-[#4cd3ff] bg-[#4cd3ff]' : 'border-[#aaa]'
+                  selectedWalletType === 'TONT' ? 'border-[#4cd3ff] bg-[#4cd3ff]' : 'border-[#aaa]'
                 }`}>
-                  {selectedWalletType === 'USDT' && <Check className="w-3 h-3 text-black" />}
+                  {selectedWalletType === 'TONT' && <Check className="w-3 h-3 text-black" />}
                 </div>
                 <div className="flex-1 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-[#4cd3ff]" />
-                  <span className="text-white">USDT (Optimism)</span>
+                  <span className="text-white">TONT (Optimism)</span>
                 </div>
               </button>
               <button
@@ -347,14 +347,14 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
             </div>
           </div>
 
-          {/* TON Wallet Section */}
-          {selectedWalletType === 'TON' && (
+          {/*  Wallet Section */}
+          {selectedWalletType === '' && (
             <>
               {isTonWalletSet && !isChangingTonWallet ? (
                 <>
                   <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                     <Check className="w-4 h-4 text-green-500" />
-                    <p className="text-xs text-green-500">TON wallet linked successfully</p>
+                    <p className="text-xs text-green-500"> wallet linked successfully</p>
                   </div>
                   <div className="space-y-2">
                     <Input
@@ -377,10 +377,10 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-[#c0c0c0]">New TON Wallet Address</label>
+                    <label className="text-xs text-[#c0c0c0]">New  Wallet Address</label>
                     <Input
                       type="text"
-                      placeholder="Enter TON wallet address (UQ... or EQ...)"
+                      placeholder="Enter  wallet address (UQ... or EQ...)"
                       value={newTonWalletId}
                       onChange={(e) => setNewTonWalletId(e.target.value)}
                       className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -389,19 +389,19 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                   <div className="flex items-start gap-2 p-3 bg-[#4cd3ff]/10 rounded-lg border border-[#4cd3ff]/30">
                     <Info className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-[#c0c0c0]">
-                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} PAD</span> will be deducted
+                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} Hrum</span> will be deducted
                     </div>
                   </div>
                 </>
               ) : (
                 <>
                   <p className="text-xs text-[#c0c0c0]">
-                    <span className="text-red-500 font-semibold">One time setup</span> • Used for TON withdrawals
+                    <span className="text-red-500 font-semibold">One time setup</span> • Used for  withdrawals
                   </p>
                   <div className="space-y-2">
                     <Input
                       type="text"
-                      placeholder="Enter TON wallet address (UQ... or EQ...)"
+                      placeholder="Enter  wallet address (UQ... or EQ...)"
                       value={tonWalletId}
                       onChange={(e) => setTonWalletId(e.target.value)}
                       className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -414,7 +414,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                   <div className="flex items-start gap-2 p-3 bg-[#0d0d0d] rounded-lg border border-white/5">
                     <HelpCircle className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-[#c0c0c0]">
-                      Don't have a TON wallet?{' '}
+                      Don't have a  wallet?{' '}
                       <a 
                         href="https://ton.org/wallets" 
                         target="_blank" 
@@ -430,14 +430,14 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
             </>
           )}
 
-          {/* USDT Wallet Section */}
-          {selectedWalletType === 'USDT' && (
+          {/* TONT Wallet Section */}
+          {selectedWalletType === 'TONT' && (
             <>
               {isUsdtWalletSet && !isChangingUsdtWallet ? (
                 <>
                   <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                     <Check className="w-4 h-4 text-green-500" />
-                    <p className="text-xs text-green-500">USDT wallet linked successfully</p>
+                    <p className="text-xs text-green-500">TONT wallet linked successfully</p>
                   </div>
                   <div className="space-y-2">
                     <Input
@@ -460,10 +460,10 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-[#c0c0c0]">New USDT Wallet Address</label>
+                    <label className="text-xs text-[#c0c0c0]">New TONT Wallet Address</label>
                     <Input
                       type="text"
-                      placeholder="Enter USDT wallet address (0x...)"
+                      placeholder="Enter TONT wallet address (0x...)"
                       value={newUsdtWalletAddress}
                       onChange={(e) => setNewUsdtWalletAddress(e.target.value)}
                       className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -472,19 +472,19 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                   <div className="flex items-start gap-2 p-3 bg-[#4cd3ff]/10 rounded-lg border border-[#4cd3ff]/30">
                     <Info className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-[#c0c0c0]">
-                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} PAD</span> will be deducted
+                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} Hrum</span> will be deducted
                     </div>
                   </div>
                 </>
               ) : (
                 <>
                   <p className="text-xs text-[#c0c0c0]">
-                    Set up your <span className="text-[#4cd3ff] font-semibold">Optimism Network</span> USDT wallet
+                    Set up your <span className="text-[#4cd3ff] font-semibold">Optimism Network</span> TONT wallet
                   </p>
                   <div className="space-y-2">
                     <Input
                       type="text"
-                      placeholder="Enter USDT wallet address (0x...)"
+                      placeholder="Enter TONT wallet address (0x...)"
                       value={usdtWalletAddress}
                       onChange={(e) => setUsdtWalletAddress(e.target.value)}
                       className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -555,7 +555,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                   <div className="flex items-start gap-2 p-3 bg-[#4cd3ff]/10 rounded-lg border border-[#4cd3ff]/30">
                     <Info className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-[#c0c0c0]">
-                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} PAD</span> will be deducted
+                      Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} Hrum</span> will be deducted
                     </div>
                   </div>
                 </>
@@ -585,7 +585,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
 
         {/* Action Buttons */}
         <div className="flex justify-center gap-3">
-          {selectedWalletType === 'TON' && isTonWalletSet && !isChangingTonWallet ? (
+          {selectedWalletType === '' && isTonWalletSet && !isChangingTonWallet ? (
             <>
               <Button
                 variant="outline"
@@ -601,7 +601,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 Close
               </Button>
             </>
-          ) : selectedWalletType === 'TON' && isChangingTonWallet ? (
+          ) : selectedWalletType === '' && isChangingTonWallet ? (
             <>
               <Button
                 variant="outline"
@@ -618,10 +618,10 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 disabled={changeTonWalletMutation.isPending}
                 className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
               >
-                {changeTonWalletMutation.isPending ? "Processing..." : `Pay ${walletChangeFee} PAD & Confirm`}
+                {changeTonWalletMutation.isPending ? "Processing..." : `Pay ${walletChangeFee} Hrum & Confirm`}
               </Button>
             </>
-          ) : selectedWalletType === 'TON' && !isTonWalletSet ? (
+          ) : selectedWalletType === '' && !isTonWalletSet ? (
             <>
               <Button
                 variant="outline"
@@ -635,10 +635,10 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 disabled={saveTonWalletMutation.isPending}
                 className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
               >
-                {saveTonWalletMutation.isPending ? "Saving..." : "Save TON Wallet"}
+                {saveTonWalletMutation.isPending ? "Saving..." : "Save  Wallet"}
               </Button>
             </>
-          ) : selectedWalletType === 'USDT' && isUsdtWalletSet && !isChangingUsdtWallet ? (
+          ) : selectedWalletType === 'TONT' && isUsdtWalletSet && !isChangingUsdtWallet ? (
             <>
               <Button
                 variant="outline"
@@ -654,7 +654,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 Close
               </Button>
             </>
-          ) : selectedWalletType === 'USDT' && isChangingUsdtWallet ? (
+          ) : selectedWalletType === 'TONT' && isChangingUsdtWallet ? (
             <>
               <Button
                 variant="outline"
@@ -671,10 +671,10 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 disabled={changeUsdtWalletMutation.isPending}
                 className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
               >
-                {changeUsdtWalletMutation.isPending ? "Processing..." : "Update USDT Wallet"}
+                {changeUsdtWalletMutation.isPending ? "Processing..." : "Update TONT Wallet"}
               </Button>
             </>
-          ) : selectedWalletType === 'USDT' && !isUsdtWalletSet ? (
+          ) : selectedWalletType === 'TONT' && !isUsdtWalletSet ? (
             <>
               <Button
                 variant="outline"
@@ -688,7 +688,7 @@ export default function CwalletSetupDialog({ open, onOpenChange }: CwalletSetupD
                 disabled={saveUsdtWalletMutation.isPending}
                 className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
               >
-                {saveUsdtWalletMutation.isPending ? "Saving..." : "Save USDT Wallet"}
+                {saveUsdtWalletMutation.isPending ? "Saving..." : "Save TONT Wallet"}
               </Button>
             </>
           ) : selectedWalletType === 'STARS' && isTelegramStarsSet && !isChangingStarsUsername ? (

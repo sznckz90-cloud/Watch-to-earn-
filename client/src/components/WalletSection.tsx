@@ -106,7 +106,7 @@ export default function WalletSection({ hrumBalance, tonBalance, uid, isAdmin, o
     const minimumConvertHrum = appSettings?.minimumConvertHrum || 10000;
     
     if (hrumBalance < minimumConvertHrum) {
-      showNotification(`Minimum TON {minimumConvertHrum.toLocaleString()} Hrum required.`, "error");
+      showNotification(`Minimum  {minimumConvertHrum.toLocaleString()} Hrum required.`, "error");
       return;
     }
 

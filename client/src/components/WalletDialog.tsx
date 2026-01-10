@@ -100,7 +100,7 @@ export default function WalletDialog({ open, onOpenChange }: WalletDialogProps) 
                 className={`rounded-[20px] ${paymentType === 'ton' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-700 text-gray-400 hover:text-white'}`}
               >
                 <Gem className="w-4 h-4 mr-2" />
-                TON Coin
+                 Coin
               </Button>
               <Button
                 type="button"
@@ -116,13 +116,13 @@ export default function WalletDialog({ open, onOpenChange }: WalletDialogProps) 
             {paymentType === 'ton' ? (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-white mb-1">TON Payment</p>
+                  <p className="text-sm font-medium text-white mb-1"> Payment</p>
                   <p className="text-xs text-gray-400 mb-4">Enter your payment details to withdraw earned funds.</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-gray-300">TON Address</Label>
+                  <Label className="text-gray-300"> Address</Label>
                   <Input
-                    placeholder="Enter TON address"
+                    placeholder="Enter  address"
                     value={tonAddress}
                     onChange={(e) => setTonAddress(e.target.value)}
                     className="bg-transparent border-gray-700 text-white placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500 rounded-[10px]"

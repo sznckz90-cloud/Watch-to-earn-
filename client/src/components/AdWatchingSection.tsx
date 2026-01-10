@@ -48,8 +48,8 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
       return response.json();
     },
     onSuccess: async (data) => {
-      const rewardAmount = data?.rewardPAD || appSettings?.rewardPerAd || 2;
-      showNotification(`+${rewardAmount} PAD earned!`, "success");
+      const rewardAmount = data?.rewardHrum || appSettings?.rewardPerAd || 2;
+      showNotification(`+${rewardAmount} Hrum earned!`, "success");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
@@ -218,7 +218,7 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
                 ) : (
                   <div className="flex items-center gap-1.5">
                     <Shield className="w-3.5 h-3.5" />
-                    <span>+{appSettings?.rewardPerAd || 2} PAD</span>
+                    <span>+{appSettings?.rewardPerAd || 2} Hrum</span>
                   </div>
                 )}
               </Button>

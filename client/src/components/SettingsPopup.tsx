@@ -40,7 +40,7 @@ export const SettingsPopup: React.FC<SettingsPopupProps> = ({ onClose }) => {
           </div>
           <div>
             <h4 className="text-white font-bold mb-1">2. App Usage</h4>
-            <p>Money Adz allows users to earn PAD / BUG tokens through tasks, ads, and activities. Tokens earned in the app do not represent real money unless withdrawn according to app rules.</p>
+            <p>Money Adz allows users to earn Hrum / BUG tokens through tasks, ads, and activities. Tokens earned in the app do not represent real money unless withdrawn according to app rules.</p>
           </div>
           <div>
             <h4 className="text-white font-bold mb-1">3. Rewards & Withdrawals</h4>
