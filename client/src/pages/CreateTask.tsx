@@ -142,9 +142,8 @@ export default function CreateTask() {
   const clicksNum = parseInt(totalClicks) || 0;
   const totalCost = costPerClick * clicksNum;
   const totalRewardsHrum = rewardPerClickHrum * clicksNum;
-  const usdBalance = parseFloat((user as any)?.usdBalance || "0");
   const tonBalance = parseFloat((user as any)?.tonBalance || "0");
-  const additionalCost = costPerClick * (parseInt(additionalClicks) || 0);
+  const additionalCost = tonCostPerClick * (parseInt(additionalClicks) || 0);
   
   // Determine payment method based on user type
   // Admin uses TON, Regular users use TON
@@ -154,8 +153,7 @@ export default function CreateTask() {
     ? (appSettings?.botTaskCost || 0.0003)
     : (appSettings?.channelTaskCost || 0.0003);
   const totalCost = tonCostPerClick * clicksNum;
-  const totalCost = isAdmin ? totalCost : totalCostTON;
-  const availableBalance = isAdmin ? usdBalance : tonBalance;
+  const availableBalance = tonBalance;
   const hasSufficientBalance = availableBalance >= totalCost;
 
   const { data: myTasksData, isLoading: myTasksLoading, refetch: refetchMyTasks } = useQuery<{
@@ -338,9 +336,8 @@ export default function CreateTask() {
     }
 
     const additionalCost = tonCostPerClick * (parseInt(additionalClicks) || 0);
-    const additionalCost = isAdmin ? additionalCost : additionalCostTON;
-    const balance = isAdmin ? usdBalance : tonBalance;
-    const currency = isAdmin ? " : ";
+    const balance = tonBalance;
+    const currency = "TON";
 
     if (balance < additionalCost) {
       showNotification(`Insufficient ${currency} balance`, "error");

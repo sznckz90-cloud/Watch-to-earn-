@@ -160,13 +160,13 @@ export default function Affiliates() {
             </div>
             
             <p className="text-sm text-center text-white leading-relaxed mb-4">
-              Invite friends and get <span className="font-bold">{appSettings?.affiliateCommission || 10}%</span> of every ads completed by your referrals automatically added to your balance
+              Invite friends and get <span className="font-bold">{appSettings?.affiliateCommission || 10}%</span> of every ads completed by your referrals automatically added to your TON balance
             </p>
             
             {appSettings?.referralRewardEnabled && (
               <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                 <p className="text-xs text-green-400 font-medium text-center">
-                  Bonus: Earn <span className="font-bold">{appSettings.referralRewardHrum || 50} Hrum</span> + <span className="font-bold" >${appSettings.referralReward || 0.0005} TON</span> when your friend watches their first ad!
+                  Bonus: Earn <span className="font-bold">{appSettings.referralRewardHrum || 50} Hrum</span> + <span className="font-bold" >{appSettings.referralReward || 0.0005} TON</span> when your friend watches their first ad!
                 </p>
               </div>
             )}
@@ -234,11 +234,11 @@ export default function Affiliates() {
           <Card className="minimal-card">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center gap-2 mb-1">
-                <DollarSign className="w-4 h-4 text-emerald-400" />
+                <img src="/images/ton.png" alt="TON" className="w-4 h-4" />
                 <span className="text-xs text-muted-foreground">Total Earned</span>
               </div>
               <div className="text-xl font-bold text-emerald-400">
-                ${(stats?.totalUsdEarned || 0).toFixed(3)}
+                {(stats?.totalUsdEarned || 0).toFixed(4)} TON
               </div>
             </CardContent>
           </Card>

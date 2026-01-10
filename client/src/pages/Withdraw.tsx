@@ -97,7 +97,6 @@ export default function Withdraw() {
   });
 
   const walletChangeFee = appSettings?.walletChangeFee || 5000;
-  const hrumBalance = parseFloat(user?.balance || "0");
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
@@ -211,7 +210,7 @@ export default function Withdraw() {
     return 'text-gray-500';
   };
 
-  const format = (amount: string) => {
+  const formatTon = (amount: string) => {
     return parseFloat(amount).toFixed(2);
   };
 
@@ -369,10 +368,10 @@ export default function Withdraw() {
                 <div className="pt-3 border-t border-[#2a2a2a] space-y-2">
                   <div>
                     <div className="text-xs text-[#aaa]">You will receive</div>
-                    <div className="text-2xl font-bold text-white" >${calculateWithdrawalAmount().toFixed(2)}</div>
+                    <div className="text-2xl font-bold text-white" >{calculateWithdrawalAmount().toFixed(2)} TON</div>
                   </div>
                   <div className="text-xs text-[#aaa]">
-                    {selectedPackage === 'FULL' ? 'Full balance' : `TON${(selectedPackage as number).toFixed(2)}`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
+                    {selectedPackage === 'FULL' ? 'Full balance' : `${(selectedPackage as number).toFixed(2)} TON`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
                   </div>
                   <div className="text-xs text-yellow-400/80">
                     Withdrawal method: {selectedMethod}
@@ -413,8 +412,8 @@ export default function Withdraw() {
                   withdrawMutation.isPending || 
                   hasPendingWithdrawal || 
                   !isTonWalletSet || 
-                  usdBalance < getWithdrawalUsdAmount() ||
-                  getWithdrawalUsdAmount() <= 0 ||
+                  tonBalance < getWithdrawalTONAmount() ||
+                  getWithdrawalTONAmount() <= 0 ||
                   !hasEnoughReferrals ||
                   !hasWatchedEnoughAds ||
                   !hasEnoughBug
@@ -426,7 +425,7 @@ export default function Withdraw() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
-                ) : !isTonWalletSet ? 'Set Up Wallet First' : getWithdrawalUsdAmount() <= 0 ? 'Select a Package' : usdBalance < getWithdrawalUsdAmount() ? 'Insufficient Balance' : (!hasEnoughReferrals || !hasWatchedEnoughAds || !hasEnoughBug) ? 'Requirements Not Met' : `Withdraw TON${getWithdrawalUsdAmount().toFixed(2)} via ${selectedMethod}`}
+                ) : !isTonWalletSet ? 'Set Up Wallet First' : getWithdrawalTONAmount() <= 0 ? 'Select a Package' : tonBalance < getWithdrawalTONAmount() ? 'Insufficient Balance' : (!hasEnoughReferrals || !hasWatchedEnoughAds || !hasEnoughBug) ? 'Requirements Not Met' : `Withdraw ${getWithdrawalTONAmount().toFixed(2)} TON via ${selectedMethod}`}
               </Button>
             </div>
             </>
@@ -458,7 +457,7 @@ export default function Withdraw() {
                         {getStatusIcon(withdrawal.status)}
                         <div>
                           <p className="text-sm text-white font-medium">
-                            ${format$(getFullAmount(withdrawal))}
+                            {formatTon(getFullAmount(withdrawal))} TON
                           </p>
                           <p className="text-xs text-gray-500">
                             {format(new Date(withdrawal.createdAt), 'MMM dd, yyyy')}

@@ -223,9 +223,9 @@ export default function AdminPage() {
                     iconColor="text-[#4cd3ff]"
                   />
                   <StatCard 
-                    icon="dollar-sign" 
-                    label="Withdrawn" 
-                    value={'' + parseFloat(stats?.totalWithdrawals || '0').toFixed(2)} 
+                    icon="coins" 
+                    label="TON Withdrawn" 
+                    value={parseFloat(stats?.totalWithdrawals || '0').toFixed(2) + ' TON'} 
                     iconColor="text-green-400"
                   />
                 </div>
@@ -578,7 +578,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
             <div className="grid grid-cols-3 gap-2 text-center">
               <div><p className="text-xs text-muted-foreground">Hrum</p><p className="font-bold text-[#4cd3ff]">{formatHrum(user.balance)}</p></div>
               <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
-              <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-green-400" >${parseFloat(user.usdBalance || '0').toFixed(2)}</p></div>
+              <div><p className="text-xs text-muted-foreground">BUG</p><p className="font-bold text-green-400" >{parseFloat(user.bugBalance || '0').toFixed(2)}</p></div>
             </div>
           </div>
 
@@ -586,7 +586,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
             <p className="text-xs text-muted-foreground mb-2">Earnings</p>
             <div className="grid grid-cols-2 gap-2">
               <div><p className="text-xs text-muted-foreground">Total Earned</p><p className="font-bold text-emerald-400">{formatHrum(user.totalEarned)} Hrum</p></div>
-              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >${parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
+              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >{parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
             </div>
           </div>
 
