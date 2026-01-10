@@ -206,12 +206,12 @@ async function upsertTelegramUser(telegramId, userData) {
       const updateResult = await client.query(`
         UPDATE users 
         SET 
-          email = COALESCE($2, email),
-          first_name = COALESCE($3, first_name),
-          last_name = COALESCE($4, last_name),
-          username = COALESCE($5, username),
-          profile_image_url = COALESCE($6, profile_image_url),
-          personal_code = COALESCE($7, personal_code),
+          email = COALESCE(2, email),
+          first_name = COALESCE(3, first_name),
+          last_name = COALESCE(4, last_name),
+          username = COALESCE(5, username),
+          profile_image_url = COALESCE(6, profile_image_url),
+          personal_code = COALESCE(7, personal_code),
           updated_at = NOW()
         WHERE telegram_id = $1
         RETURNING *
@@ -514,9 +514,9 @@ async function handleStartCommand(chatId, telegramUser) {
   
   await sendBotMessage(chatId, 
     `${message}\n\n` +
-    `💰 Balance: $${user.balance || '0.00'}\n` +
+    `💰 Balance: ${user.balance || '0.00'}\n` +
     `🎯 Level: ${user.level || 1}\n` +
-    `📈 Total Earned: $${user.total_earned || '0.00'}\n\n` +
+    `📈 Total Earned: ${user.total_earned || '0.00'}\n\n` +
     `💻 Open the web app to start earning!`,
     {
       reply_markup: {
@@ -541,8 +541,8 @@ async function handleBalanceCommand(chatId, telegramUser) {
   
   await sendBotMessage(chatId,
     `💰 Your Balance Report:\n\n` +
-    `Current Balance: $${user.balance || '0.00'}\n` +
-    `Total Earned: $${user.total_earned || '0.00'}\n` +
+    `Current Balance: ${user.balance || '0.00'}\n` +
+    `Total Earned: ${user.total_earned || '0.00'}\n` +
     `Ads Watched: ${user.ads_watched || 0}\n` +
     `Current Level: ${user.level || 1}\n` +
     `Current Streak: ${user.current_streak || 0} days`

@@ -31,7 +31,7 @@ async function createPromoCodesTable() {
           "id" varchar PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
           "code" varchar NOT NULL,
           "reward_amount" numeric(10, 8) NOT NULL,
-          "reward_currency" varchar DEFAULT 'USDT',
+          "reward_currency" varchar DEFAULT 'TONT',
           "usage_limit" integer,
           "usage_count" integer DEFAULT 0,
           "per_user_limit" integer DEFAULT 1,

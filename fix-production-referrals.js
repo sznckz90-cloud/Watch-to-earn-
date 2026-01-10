@@ -11,12 +11,12 @@ async function fixProductionReferrals() {
   console.log('🔧 Fixing production referral system...');
   
   try {
-    // 1. Update existing referral bonuses from $0.50 to $0.01
-    console.log('📝 Updating referral bonus amounts from $0.50 to $0.01...');
+    // 1. Update existing referral bonuses from TON0.50 to TON0.01
+    console.log('📝 Updating referral bonus amounts from TON0.50 to TON0.01...');
     await sql`
       UPDATE earnings 
       SET amount = '0.01', 
-          description = REPLACE(description, '$0.50', '$0.01')
+          description = REPLACE(description, 'TON0.50', 'TON0.01')
       WHERE source = 'referral' 
       AND amount = '0.50'
     `;
@@ -83,7 +83,7 @@ async function fixProductionReferrals() {
     
     console.log('✅ Production referral system fixed successfully!');
     console.log('📊 Summary of changes:');
-    console.log('  - Updated existing $0.50 bonuses to $0.01');
+    console.log('  - Updated existing TON0.50 bonuses to TON0.01');
     console.log('  - Created/updated referrals tracking table');
     console.log('  - Added missing database columns');
     console.log('  - Generated referral codes for users');

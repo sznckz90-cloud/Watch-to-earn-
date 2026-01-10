@@ -25,10 +25,10 @@ The Admin Dashboard is accessible from the **Wallet** tab for authorized admin u
      - Code will be automatically converted to UPPERCASE
      - Max 20 characters
    
-   - **Per User Claim Amount (PAD)*** 
-     - Amount of PAD each user receives when claiming
-     - Example: `5000` = 5,000 PAD
-     - This equals 0.05 TON or $0.05 USD
+   - **Per User Claim Amount (Hrum)*** 
+     - Amount of Hrum each user receives when claiming
+     - Example: `5000` = 5,000 Hrum
+     - This equals 0.05  or TON0.05 TON
 
    **Optional Fields:**
    - **Max Users Allowed**
@@ -55,38 +55,38 @@ The Admin Dashboard is accessible from the **Wallet** tab for authorized admin u
 
 ```
 Code: WELCOME100
-Amount: 10000 PAD
+Amount: 10000 Hrum
 Max Users: 500
 Per User Limit: 1
 Expiry: None
-→ First 500 users get 10,000 PAD once
+→ First 500 users get 10,000 Hrum once
 ```
 
 ```
 Code: DAILY50
-Amount: 5000 PAD
+Amount: 5000 Hrum
 Max Users: Unlimited
 Per User Limit: 1
 Expiry: End of day
-→ Everyone can claim 5,000 PAD once per day
+→ Everyone can claim 5,000 Hrum once per day
 ```
 
 ```
 Code: VIP1000
-Amount: 100000 PAD
+Amount: 100000 Hrum
 Max Users: 10
 Per User Limit: 1
 Expiry: 7 days
-→ Only 10 VIP users get 100,000 PAD
+→ Only 10 VIP users get 100,000 Hrum
 ```
 
 ### Active Promo Codes List
 
 Below the creation form, you'll see all active promo codes with:
 - **Code name**
-- **Reward amount** (in PAD)
+- **Reward amount** (in Hrum)
 - **Claims count** (Claimed / Remaining)
-- **Total PAD distributed**
+- **Total Hrum distributed**
 - **Status** (Active/Inactive)
 - **Expiry date** (if set)
 
@@ -110,8 +110,8 @@ Below the creation form, you'll see all active promo codes with:
 
    **Account Details:**
    - **UID**: User's unique referral code
-   - **Balance**: Current PAD balance
-   - **Total Earnings**: All-time earnings in PAD
+   - **Balance**: Current Hrum balance
+   - **Total Earnings**: All-time earnings in Hrum
    - **Status**: Active or Banned
 
    **Activity Statistics:**
@@ -121,7 +121,7 @@ Below the creation form, you'll see all active promo codes with:
    - **Joined Date**: Account creation date
 
    **Wallet Information:**
-   - **Current Wallet**: TON wallet address (if set)
+   - **Current Wallet**:  wallet address (if set)
 
 ### Finding User UIDs:
 
@@ -163,7 +163,7 @@ Users can find their UID in several places:
 ### 2. Analytics Tab
 - **Active Users**: Daily active user count
 - **Ads Watched**: Total ads viewed across platform
-- **PAD Earned**: Total earnings distributed
+- **Hrum Earned**: Total earnings distributed
 - **Total Users**: Complete user base count
 - **Withdrawal Analytics**: Request statistics
 - **Platform Performance**: Growth charts
@@ -220,17 +220,17 @@ Users can find their UID in several places:
 
 ## 📝 Currency Conversion Reference
 
-**PAD to TON to USD:**
-- 100,000 PAD = 1 TON = $1.00 USD
-- 10,000 PAD = 0.1 TON = $0.10 USD
-- 1,000 PAD = 0.01 TON = $0.01 USD
-- 100 PAD = 0.001 TON = $0.001 USD
+**Hrum to  to TON:**
+- 100,000 Hrum = 1  = $1.00 TON
+- 10,000 Hrum = 0.1  = TON0.10 TON
+- 1,000 Hrum = 0.01  = TON0.01 TON
+- 100 Hrum = 0.001  = TON0.001 TON
 
 **Example Promo Values:**
-- 5,000 PAD = $0.05 (nickel bonus)
-- 10,000 PAD = $0.10 (dime bonus)
-- 50,000 PAD = $0.50 (half dollar bonus)
-- 100,000 PAD = $1.00 (dollar bonus)
+- 5,000 Hrum = TON0.05 (nickel bonus)
+- 10,000 Hrum = TON0.10 (dime bonus)
+- 50,000 Hrum = TON0.50 (half dollar bonus)
+- 100,000 Hrum = $1.00 (dollar bonus)
 
 ---
 

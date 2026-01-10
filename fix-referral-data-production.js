@@ -166,7 +166,7 @@ async function repairReferralData() {
               })
               .where(eq(users.id, referrer.id));
 
-            console.log(`  💰 Activated $0.01 referral bonus for ${referrer.firstName || referrer.username}`);
+            console.log(`  💰 Activated TON0.01 referral bonus for ${referrer.firstName || referrer.username}`);
             activatedBonuses++;
           }
         }
@@ -216,7 +216,7 @@ async function repairReferralData() {
     console.log('\n📈 CURRENT TOTALS:');
     console.log(`Total referrals in system: ${totalReferrals[0]?.count || 0}`);
     console.log(`Completed referrals: ${completedReferrals[0]?.count || 0}`);
-    console.log(`Total referral earnings: $${totalReferralEarnings[0]?.total || '0'}`);
+    console.log(`Total referral earnings: ${totalReferralEarnings[0]?.total || '0'}`);
     
     console.log('\n🎉 REFERRAL DATA REPAIR COMPLETED SUCCESSFULLY!');
     console.log('Your referrals and earnings should now appear correctly in the app.');

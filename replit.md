@@ -1,7 +1,7 @@
-# CashWatch - PAD Earning & Withdrawal Platform
+# CashWatch - Hrum Earning & Withdrawal Platform
 
 ## Overview
-CashWatch is a Telegram-based earning platform where users earn PAD currency by watching ads, completing tasks, and referring others. It enables conversion of PAD to USD and offers multi-payment withdrawals. The platform also supports direct PDZ token top-ups via ArcPay, aiming to provide a seamless experience for digital currency management within Telegram. The project's vision is to become a leading platform for micro-tasking and digital currency earning within the Telegram ecosystem, targeting a broad user base interested in supplementary income.
+CashWatch is a Telegram-based earning platform where users earn Hrum currency by watching ads, completing tasks, and referring others. It enables conversion of Hrum to  and offers multi-payment withdrawals. The platform also supports direct PDZ token top-ups via ArcPay, aiming to provide a seamless experience for digital currency management within Telegram. The project's vision is to become a leading platform for micro-tasking and digital currency earning within the Telegram ecosystem, targeting a broad user base interested in supplementary income.
 
 ## User Preferences
 - Task type icons should be small and compact (w-4 h-4 with p-2.5 padding)
@@ -20,12 +20,12 @@ CashWatch is a Telegram-based earning platform where users earn PAD currency by 
 ### Technical Implementations
 - **Stack**: React, TypeScript, Vite (frontend); Express.js, Node.js (backend); PostgreSQL with Drizzle ORM (database).
 - **Authentication**: Telegram WebApp Authentication.
-- **Currency Conversion**: API endpoint for PAD to USD conversion (10,000 PAD = 1 USD).
-- **Withdrawal System**: Supports TON blockchain only with package-based withdrawals. Users select from preset packages ($0.20, $0.40, $0.80) or FULL balance withdrawal. Each package requires proportional BUG balance (calculated via `bugPerUsd` multiplier). Both USD and BUG are deducted on successful withdrawal. 5% fee with server-enforced minimums. Fee (5000 PAD) for changing existing TON wallet details.
+- **Currency Conversion**: API endpoint for Hrum to  conversion (10,000 Hrum = 1 ).
+- **Withdrawal System**: Supports  blockchain only with package-based withdrawals. Users select from preset packages (0.20, TON0.40, TON0.80) or FULL balance withdrawal. Each package requires proportional BUG balance (calculated via `bugPerUsd` multiplier). Both  and BUG are deducted on successful withdrawal. 5% fee with server-enforced minimums. Fee (5000 Hrum) for changing existing  wallet details.
 - **ArcPay Integration**: Full integration for PDZ top-ups, including secure API credential handling, retry logic, and a webhook for payment notifications.
-- **Earning Mechanics**: Includes Faucetpay (+1 PAD), Referral System, and Ad Rewards, all managed as PAD integers.
-- **Number Formatting**: Uses compact notation (1k, 1M) for large PAD amounts.
-- **PAD Balance Handling**: Ensures PAD rewards are stored as integers, with auto-conversion for legacy TON balances.
+- **Earning Mechanics**: Includes Faucetpay (+1 Hrum), Referral System, and Ad Rewards, all managed as Hrum integers.
+- **Number Formatting**: Uses compact notation (1k, 1M) for large Hrum amounts.
+- **Hrum Balance Handling**: Ensures Hrum rewards are stored as integers, with auto-conversion for legacy  balances.
 - **Data Persistence**: Employs a dual storage strategy (IndexedDB primary, localStorage fallback) with a custom `PersistentStorage` class for robust data saving, auto-sync, and fallback handling.
 - **Mandatory Channel & Group Join Security**: Locks app access until users join specified Telegram channel and group, verified in real-time on every app launch.
 - **Ad Watch System**: Implements hourly (60 ads) and daily (500 ads) limits with a countdown timer for hourly resets.
@@ -33,14 +33,14 @@ CashWatch is a Telegram-based earning platform where users earn PAD currency by 
 - **Native Share Dialog**: Utilizes Telegram's `shareMessage()` API for rich, native sharing experiences, with fallbacks.
 
 ### Feature Specifications
-- **Top-Up PDZ**: `/topup-pdz` route with ArcPay, minimum 0.1 TON.
+- **Top-Up PDZ**: `/topup-pdz` route with ArcPay, minimum 0.1 .
 - **Withdrawal Toggle**: Custom grid toggle for "Withdraw" and "Wallet Setup".
 - **Health Check**: `/api/health` endpoint for system diagnostics.
-- **Task Category System**: Three icon-based task types (Channel, Bot, Partner) with a 3-second countdown before claim. Partner tasks are admin-only with a fixed 5 PAD reward.
+- **Task Category System**: Three icon-based task types (Channel, Bot, Partner) with a 3-second countdown before claim. Partner tasks are admin-only with a fixed 5 Hrum reward.
 - **Ad Sequence**: Monetag popup first, then AdGram for streak/promo code claims.
 - **Home Page Display**: Prioritized display of Telegram username.
 - **Withdrawal Requirements**: Admin-controlled for invites and ad watches, with dynamic error messages.
-- **Daily Missions**: Includes "Check for Updates" mission rewarding 5 PAD, requiring an ad flow for claiming.
+- **Daily Missions**: Includes "Check for Updates" mission rewarding 5 Hrum, requiring an ad flow for claiming.
 - **Store Page**: New `/store` route showcasing income boosters with various durations and a 0% withdrawal fee booster (UI only).
 
 ### System Design Choices
@@ -68,10 +68,10 @@ CashWatch is a Telegram-based earning platform where users earn PAD currency by 
   - Prevents auto-reward and ensures user intentionally claims after task completion
 
 ### December 2024 - Withdrawal Approval Bug Fix
-- **Fixed "Insufficient USD balance" error during admin approval**: Previously, balance was incorrectly deducted at withdrawal request time AND checked again during approval, causing approval to fail.
+- **Fixed "Insufficient  balance" error during admin approval**: Previously, balance was incorrectly deducted at withdrawal request time AND checked again during approval, causing approval to fail.
 - **Correct withdrawal flow now implemented**:
   1. On withdrawal REQUEST: Only validates balance (checks if sufficient funds exist), does NOT deduct balance
-  2. On admin APPROVAL: Deducts both USD and BUG balance from user account
+  2. On admin APPROVAL: Deducts both  and BUG balance from user account
   3. On admin REJECTION: Balance remains unchanged (since it was never deducted)
 - **Balance integrity**: User balance stays unchanged while withdrawal status is PENDING; balance is only deducted when admin approves
 - **Legacy withdrawal support**: Handles withdrawals created before this fix (where balance was already deducted at request time):
@@ -80,12 +80,12 @@ CashWatch is a Telegram-based earning platform where users earn PAD currency by 
 - **Files modified**: `server/routes.ts` (removed balance deduction from request creation), `server/storage.ts` (approveWithdrawal and rejectWithdrawal now handle both new and legacy flows)
 
 ### December 2024 - Telegram Bot Notification Fixes
-- **Referral Notification**: Only ONE message sent on FIRST AD with USD reward from Admin Settings (uses `firstAdWatched` flag to prevent duplicate notifications)
+- **Referral Notification**: Only ONE message sent on FIRST AD with  reward from Admin Settings (uses `firstAdWatched` flag to prevent duplicate notifications)
 - **Commission Notification Removed**: Disabled spam notification on every ad watch - referral commission is still awarded but no Telegram notification is sent
 - **Ban Message Fix**: Telegram bot ban message uses inline button "Contact Support" pointing to https://t.me/PaidAdzGroup (no plain text URL)
 - **BanScreen Component**: Updated to redirect to https://t.me/PaidAdzGroup instead of PaidAdsCommunity
 - **Payout Approved Message**: Uses "Share in Group" inline button pointing to https://t.me/PaidAdzGroup
-- **Affiliate Page USD Balance**: Calculates totalUsdEarned as successfulInvitesCount * referralRewardUSD from admin settings (accurate real-time calculation)
+- **Affiliate Page  Balance**: Calculates totalUsdEarned as successfulInvitesCount * referralReward from admin settings (accurate real-time calculation)
 - **Group Notification for Withdrawals**: Sends notification to PaidAdzGroup (chat ID: -1003402950172) with exact same format as admin notification when withdrawal request is created
 
 ### December 2024 - Country Blocking System Fix
@@ -104,13 +104,13 @@ CashWatch is a Telegram-based earning platform where users earn PAD currency by 
 - **Added missing notification functions**: Implemented `sendReferralRewardNotification` and `sendReferralCommissionNotification` in telegram.ts.
 - **Referral activation notifications**: Referrers now receive Telegram notifications when their invited friends watch their first ad.
 - **HTML escaping**: All user-provided names are properly sanitized before being included in notification messages to prevent Telegram parsing errors.
-- **Notification format**: "New Referral Activity! Your friend watched their first ad. You earned X PAD."
+- **Notification format**: "New Referral Activity! Your friend watched their first ad. You earned X Hrum."
 
-### December 2024 - Real-time TON Balance Updates
-- **Instant TON Balance Sync**: Implemented WebSocket-based real-time updates for TON top-ups.
+### December 2024 - Real-time  Balance Updates
+- **Instant  Balance Sync**: Implemented WebSocket-based real-time updates for  top-ups.
 - **Backend**: Added `sendRealtimeUpdate` call in ArcPay webhook handler to push new balance to the user.
 - **Frontend**: Updated `useWebSocket` hook to handle `balance_update` messages, directly updating the React Query cache and invalidating user data for instant UI reflection.
-- **UI Consistency**: TON Wallet Setup dialog updated to match Promo Popup design pattern (spacing, theme, buttons).
+- **UI Consistency**:  Wallet Setup dialog updated to match Promo Popup design pattern (spacing, theme, buttons).
 
 ## Development Setup
 

@@ -2,8 +2,8 @@
 set -e
 
 echo "🚀 Starting Node.js build process..."
-echo "Node version: $(node --version)"
-echo "NPM version: $(npm --version)"
+echo "Node version: TON(node --version)"
+echo "NPM version: TON(npm --version)"
 
 # Install dependencies
 echo "📦 Installing dependencies..."
