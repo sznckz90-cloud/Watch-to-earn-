@@ -8,8 +8,8 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Format currency values - displays Hrum amount in pure numeric format
- * No TON-style formatting - Hrum is always an integer value
- * Examples: 1000 → "1,000 Hrum", 500000 → "500,000 Hrum"
+ * Hrum is always an integer value
+ * Examples: 1000 -> "1,000 Hrum", 500000 -> "500,000 Hrum"
  */
 export function formatCurrency(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
@@ -18,17 +18,13 @@ export function formatCurrency(value: string | number, includeSymbol: boolean = 
     return includeSymbol ? '0 Hrum' : '0';
   }
   
-  // Hrum is always an integer - no  conversion
   const hrumValue = Math.round(numValue);
-  
   const symbol = includeSymbol ? ' Hrum' : '';
   return `${hrumValue.toLocaleString()}${symbol}`;
 }
 
 /**
  * Format large Hrum numbers with compact notation (K, M, B, T)
- * Handles overflow and prevents NaN/Infinity display
- * Examples: 1000 → "1K", 1000000 → "1M", 1000000000 → "1B"
  */
 export function formatLargeHrum(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
@@ -41,64 +37,33 @@ export function formatLargeHrum(value: string | number, includeSymbol: boolean =
   const symbol = includeSymbol ? ' Hrum' : '';
   const sign = numValue < 0 ? '-' : '';
   
-  if (absValue >= 1000000000000) {
-    return `${sign}${(absValue / 1000000000000).toFixed(1)}T${symbol}`;
-  }
-  if (absValue >= 1000000000) {
-    return `${sign}${(absValue / 1000000000).toFixed(1)}B${symbol}`;
-  }
-  if (absValue >= 1000000) {
-    return `${sign}${(absValue / 1000000).toFixed(1)}M${symbol}`;
-  }
-  if (absValue >= 1000) {
-    return `${sign}${(absValue / 1000).toFixed(1)}K${symbol}`;
-  }
+  if (absValue >= 1000000000000) return `${sign}${(absValue / 1000000000000).toFixed(1)}T${symbol}`;
+  if (absValue >= 1000000000) return `${sign}${(absValue / 1000000000).toFixed(1)}B${symbol}`;
+  if (absValue >= 1000000) return `${sign}${(absValue / 1000000).toFixed(1)}M${symbol}`;
+  if (absValue >= 1000) return `${sign}${(absValue / 1000).toFixed(1)}K${symbol}`;
   
   return `${sign}${Math.round(absValue).toLocaleString()}${symbol}`;
-}
-
-/**
- * Format task rewards - displays Hrum amount in pure numeric format
- * No TON-style formatting - Hrum is always an integer value
- * Examples: 1000 → "1,000 Hrum", 500 → "500 Hrum"
- */
-export function formatTaskReward(value: string | number, includeSymbol: boolean = true): string {
-  const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
-  
-  if (isNaN(numValue) || !isFinite(numValue)) {
-    return includeSymbol ? '0 Hrum' : '0';
-  }
-  
-  // Hrum is always an integer - no  conversion
-  const hrumValue = Math.round(numValue);
-  
-  const symbol = includeSymbol ? ' Hrum' : '';
-  return `${hrumValue.toLocaleString()}${symbol}`;
 }
 
 /**
  * Convert Hrum to TON
  * 10,000 Hrum = 1 TON
  */
-export function formatHrumtoTON(hrumAmount: number | string): string {
-  const ton = hrumToTON(hrumAmount);
+export function formatHrumto$(hrumAmount: number | string): string {
+  const ton = hrumTo$(hrumAmount);
   return ton.toFixed(2);
 }
 
 /**
- * Format  values without converting to Hrum
- * For admin panel and withdrawal displays
- * Examples: 0.0003 → "0.0003 , 1.5 → "1.5 
+ * Format $values
  */
-export function formatTON(value: string | number, includeSymbol: boolean = true): string {
+export function format$(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
-  if (isNaN(numValue)) {
-    return includeSymbol ? '0 ' : '0';
-  }
+  if (isNaN(numValue)) return includeSymbol ? '0 TON' : '0';
   
-  const symbol = includeSymbol ? ' ' : '';
-  return `${numValue.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 })}${symbol}`;
+  const symbol = includeSymbol ? ' TON' : '';
+  return `${numValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}${symbol}`;
 }
 
 /**
