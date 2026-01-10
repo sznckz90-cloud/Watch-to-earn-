@@ -113,7 +113,7 @@ export default function WalletActivity() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-[#4cd3ff]">
-                        ${formatTON(withdrawal.amount)}
+                        ${format$(withdrawal.amount)}
                       </p>
                       <p className="text-xs text-gray-500">
                         TON

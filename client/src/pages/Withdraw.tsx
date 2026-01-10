@@ -130,222 +130,10 @@ export default function Withdraw() {
     }
     return selectedPackage;
   };
-  
-  // Calculate BUG requirement based on selected package - always use bugPer for consistency
-  const getBugRequirementForAmount = (tonAmount: number) => {
-    return Math.ceil(tonAmount * bugPer);
-  };
-  
-  const getPackageBugRequirement = () => {
-    if (selectedPackage === 'FULL') {
-      return getBugRequirementForAmount(tonBalance);
-    }
-    return getBugRequirementForAmount(selectedPackage as number);
-  };
-  
-  const minimumBugForWithdrawal = getPackageBugRequirement();
-  
-  const { data: withdrawalEligibility, isLoading: isLoadingEligibility, isFetched: isEligibilityFetched } = useQuery<{ adsWatchedSinceLastWithdrawal: number; canWithdraw: boolean }>({
-    queryKey: ['/api/withdrawal-eligibility'],
-    retry: false,
-    staleTime: 60000,
-    gcTime: 300000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
-  
-  const adsWatchedSinceLastWithdrawal = withdrawalEligibility?.adsWatchedSinceLastWithdrawal ?? (user as any)?.adsWatchedSinceLastWithdrawal ?? 0;
-  
-  const isLoadingAdRequirement = withdrawalAdRequirementEnabled && (!isEligibilityFetched || isLoadingEligibility);
-  const isLoadingInviteRequirement = withdrawalInviteRequirementEnabled && (!isReferralsFetched || isLoadingReferrals);
-  const isLoadingRequirements = isLoadingAdRequirement || isLoadingInviteRequirement;
-  
-  const hasWatchedEnoughAds = !withdrawalAdRequirementEnabled || adsWatchedSinceLastWithdrawal >= MINIMUM_ADS_FOR_WITHDRAWAL;
-  const hasEnoughReferrals = !withdrawalInviteRequirementEnabled || validReferralCount >= MINIMUM_VALID_REFERRALS_REQUIRED;
-  const hasEnoughBug = !withdrawalBugRequirementEnabled || bugBalance >= minimumBugForWithdrawal;
-
-  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MoneyAdzbot';
-  // Use bot deep link format (?start=) for reliable referral tracking
-  const referralLink = user?.referralCode 
-    ? `https://t.me/${botUsername}?start=${user.referralCode}`
-    : '';
-
-  const [isSharing, setIsSharing] = useState(false);
-
-  const openShareSheet = async () => {
-    if (!referralLink || isSharing) return;
-    
-    setIsSharing(true);
-    
-    try {
-      const tgWebApp = window.Telegram?.WebApp as any;
-      
-      if (tgWebApp?.shareMessage) {
-        try {
-          const response = await fetch('/api/share/prepare-message', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' }
-          });
-          const data = await response.json();
-          
-          if (data.success && data.messageId) {
-            tgWebApp.shareMessage(data.messageId, (success: boolean) => {
-              setIsSharing(false);
-            });
-            return;
-          } else if (data.fallbackUrl) {
-            tgWebApp.openTelegramLink(data.fallbackUrl);
-            setIsSharing(false);
-            return;
-          }
-        } catch (error) {
-          console.error('Prepare message error:', error);
-        }
-      }
-      
-      const shareTitle = `Start earning money just by completing tasks & watching ads!`;
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(shareTitle)}`;
-      
-      if (tgWebApp?.openTelegramLink) {
-        tgWebApp.openTelegramLink(shareUrl);
-      } else {
-        window.open(shareUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Share error:', error);
-    }
-    
-    setIsSharing(false);
-  };
-
-  const withdrawalsData = withdrawalsResponse?.withdrawals || [];
-  const hasPendingWithdrawal = withdrawalsData.some(w => w.status === 'pending');
-
-  const isTonWalletSet = !!user?.cwalletId;
-
-  useEffect(() => {
-    if (user) {
-      if (user.cwalletId) setTonWalletId(user.cwalletId);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    refetchUser();
-    refetchWithdrawals();
-  }, [refetchUser, refetchWithdrawals]);
-
-  const saveTonWalletMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/wallet/cwallet', {
-        cwalletId: tonWalletId.trim()
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      showNotification(" wallet saved successfully.", "success");
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-    },
-    onError: (error: Error) => {
-      showNotification(error.message, "error");
-    },
-  });
-
-  const changeTonWalletMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest('POST', '/api/wallet/change', {
-        newWalletId: newTonWalletId.trim()
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      showNotification(" wallet updated successfully", "success");
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      setIsChangingTonWallet(false);
-      setNewTonWalletId('');
-    },
-    onError: (error: Error) => {
-      showNotification(error.message, "error");
-    },
-  });
-
-  const withdrawMutation = useMutation({
-    mutationFn: async () => {
-      let withdrawalData: any = {
-        method: selectedMethod,
-        withdrawalPackage: selectedPackage
-      };
-
-      const response = await apiRequest('POST', '/api/withdrawals', withdrawalData);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to submit withdrawal request');
-      }
-      
-      return data;
-    },
-    onSuccess: async () => {
-      showNotification("You have sent a withdrawal request.", "success");
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/withdrawals'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
-      
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['/api/auth/user'] }),
-        queryClient.refetchQueries({ queryKey: ['/api/user/stats'] }),
-        queryClient.refetchQueries({ queryKey: ['/api/withdrawals'] })
-      ]);
-      
-      setSelectedMethod('');
-      setSelectedPackage('FULL');
-    },
-    onError: (error: any) => {
-      const errorMessage = error.message || "Failed to submit withdrawal request";
-      
-      if (errorMessage.toLowerCase().includes("minimum") || errorMessage === "minimum withdrawal") {
-        const minAmount = selectedPaymentSystem?.minWithdrawal || 1;
-        showNotification(`minimum TON${minAmount}`, "error");
-      } else if (errorMessage.toLowerCase().includes("pending")) {
-        showNotification("You already have a pending withdrawal. Please wait for it to be processed.", "error");
-      } else if (errorMessage.toLowerCase().includes("insufficient")) {
-        showNotification("Insufficient balance for withdrawal. Please convert Hrum to  first.", "error");
-      } else {
-        showNotification(errorMessage, "error");
-      }
-    },
-  });
-
-  const handleSaveTonWallet = () => {
-    if (!tonWalletId.trim()) {
-      showNotification("Please enter your  wallet address", "error");
-      return;
-    }
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(tonWalletId.trim())) {
-      showNotification("Please enter a valid  wallet address", "error");
-      return;
-    }
-    saveTonWalletMutation.mutate();
-  };
-
-  const handleChangeTonWallet = () => {
-    if (!newTonWalletId.trim()) {
-      showNotification("Please enter a new  wallet address", "error");
-      return;
-    }
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(newTonWalletId.trim())) {
-      showNotification("Please enter a valid  wallet address", "error");
-      return;
-    }
-    changeTonWalletMutation.mutate();
-  };
 
   const handleWithdraw = () => {
     if (!isTonWalletSet) {
-      showNotification("Please set up your  wallet first", "error");
+      showNotification("Please set up your $wallet first", "error");
       setActiveTab('wallet-setup');
       return;
     }
@@ -359,12 +147,6 @@ export default function Withdraw() {
     if (!hasWatchedEnoughAds) {
       const remaining = MINIMUM_ADS_FOR_WITHDRAWAL - adsWatchedSinceLastWithdrawal;
       showNotification(`Watch ${remaining} more ad${remaining !== 1 ? 's' : ''} to unlock this withdrawal.`, "error");
-      return;
-    }
-    
-    if (!hasEnoughBug) {
-      const remaining = Math.ceil(minimumBugForWithdrawal - bugBalance);
-      showNotification(`You need ${remaining.toLocaleString()} more BUG to withdraw. Watch ads or complete tasks to earn BUG.`, "error");
       return;
     }
 
@@ -512,7 +294,7 @@ export default function Withdraw() {
                     </div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
-                        <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover" />
+                        <img src="/images/ton.png" alt="" className="w-6 h-6 object-cover" />
                       </div>
                       <span className="text-white">{system.name}</span>
                       <span className="text-xs text-[#aaa] ml-auto">({system.fee}% fee)</span>
@@ -587,7 +369,7 @@ export default function Withdraw() {
                 <div className="pt-3 border-t border-[#2a2a2a] space-y-2">
                   <div>
                     <div className="text-xs text-[#aaa]">You will receive</div>
-                    <div className="text-2xl font-bold text-white" >TON {calculateWithdrawalAmount().toFixed(2)}</div>
+                    <div className="text-2xl font-bold text-white" >${calculateWithdrawalAmount().toFixed(2)}</div>
                   </div>
                   <div className="text-xs text-[#aaa]">
                     {selectedPackage === 'FULL' ? 'Full balance' : `TON${(selectedPackage as number).toFixed(2)}`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
@@ -676,7 +458,7 @@ export default function Withdraw() {
                         {getStatusIcon(withdrawal.status)}
                         <div>
                           <p className="text-sm text-white font-medium">
-                            ${formatTON(getFullAmount(withdrawal))}
+                            ${format$(getFullAmount(withdrawal))}
                           </p>
                           <p className="text-xs text-gray-500">
                             {format(new Date(withdrawal.createdAt), 'MMM dd, yyyy')}
@@ -711,7 +493,7 @@ export default function Withdraw() {
                   </div>
                   <div className="flex-1 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
-                      <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover" />
+                      <img src="/images/ton.png" alt="" className="w-6 h-6 object-cover" />
                     </div>
                     <span className="text-white truncate">{isTonWalletSet ? shortenAddress(tonWalletId) : ' Wallet'}</span>
                   </div>

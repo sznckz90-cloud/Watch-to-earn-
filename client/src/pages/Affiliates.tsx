@@ -166,7 +166,7 @@ export default function Affiliates() {
             {appSettings?.referralRewardEnabled && (
               <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                 <p className="text-xs text-green-400 font-medium text-center">
-                  Bonus: Earn <span className="font-bold">{appSettings.referralRewardHrum || 50} Hrum</span> + <span className="font-bold" >TON {appSettings.referralReward || 0.0005} TON</span> when your friend watches their first ad!
+                  Bonus: Earn <span className="font-bold">{appSettings.referralRewardHrum || 50} Hrum</span> + <span className="font-bold" >${appSettings.referralReward || 0.0005} TON</span> when your friend watches their first ad!
                 </p>
               </div>
             )}

@@ -10,7 +10,7 @@ import { Gem, AlertCircle, ChevronRight, Loader2 } from "lucide-react";
 const MINIMUM_AMOUNT = 0.1;
 const DEBOUNCE_DELAY = 1000; // 1 second debounce
 
-export default function TopUpTON() {
+export default function TopUp$() {
   const [tonAmount, setTonAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState("");

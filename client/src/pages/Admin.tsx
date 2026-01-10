@@ -578,7 +578,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
             <div className="grid grid-cols-3 gap-2 text-center">
               <div><p className="text-xs text-muted-foreground">Hrum</p><p className="font-bold text-[#4cd3ff]">{formatHrum(user.balance)}</p></div>
               <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
-              <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-green-400" >TON {parseFloat(user.usdBalance || '0').toFixed(2)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-green-400" >${parseFloat(user.usdBalance || '0').toFixed(2)}</p></div>
             </div>
           </div>
 
@@ -586,7 +586,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
             <p className="text-xs text-muted-foreground mb-2">Earnings</p>
             <div className="grid grid-cols-2 gap-2">
               <div><p className="text-xs text-muted-foreground">Total Earned</p><p className="font-bold text-emerald-400">{formatHrum(user.totalEarned)} Hrum</p></div>
-              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >TON {parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
+              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >${parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
             </div>
           </div>
 
@@ -696,7 +696,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
               {userWithdrawals.withdrawals.map((w: any) => (
                 <div key={w.id} className="bg-white/5 p-2 rounded border border-white/10">
                   <div className="flex justify-between items-center">
-                    <p className="font-bold text-green-400" >TON {parseFloat(w.amount || '0').toFixed(2)}</p>
+                    <p className="font-bold text-green-400" >${parseFloat(w.amount || '0').toFixed(2)}</p>
                     <Badge className={w.status === 'success' || w.status === 'paid' ? 'bg-green-600' : w.status === 'rejected' ? 'bg-red-600' : 'bg-yellow-600'}>
                       {w.status}
                     </Badge>
@@ -1097,7 +1097,7 @@ function PayoutLogsSection({ data }: { data: any }) {
                 return (
                   <TableRow key={payout.id} className="hover:bg-white/5">
                     <TableCell className="text-xs py-2 font-medium text-[#4cd3ff]">{displayUsername}</TableCell>
-                    <TableCell className="text-xs py-2 font-semibold text-green-400" >TON {usdAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs py-2 font-semibold text-green-400" >${usdAmount.toFixed(2)}</TableCell>
                     <TableCell className="py-2">{getStatusBadge(payout.status)}</TableCell>
                     <TableCell className="text-[10px] py-2 text-muted-foreground">{new Date(payout.createdAt || payout.created_on).toLocaleDateString()}</TableCell>
                   </TableRow>
@@ -2527,7 +2527,7 @@ function TaskManagementSection() {
                 </div>
                 <div className="bg-[#1a1a1a] rounded-lg p-2">
                   <p className="text-gray-500 mb-0.5">Amount</p>
-                  <p className="text-white" >TON {parseFloat(task.totalCost).toFixed(2)}</p>
+                  <p className="text-white" >${parseFloat(task.totalCost).toFixed(2)}</p>
                 </div>
                 <div className="bg-[#1a1a1a] rounded-lg p-2">
                   <p className="text-gray-500 mb-0.5">Created</p>

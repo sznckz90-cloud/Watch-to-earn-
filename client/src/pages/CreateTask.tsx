@@ -148,7 +148,7 @@ export default function CreateTask() {
   
   // Determine payment method based on user type
   // Admin uses TON, Regular users use TON
-  const paymentCurrency = isAdmin ? " : ";
+  const paymentCurrency = "TON";
   //  cost per click from admin settings (separate for channel and bot)
   const tonCostPerClick = taskType === 'bot' 
     ? (appSettings?.botTaskCost || 0.0003)
@@ -376,7 +376,7 @@ export default function CreateTask() {
         {!isAdmin && (
           <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-[#1A1A1A] to-[#0D1117] rounded-xl border border-[#2A2A2A] shadow-lg">
             <div className="flex items-center gap-2">
-              <img src="/images/ton.png" alt=" className="w-5 h-5 object-cover rounded-full" />
+              <img src="/images/ton.png" alt="" className="w-5 h-5 object-cover rounded-full" />
               <span className="text-sm font-semibold text-white">{tonBalance.toFixed(4)} TON</span>
             </div>
             <button 
