@@ -14,11 +14,11 @@ export function hrumToTON(hrumAmount: number | string): number {
 /**
  * Convert TON to Hrum
  * @param tonAmount - Amount in TON
- * @returns Amount in Hrum (TON * 10,000)
+ * @returns Amount in Hrum ( * 10,000)
  */
 export function tonToHrum(tonAmount: number | string): number {
   const numValue = typeof tonAmount === 'string' ? parseFloat(tonAmount) : tonAmount;
-  return Math.round(numValue * HRUM_TO_TON);
+  return Math.round(numValue * HRUM_TO_);
 }
 
 /**
@@ -28,16 +28,16 @@ export function tonToHrum(tonAmount: number | string): number {
  */
 export function formatCompactNumber(num: number): string {
   if (num >= 1_000_000_000_000) {
-    return (num / 1_000_000_000_000).toFixed(1).replace(/\.0$/, '') + 'T';
+    return (num / 1_000_000_000_000).toFixed(1).replace(/\.0/, '') + 'T';
   }
   if (num >= 1_000_000_000) {
-    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B';
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0/, '') + 'B';
   }
   if (num >= 1_000_000) {
-    return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (num / 1_000_000).toFixed(1).replace(/\.0/, '') + 'M';
   }
   if (num >= 1_000) {
-    return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+    return (num / 1_000).toFixed(1).replace(/\.0/, '') + 'k';
   }
   return num.toString();
 }

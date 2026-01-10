@@ -102,7 +102,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Create unique constraint if it doesn't exist
       await db.execute(sql`
-        DO $$ 
+        DO TON 
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
@@ -110,7 +110,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
           ) THEN
             ALTER TABLE users ADD CONSTRAINT users_referral_code_unique UNIQUE (referral_code);
           END IF;
-        END $$
+        END TON
       `);
       
       console.log('✅ [MIGRATION] Referral code column and constraints ensured');
@@ -276,7 +276,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         code VARCHAR UNIQUE NOT NULL,
         reward_amount DECIMAL(12, 2) NOT NULL,
-        reward_currency VARCHAR DEFAULT 'USDT',
+        reward_currency VARCHAR DEFAULT 'TONT',
         usage_limit INTEGER,
         usage_count INTEGER DEFAULT 0,
         per_user_limit INTEGER DEFAULT 1,
