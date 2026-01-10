@@ -25,7 +25,6 @@ const Affiliates = lazy(() => import("@/pages/Affiliates"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const Withdraw = lazy(() => import("@/pages/Withdraw"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
-const Store = lazy(() => import("@/pages/Store"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PageLoader = memo(function PageLoader() {
@@ -52,7 +51,6 @@ function Router() {
         <Route path="/profile" component={Landing} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/country-controls" component={CountryControls} />
-        <Route path="/store" component={Store} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
