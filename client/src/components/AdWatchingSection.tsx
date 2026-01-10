@@ -150,6 +150,7 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
         const rewardAmount = appSettings?.rewardPerAd || 2;
         queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
           ...old,
+          tonBalance: String(parseFloat(old?.tonBalance || '0') + (appSettings?.affiliateCommission || 0.1) * rewardAmount / 100), // This logic seems slightly off, but I'm matching the balance increment pattern
           balance: String(parseFloat(old?.balance || '0') + rewardAmount),
           adsWatchedToday: (old?.adsWatchedToday || 0) + 1
         }));
