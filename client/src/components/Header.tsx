@@ -30,34 +30,33 @@ export default function Header() {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-black border-b border-[#1A1A1A] pt-[env(safe-area-inset-top,8px)]">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-black border-b border-[#1A1A1A] pt-[env(safe-area-inset-top,12px)] mt-2">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[80px] max-w-[110px]">
-            <div className="w-5 h-5 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-[#121212] px-3 h-8 rounded-lg border border-white/[0.03] min-w-[75px] shadow-sm">
+            <span className="text-sm text-white font-bold tracking-tight">
+              {formatBalance(hrumBalance)}
+            </span>
+            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <img 
                 src="/images/hrum-logo.jpg" 
                 alt="Hrum" 
-                className="w-full h-full object-cover scale-150"
-                style={{ objectPosition: 'center' }}
+                className="w-full h-full object-cover rounded-sm"
               />
             </div>
-            <span className="text-sm text-white font-semibold truncate">
-              {formatBalance(hrumBalance)}
-            </span>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[80px]">
-            <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
+          <div className="flex items-center gap-2 bg-[#121212] px-3 h-8 rounded-lg border border-white/[0.03] min-w-[75px] shadow-sm">
+            <span className="text-sm text-white font-bold tracking-tight">
+              {tonBalance.toFixed(2)}
+            </span>
+            <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
               <img 
                 src="/images/ton.png" 
                 alt="TON" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
               />
             </div>
-            <span className="text-sm text-white font-semibold">
-              {tonBalance.toFixed(3)}
-            </span>
           </div>
         </div>
       </div>
