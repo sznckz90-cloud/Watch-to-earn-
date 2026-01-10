@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { hrumToTON } from "@shared/constants"
+import { hrumTo } from "@shared/constants"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -18,7 +18,7 @@ export function formatCurrency(value: string | number, includeSymbol: boolean = 
     return includeSymbol ? '0 Hrum' : '0';
   }
   
-  // Hrum is always an integer - no TON conversion
+  // Hrum is always an integer - no  conversion
   const hrumValue = Math.round(numValue);
   
   const symbol = includeSymbol ? ' Hrum' : '';
@@ -69,7 +69,7 @@ export function formatTaskReward(value: string | number, includeSymbol: boolean 
     return includeSymbol ? '0 Hrum' : '0';
   }
   
-  // Hrum is always an integer - no TON conversion
+  // Hrum is always an integer - no  conversion
   const hrumValue = Math.round(numValue);
   
   const symbol = includeSymbol ? ' Hrum' : '';
@@ -86,26 +86,26 @@ export function formatHrumtoTON(hrumAmount: number | string): string {
 }
 
 /**
- * Format TON values without converting to PAD
+ * Format  values without converting to Hrum
  * For admin panel and withdrawal displays
- * Examples: 0.0003 → "0.0003 TON", 1.5 → "1.5 TON"
+ * Examples: 0.0003 → "0.0003 , 1.5 → "1.5 
  */
 export function formatTON(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue)) {
-    return includeSymbol ? '0 TON' : '0';
+    return includeSymbol ? '0 ' : '0';
   }
   
-  const symbol = includeSymbol ? ' TON' : '';
+  const symbol = includeSymbol ? ' ' : '';
   return `${numValue.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 })}${symbol}`;
 }
 
 /**
  * Shorten wallet address for display
  * Examples: 
- * - UQCW9LwFkPRsL...PvJ (TON addresses)
- * - 0x1234...5678 (USDT addresses)
+ * - UQCW9LwFkPRsL...PvJ ( addresses)
+ * - 0x1234...5678 (T addresses)
  */
 export function shortenAddress(address: string, startChars: number = 13, endChars: number = 3): string {
   if (!address || typeof address !== 'string') {

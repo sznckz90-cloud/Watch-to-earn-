@@ -1,4 +1,4 @@
-// TON price fetching service - gets live market data
+//  price fetching service - gets live market data
 let cachedPrice: { price: number; lastUpdated: number } | null = null;
 const CACHE_DURATION = 60000; // Cache for 60 seconds
 
@@ -20,7 +20,7 @@ export async function getTONPrice(): Promise<number> {
       }
     );
     
-    if (!response.ok) throw new Error('Failed to fetch TON price');
+    if (!response.ok) throw new Error('Failed to fetch  price');
     
     const data = await response.json();
     const price = data['the-open-network']?.usd;
@@ -33,7 +33,7 @@ export async function getTONPrice(): Promise<number> {
     cachedPrice = { price, lastUpdated: now };
     return price;
   } catch (error) {
-    console.error('Error fetching TON price:', error);
+    console.error('Error fetching  price:', error);
     
     // Fallback to cached price if available, even if expired
     if (cachedPrice) {
@@ -45,15 +45,15 @@ export async function getTONPrice(): Promise<number> {
   }
 }
 
-export function calculateConversions(tonPriceUSD: number) {
-  const PAD_PER_USD = 10000;
+export function calculateConversions(tonPriceTON: number) {
+  const Hrum_PER_ = 10000;
   
   return {
-    tonPriceUSD: Number(tonPriceUSD.toFixed(4)),
-    padPerDollar: PAD_PER_USD,
-    dollarPerTon: Number((tonPriceUSD).toFixed(4)),
-    tonPerDollar: Number((1 / tonPriceUSD).toFixed(8)),
-    padPerTon: Number((tonPriceUSD * PAD_PER_USD).toFixed(0)),
-    tonPerPad: Number((1 / (tonPriceUSD * PAD_PER_USD)).toFixed(12)),
+    tonPriceTON: Number(tonPrice.toFixed(4)),
+    padPerDollar: Hrum_PER_TON,
+    dollarPerTon: Number((tonPrice).toFixed(4)),
+    tonPerDollar: Number((1 / tonPrice).toFixed(8)),
+    padPerTon: Number((tonPrice * Hrum_PER_).toFixed(0)),
+    tonPerPad: Number((1 / (tonPrice * Hrum_PER_)).toFixed(12)),
   };
 }
