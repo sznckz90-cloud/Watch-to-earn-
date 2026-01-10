@@ -38,8 +38,8 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-full flex flex-col bg-black overflow-hidden">
-      
-      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: '90px' }}>
+      <Header />
+      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: '90px', paddingTop: '64px' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location}

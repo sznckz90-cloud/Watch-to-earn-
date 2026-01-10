@@ -34,38 +34,33 @@ export default function Header() {
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[80px] max-w-[110px]">
-            <DiamondIcon size={16} withGlow />
+            <div className="w-5 h-5 rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
+              <img 
+                src="/images/hrum-logo.jpg" 
+                alt="Hrum" 
+                className="w-full h-full object-cover scale-150"
+                style={{ objectPosition: 'center' }}
+              />
+            </div>
             <span className="text-sm text-white font-semibold truncate">
               {formatBalance(hrumBalance)}
             </span>
           </div>
-          
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[70px] max-w-[100px]">
-            <Bug className="w-4 h-4 text-green-400 flex-shrink-0" />
-            <span className="text-sm text-white font-semibold truncate">
-              {formatBalance(bugBalance)}
-            </span>
-          </div>
 
-          <div className="flex items-center gap-2 bg-[#1A1A1A] px-5 h-8 rounded-lg min-w-[80px]">
-            <span className="text-green-400 font-semibold text-xs">TON</span>
+          <div className="flex items-center gap-2 bg-[#1A1A1A] px-3 h-8 rounded-lg min-w-[80px]">
+            <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
+              <img 
+                src="/images/ton.png" 
+                alt="TON" 
+                className="w-full h-full object-cover"
+              />
+            </div>
             <span className="text-sm text-white font-semibold">
               {tonBalance.toFixed(3)}
             </span>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-2 hover:bg-[#1A1A1A] rounded-lg transition-colors"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 text-[#4cd3ff] hover:text-[#6ddeff]" />
-          </button>
-        </div>
       </div>
-      {showSettings && <SettingsPopup onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
