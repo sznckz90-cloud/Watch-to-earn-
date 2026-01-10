@@ -144,8 +144,8 @@ var init_schema = __esm({
       id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
       code: varchar("code").unique().notNull(),
       rewardAmount: decimal("reward_amount", { precision: 10, scale: 8 }).notNull(),
-      rewardCurrency: varchar("reward_currency").default("USDT"),
-      // 'USDT', 'BTC', 'ETH'
+      rewardCurrency: varchar("reward_currency").default("TONT"),
+      // 'TONT', 'BTC', 'ETH'
       usageLimit: integer("usage_limit"),
       // null for unlimited
       usageCount: integer("usage_count").default(0),
@@ -610,15 +610,15 @@ function formatWithdrawalNotification(userId, amount, method, details, userName)
 
 \u{1F464} <b>User:</b> ${displayName}
 \u{1F194} <b>Telegram ID:</b> ${userId}
-\u{1F4B0} <b>Withdrawal Amount:</b> $${amount}
-\u{1F4B3} <b>Commission:</b> $${commissionAmount.toFixed(2)}
-\u{1F3AF} <b>Send to User:</b> $${netAmount.toFixed(2)}
+\u{1F4B0} <b>Withdrawal Amount:</b> ${amount}
+\u{1F4B3} <b>Commission:</b> ${commissionAmount.toFixed(2)}
+\u{1F3AF} <b>Send to User:</b> ${netAmount.toFixed(2)}
 \u{1F3E6} <b>Method:</b> ${methodName}
 \u{1F4CD} <b>Address:</b> <code>${address}</code>
 
 \u23F0 <b>Time:</b> ${(/* @__PURE__ */ new Date()).toLocaleString()}
 
-<i>\u26A0\uFE0F Send $${netAmount.toFixed(2)} to the address above (after commission deduction)</i>
+<i>\u26A0\uFE0F Send ${netAmount.toFixed(2)} to the address above (after commission deduction)</i>
   `.trim();
 }
 function formatUserNotification(amount, method, status, transactionHash) {
@@ -636,7 +636,7 @@ function formatUserNotification(amount, method, status, transactionHash) {
   let message = `
 ${statusEmoji} <b>Withdrawal ${statusText}</b>
 
-\u{1F4B0} <b>Amount:</b> $${amount}
+\u{1F4B0} <b>Amount:</b> ${amount}
 \u{1F3E6} <b>Method:</b> ${methodName}
 \u{1F4CA} <b>Status:</b> ${statusText}
 \u23F0 <b>Updated:</b> ${(/* @__PURE__ */ new Date()).toLocaleString()}`;
@@ -700,7 +700,7 @@ async function sendUserTelegramNotification(userId, message, replyMarkup) {
 function formatWelcomeMessage() {
   const message = `\u{1F525} Welcome to the Future of Ad Earnings! \u{1F525}
 
-\u{1F60F} Forget those trash apps giving you $0.1 after a month.
+\u{1F60F} Forget those trash apps giving you TON0.1 after a month.
 Here, every ad = real cash, fast payouts.
 
 \u{1F680} Your time = Money. No excuses.
@@ -1584,7 +1584,7 @@ async function registerRoutes(app2) {
       const promoCode = await storage.createPromoCode({
         code: code.toUpperCase(),
         rewardAmount,
-        rewardCurrency: rewardCurrency || "USDT",
+        rewardCurrency: rewardCurrency || "TONT",
         usageLimit,
         perUserLimit: perUserLimit || 1,
         expiresAt: expiresAt ? new Date(expiresAt) : null
