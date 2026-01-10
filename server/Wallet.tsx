@@ -82,7 +82,7 @@ export default function Wallet() {
       let [whole, decimals] = valueStr.split('.');
       
       // Remove trailing zeros from the FULL fractional part first
-      decimals = decimals.replace(/0+$/, '');
+      decimals = decimals.replace(/0+/, '');
       
       // Then limit to max 5 decimal places
       decimals = decimals.substring(0, 5);
@@ -98,7 +98,7 @@ export default function Wallet() {
     return valueStr;
   };
 
-  // TON address validation function
+  //  address validation function
   const validateTONAddress = (address: string): boolean => {
     if (!address || address.length !== 48) {
       return false;
@@ -111,7 +111,7 @@ export default function Wallet() {
     
     // Check if the rest contains only valid base64url characters (includes - and _)
     const base64Part = address.slice(2);
-    const base64Regex = /^[A-Za-z0-9+/\-_]+={0,2}$/;
+    const base64Regex = /^[A-Za-z0-9+/\-_]+={0,2}/;
     return base64Regex.test(base64Part);
   };
 
@@ -126,13 +126,13 @@ export default function Wallet() {
     } else if (amount > userBalance) {
       newErrors.amount = 'Insufficient balance';
     } else if (amount < 0.5) {
-      newErrors.amount = 'Minimum withdraw amount is 0.5 TON';
+      newErrors.amount = 'Minimum withdraw amount is 0.5 ';
     }
 
     if (!withdrawForm.paymentDetails.trim()) {
       newErrors.paymentDetails = 'Wallet address is required';
     } else if (!validateTONAddress(withdrawForm.paymentDetails.trim())) {
-      newErrors.paymentDetails = 'Please enter a valid TON address (format: UQ... or EQ...)';
+      newErrors.paymentDetails = 'Please enter a valid  address (format: UQ... or EQ...)';
     }
 
     setErrors(newErrors);

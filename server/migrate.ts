@@ -142,7 +142,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Create unique constraint if it doesn't exist
       await db.execute(sql`
-        DO $$ 
+        DO TON 
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
@@ -150,7 +150,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
           ) THEN
             ALTER TABLE users ADD CONSTRAINT users_referral_code_unique UNIQUE (referral_code);
           END IF;
-        END $$
+        END TON
       `);
       
       console.log('✅ [MIGRATION] Referral code column and constraints ensured');
@@ -324,8 +324,8 @@ export async function ensureDatabaseSchema(): Promise<void> {
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         code VARCHAR UNIQUE NOT NULL,
         reward_amount DECIMAL(12, 2) NOT NULL,
-        reward_type VARCHAR DEFAULT 'PAD' NOT NULL,
-        reward_currency VARCHAR DEFAULT 'USDT',
+        reward_type VARCHAR DEFAULT 'Hrum' NOT NULL,
+        reward_currency VARCHAR DEFAULT 'TONT',
         usage_limit INTEGER,
         usage_count INTEGER DEFAULT 0,
         per_user_limit INTEGER DEFAULT 1,
@@ -338,7 +338,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
     
     // Add reward_type column to existing promo_codes table if missing
     try {
-      await db.execute(sql`ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS reward_type VARCHAR DEFAULT 'PAD' NOT NULL`);
+      await db.execute(sql`ALTER TABLE promo_codes ADD COLUMN IF NOT EXISTS reward_type VARCHAR DEFAULT 'Hrum' NOT NULL`);
       console.log('✅ [MIGRATION] Reward type column added to promo_codes table');
     } catch (error) {
       console.log('ℹ️ [MIGRATION] Reward type column already exists in promo_codes table');
@@ -400,7 +400,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
       
       // Add unique constraint if it doesn't exist
       await db.execute(sql`
-        DO $$ 
+        DO TON 
         BEGIN 
           IF NOT EXISTS (
             SELECT 1 FROM pg_constraint 
@@ -408,7 +408,7 @@ export async function ensureDatabaseSchema(): Promise<void> {
           ) THEN
             ALTER TABLE admin_settings ADD CONSTRAINT admin_settings_setting_key_unique UNIQUE (setting_key);
           END IF;
-        END $$
+        END TON
       `);
       
       console.log('✅ [MIGRATION] admin_settings unique constraint ensured');
@@ -421,9 +421,9 @@ export async function ensureDatabaseSchema(): Promise<void> {
       INSERT INTO admin_settings (setting_key, setting_value, description)
       VALUES 
         ('daily_ad_limit', '50', 'Maximum number of ads a user can watch per day'),
-        ('ad_reward_pad', '1000', 'PAD reward amount per ad watched'),
-        ('ad_reward_ton', '0.00010000', 'TON reward amount per ad watched'),
-        ('withdrawal_currency', 'TON', 'Currency used for withdrawal displays (TON or PAD)')
+        ('ad_reward_pad', '1000', 'Hrum reward amount per ad watched'),
+        ('ad_reward_ton', '0.00010000', ' reward amount per ad watched'),
+        ('withdrawal_currency', '', 'Currency used for withdrawal displays ( or Hrum)')
       ON CONFLICT (setting_key) DO NOTHING
     `);
     

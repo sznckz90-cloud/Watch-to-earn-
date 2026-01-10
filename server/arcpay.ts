@@ -3,7 +3,7 @@ import crypto from 'crypto';
 export interface ArcPayConfig {
   apiKey: string;
   privateKey: string;
-  network: 'TON' | 'EVM';
+  network: '' | 'EVM';
   returnUrl: string;
   webhookUrl: string;
 }
@@ -21,7 +21,7 @@ function getArcPayConfig(): ArcPayConfig {
   return {
     apiKey,
     privateKey,
-    network: 'TON',
+    network: '',
     returnUrl,
     webhookUrl,
   };
@@ -32,7 +32,7 @@ export const getARCPAY_CONFIG = getArcPayConfig;
 export interface ArcPayPaymentRequest {
   orderID: string;
   amount: number;
-  currency: 'TON' | 'USD';
+  currency: '' | '';
   returnUrl: string;
   webhookUrl: string;
   description?: string;
@@ -70,7 +70,7 @@ export async function createArcPayCheckout(
     const paymentRequest: ArcPayPaymentRequest = {
       orderID: orderId,
       amount: tonAmount,
-      currency: 'TON',
+      currency: '',
       returnUrl: config.returnUrl,
       webhookUrl: config.webhookUrl,
       description: `Top-Up ${tonAmount} TON`,
@@ -85,7 +85,7 @@ export async function createArcPayCheckout(
     console.log('📋 Creating ArcPay payment request:', {
       orderId,
       amount: tonAmount,
-      currency: 'TON',
+      currency: '',
       userId,
     });
 
@@ -177,8 +177,8 @@ async function generateArcPayCheckoutUrl(
     // Each item MUST have: title (required), description, quantity, price, currency
     items: [
       {
-        title: `TON Token`,
-        description: `Top-Up TON Balance`,
+        title: ` Token`,
+        description: `Top-Up  Balance`,
         quantity: Math.max(1, Math.floor(paymentRequest.amount * 10) / 10),
         price: paymentRequest.amount,
         currency: paymentRequest.currency

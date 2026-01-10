@@ -837,7 +837,7 @@ export class DatabaseStorage implements IStorage {
     return referral;
   }
 
-  // Check and activate referral bonus when friend watches required number of ads (Hrum + TON rewards)
+  // Check and activate referral bonus when friend watches required number of ads (Hrum +  rewards)
   // Uses admin-configured 'referral_ads_required' setting instead of hardcoded value
   async checkAndActivateReferralBonus(userId: string): Promise<void> {
     try {
@@ -873,7 +873,7 @@ export class DatabaseStorage implements IStorage {
         // Get referral reward settings from admin (no hardcoded values)
         const referralRewardEnabled = await this.getAppSetting('referral_reward_enabled', 'false');
         const referralRewardHrum = parseInt(await this.getAppSetting('referral_reward_hrum', '50'));
-        const referralRewardTON = parseFloat(await this.getAppSetting('referral_reward_usd', '0.0005'));
+        const referralReward = parseFloat(await this.getAppSetting('referral_reward_usd', '0.0005'));
 
         // Find pending referrals where this user is the referee
         const pendingReferrals = await db
@@ -891,8 +891,8 @@ export class DatabaseStorage implements IStorage {
             .update(referrals)
             .set({ 
               status: 'completed',
-              usdRewardAmount: String(referralRewardTON),
-              bugRewardAmount: String(referralRewardTON === '0' ? '0' : (parseFloat(String(referralRewardTON)) * 50).toFixed(10))
+              usdRewardAmount: String(referralReward),
+              bugRewardAmount: String(referralReward === '0' ? '0' : (parseFloat(String(referralReward)) * 50).toFixed(10))
             })
             .where(eq(referrals.id, referral.id));
 
@@ -906,18 +906,18 @@ export class DatabaseStorage implements IStorage {
 
           console.log(`✅ Referral bonus: ${referralRewardHrum} Hrum awarded to ${referral.referrerId} from ${userId}'s ${referralAdsRequired} ad watches`);
 
-          // Award TON bonus if enabled (uses admin-configured amount)
-          if (referralRewardEnabled === 'true' && referralRewardTON > 0) {
+          // Award  bonus if enabled (uses admin-configured amount)
+          if (referralRewardEnabled === 'true' && referralReward > 0) {
             await this.addTONBalance(
               referral.referrerId,
-              String(referralRewardTON),
+              String(referralReward),
               'referral',
-              `Referral bonus - friend watched ${referralAdsRequired} ads (+$${referralRewardTON} TON)`
+              `Referral bonus - friend watched ${referralAdsRequired} ads (+TON${referralReward} )`
             );
-            console.log(`✅ Referral bonus: $${referralRewardTON} TON awarded to ${referral.referrerId} from ${userId}'s ${referralAdsRequired} ad watches`);
+            console.log(`✅ Referral bonus: TON${referralReward}  awarded to ${referral.referrerId} from ${userId}'s ${referralAdsRequired} ad watches`);
 
             // CRITICAL FIX: Also credit BUG balance for referral bonus
-            const bugRewardAmount = parseFloat(String(referralRewardTON)) * 50; // Calculate BUG from TON
+            const bugRewardAmount = parseFloat(String(referralReward)) * 50; // Calculate BUG from TON
             await this.addBUGBalance(
               referral.referrerId,
               String(bugRewardAmount),
@@ -928,7 +928,7 @@ export class DatabaseStorage implements IStorage {
           }
 
           // CRITICAL: Send ONLY ONE notification to referrer when their friend watches their first ad
-          // Uses TON reward amount from Admin Settings (no Hrum/commission messages)
+          // Uses  reward amount from Admin Settings (no Hrum/commission messages)
           try {
             const { sendReferralRewardNotification } = await import('./telegram');
             const referrer = await this.getUser(referral.referrerId);
@@ -936,13 +936,13 @@ export class DatabaseStorage implements IStorage {
             
             if (referrer && referrer.telegram_id && referredUser) {
               const referredName = referredUser.username || referredUser.firstName || 'your friend';
-              // Send notification with TON amount from Admin Settings (not Hrum)
+              // Send notification with  amount from Admin Settings (not Hrum)
               await sendReferralRewardNotification(
                 referrer.telegram_id,
                 referredName,
-                String(referralRewardTON) // TON amount from admin settings
+                String(referralReward) //  amount from admin settings
               );
-              console.log(`📩 Referral reward notification sent to ${referrer.telegram_id} with $${referralRewardTON} TON`);
+              console.log(`📩 Referral reward notification sent to ${referrer.telegram_id} with TON${referralReward} TON`);
             }
           } catch (notifyError) {
             console.error('❌ Error sending referral reward notification:', notifyError);
@@ -1228,7 +1228,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(promoCodes.id, promoCode.id));
 
     // NOTE: Reward is added by the routes.ts handler, not here
-    // This prevents double-rewarding and allows routes.ts to handle different reward types (Hrum, TON, TON)
+    // This prevents double-rewarding and allows routes.ts to handle different reward types (Hrum, TON, )
 
     return {
       success: true,
@@ -1506,9 +1506,9 @@ export class DatabaseStorage implements IStorage {
         ? parseFloat(withdrawalDetails.totalDeducted) 
         : withdrawalAmount;
       
-      // ALL withdrawals use TON balance (the method just indicates payment preference: TON, TON, STARS, etc.)
+      // ALL withdrawals use  balance (the method just indicates payment preference: TON, TON, STARS, etc.)
       // This matches the withdrawal creation flow where all amounts are in TON
-      const currency = 'TON';
+      const currency = '';
       const userBalance = parseFloat(user.tonBalance || '0');
 
       // Handle balance deduction with support for legacy withdrawals
@@ -1520,9 +1520,9 @@ export class DatabaseStorage implements IStorage {
       if (userBalance >= totalToDeduct) {
         // User has sufficient balance - this is a NEW withdrawal (or user earned more since request)
         // Deduct balance now on approval
-        console.log(`💰 Deducting TON balance now for approved withdrawal`);
-        console.log(`💰 Net amount: $${withdrawalAmount}, Total to deduct (with fee): $${totalToDeduct}`);
-        console.log(`💰 Previous TON balance: ${userBalance}, New balance: ${(userBalance - totalToDeduct).toFixed(10)}`);
+        console.log(`💰 Deducting  balance now for approved withdrawal`);
+        console.log(`💰 Net amount: TON${withdrawalAmount}, Total to deduct (with fee): TON${totalToDeduct}`);
+        console.log(`💰 Previous  balance: ${userBalance}, New balance: ${(userBalance - totalToDeduct).toFixed(10)}`);
 
         const newUsdBalance = (userBalance - totalToDeduct).toFixed(10);
         const newBugBalance = Math.max(0, currentBugBalance - bugDeducted).toFixed(10);
@@ -1535,7 +1535,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date()
           })
           .where(eq(users.id, withdrawal.userId));
-        console.log(`✅ TON balance deducted: ${userBalance} → ${newUsdBalance}`);
+        console.log(`✅  balance deducted: ${userBalance} → ${newUsdBalance}`);
         if (bugDeducted > 0) {
           console.log(`✅ BUG balance deducted: ${currentBugBalance} → ${newBugBalance}`);
         }
@@ -1543,7 +1543,7 @@ export class DatabaseStorage implements IStorage {
         // User doesn't have sufficient balance - this is a LEGACY withdrawal
         // Balance was already deducted at request time (old flow), so just approve without deducting again
         console.log(`⚠️ Legacy withdrawal detected - balance was already deducted at request time`);
-        console.log(`💰 Current TON balance: ${userBalance}, Required: ${totalToDeduct}`);
+        console.log(`💰 Current  balance: ${userBalance}, Required: ${totalToDeduct}`);
         console.log(`✅ Approving without additional balance deduction (legacy flow)`);
       }
 
@@ -1641,7 +1641,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date()
           })
           .where(eq(users.id, withdrawal.userId));
-        console.log(`💰 TON balance refunded: ${currentUsdBalance} → ${newUsdBalance}`);
+        console.log(`💰  balance refunded: ${currentUsdBalance} → ${newUsdBalance}`);
         if (bugToRefund > 0) {
           console.log(`💰 BUG balance refunded: ${currentBugBalance} → ${newBugBalance}`);
         }
@@ -1706,7 +1706,7 @@ export class DatabaseStorage implements IStorage {
           id: 'channel-visit-check-update',
           type: 'channel_visit',
           url: 'https://t.me/PaidAdsNews',
-          rewardPerUser: '0.00015000', // 0.00015 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00015000', // 0.00015  formatted to 8 digits for precision
           title: 'Channel visit (Check Update)',
           description: 'Visit our Telegram channel for updates and news'
         },
@@ -1714,7 +1714,7 @@ export class DatabaseStorage implements IStorage {
           id: 'app-link-share',
           type: 'share_link',
           url: 'share://referral',
-          rewardPerUser: '0.00020000', // 0.00020 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00020000', // 0.00020  formatted to 8 digits for precision
           title: 'App link share (Share link)',
           description: 'Share your affiliate link with friends'
         },
@@ -1722,7 +1722,7 @@ export class DatabaseStorage implements IStorage {
           id: 'invite-friend-valid',
           type: 'invite_friend',
           url: 'invite://friend',
-          rewardPerUser: '0.00050000', // 0.00050 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00050000', // 0.00050  formatted to 8 digits for precision
           title: 'Invite friend (valid)',
           description: 'Invite 1 valid friend to earn rewards'
         },
@@ -1731,7 +1731,7 @@ export class DatabaseStorage implements IStorage {
           id: 'ads-goal-mini',
           type: 'ads_goal_mini',
           url: 'watch://ads/mini',
-          rewardPerUser: '0.00045000', // 0.00045 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00045000', // 0.00045  formatted to 8 digits for precision
           title: 'Mini (Watch 15 ads)',
           description: 'Watch 15 ads to complete this daily goal'
         },
@@ -1739,7 +1739,7 @@ export class DatabaseStorage implements IStorage {
           id: 'ads-goal-light',
           type: 'ads_goal_light',
           url: 'watch://ads/light',
-          rewardPerUser: '0.00060000', // 0.00060 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00060000', // 0.00060  formatted to 8 digits for precision
           title: 'Light (Watch 25 ads)',
           description: 'Watch 25 ads to complete this daily goal'
         },
@@ -1747,7 +1747,7 @@ export class DatabaseStorage implements IStorage {
           id: 'ads-goal-medium',
           type: 'ads_goal_medium',
           url: 'watch://ads/medium',
-          rewardPerUser: '0.00070000', // 0.00070 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00070000', // 0.00070  formatted to 8 digits for precision
           title: 'Medium (Watch 45 ads)',
           description: 'Watch 45 ads to complete this daily goal'
         },
@@ -1755,7 +1755,7 @@ export class DatabaseStorage implements IStorage {
           id: 'ads-goal-hard',
           type: 'ads_goal_hard',
           url: 'watch://ads/hard',
-          rewardPerUser: '0.00080000', // 0.00080 TON formatted to 8 digits for precision
+          rewardPerUser: '0.00080000', // 0.00080  formatted to 8 digits for precision
           title: 'Hard (Watch 75 ads)',
           description: 'Watch 75 ads to complete this daily goal'
         }
@@ -3406,15 +3406,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Add TON balance to user
+  // Add  balance to user
   async addTONBalance(userId: string, amount: string, source: string, description: string): Promise<void> {
     try {
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
-        throw new Error('Invalid TON amount');
+        throw new Error('Invalid  amount');
       }
 
-      // Get current TON balance
+      // Get current  balance
       const [user] = await db
         .select({ tonBalance: users.tonBalance })
         .from(users)
@@ -3427,7 +3427,7 @@ export class DatabaseStorage implements IStorage {
       const currentUsdBalance = parseFloat(user.tonBalance || '0');
       const newUsdBalance = (currentUsdBalance + amountNum).toFixed(10);
 
-      // Update user's TON balance
+      // Update user's  balance
       await db
         .update(users)
         .set({
@@ -3443,12 +3443,12 @@ export class DatabaseStorage implements IStorage {
         type: 'credit',
         source: source,
         description: description,
-        metadata: { rewardType: 'TON' }
+        metadata: { rewardType: '' }
       });
 
-      console.log(`✅ Added $${amountNum} TON to user ${userId}. New balance: $${newUsdBalance}`);
+      console.log(`✅ Added TON${amountNum}  to user ${userId}. New balance: TON${newUsdBalance}`);
     } catch (error) {
-      console.error(`Error adding TON balance:`, error);
+      console.error(`Error adding  balance:`, error);
       throw error;
     }
   }
@@ -3528,20 +3528,20 @@ export class DatabaseStorage implements IStorage {
 
       for (const ref of rows) {
         try {
-          // Parse TON amount with strict validation
+          // Parse  amount with strict validation
           const usdReward = ref.ton_reward_amount;
           if (!usdReward || usdReward === null) {
-            console.log(`⏭️ Skipping referral ${ref.id} - no TON reward amount stored`);
+            console.log(`⏭️ Skipping referral ${ref.id} - no  reward amount stored`);
             continue;
           }
 
           const usdAmount = parseFloat(String(usdReward));
           if (isNaN(usdAmount) || usdAmount <= 0) {
-            console.log(`⏭️ Skipping referral ${ref.id} - invalid TON amount: ${usdReward}`);
+            console.log(`⏭️ Skipping referral ${ref.id} - invalid  amount: ${usdReward}`);
             continue;
           }
 
-          // Calculate BUG from TON amount (50 BUG per TON)
+          // Calculate BUG from  amount (50 BUG per )
           const bugAmount = usdAmount * 50;
           if (isNaN(bugAmount) || bugAmount <= 0) {
             console.log(`⏭️ Skipping referral ${ref.id} - calculated BUG amount is invalid: ${bugAmount}`);
@@ -3576,7 +3576,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Deduct balance for withdrawal approval (direct deduction method)
-  async deductBalanceForWithdrawal(userId: string, amount: string, currency: string = 'TON'): Promise<boolean> {
+  async deductBalanceForWithdrawal(userId: string, amount: string, currency: string = ''): Promise<boolean> {
     try {
       const amountNum = parseFloat(amount);
       if (isNaN(amountNum) || amountNum <= 0) {
@@ -3584,8 +3584,8 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
 
-      if (currency === 'TON') {
-        // Deduct from TON balance
+      if (currency === '') {
+        // Deduct from  balance
         const [user] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
@@ -3598,7 +3598,7 @@ export class DatabaseStorage implements IStorage {
 
         const currentBalance = parseFloat(user.tonBalance || '0');
         if (currentBalance < amountNum) {
-          console.error(`Insufficient TON balance: ${currentBalance} < ${amountNum}`);
+          console.error(`Insufficient  balance: ${currentBalance} < ${amountNum}`);
           return false;
         }
 
@@ -3612,22 +3612,22 @@ export class DatabaseStorage implements IStorage {
           })
           .where(eq(users.id, userId));
 
-        console.log(`💰 Deducted ${amountNum} TON from user ${userId}. New balance: ${newBalance}`);
-      } else if (currency === 'TON') {
-        // Deduct from TON balance
+        console.log(`💰 Deducted ${amountNum}  from user ${userId}. New balance: ${newBalance}`);
+      } else if (currency === '') {
+        // Deduct from  balance
         const [user] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
           .where(eq(users.id, userId));
 
         if (!user) {
-          console.error('User not found for TON balance deduction');
+          console.error('User not found for  balance deduction');
           return false;
         }
 
         const currentBalance = parseFloat(user.tonBalance || '0');
         if (currentBalance < amountNum) {
-          console.error(`Insufficient TON balance: ${currentBalance} < ${amountNum}`);
+          console.error(`Insufficient  balance: ${currentBalance} < ${amountNum}`);
           return false;
         }
 
@@ -3641,7 +3641,7 @@ export class DatabaseStorage implements IStorage {
           })
           .where(eq(users.id, userId));
 
-        console.log(`💰 Deducted $${amountNum} TON from user ${userId}. New balance: $${newBalance}`);
+        console.log(`💰 Deducted TON${amountNum}  from user ${userId}. New balance: TON${newBalance}`);
       } else {
         // Deduct from Hrum balance (default)
         const [user] = await db

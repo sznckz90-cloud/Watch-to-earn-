@@ -929,7 +929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         balance: user.balance,
         tonBalance: user.tonBalance,
-        padBalance: user.balance
+        hrumBalance: user.balance
       });
     } catch (error) {
       console.error("Error refreshing balance:", error);
@@ -955,33 +955,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const seasonBroadcastActive = getSetting('season_broadcast_active', 'false') === 'true';
       const affiliateCommission = parseFloat(getSetting('affiliate_commission', '10'));
       const walletChangeFeeHrum = parseInt(getSetting('wallet_change_fee', '100')); // Default 100 Hrum
-      const minimumWithdrawalTON = parseFloat(getSetting('minimum_withdrawal_ton', '0.5')); // Minimum TON withdrawal
-      const withdrawalFeeTON = parseFloat(getSetting('withdrawal_fee_ton', '5')); // TON withdrawal fee %
+      const minWithdrawalAmount = parseFloat(getSetting('minimum_withdrawal_ton', '0.5')); // Minimum  withdrawal
+      const withdrawalFeeTON = parseFloat(getSetting('withdrawal_fee_ton', '5')); //  withdrawal fee %
       
-      // Separate channel and bot task costs (in TON for admin, TON for users)
-      const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default $0.003 per click
-      const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default $0.003 per click
+      // Separate channel and bot task costs (in  for admin,  for users)
+      const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default TON0.003 per click
+      const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default TON0.003 per click
       
-      // TON costs for regular users
-      const channelTaskCostTON = parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003 TON per click
-      const botTaskCostTON = parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003 TON per click
+      //  costs for regular users
+      const channelTaskCostTON = parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003  per click
+      const botTaskCostTON = parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003  per click
       
       // Separate channel and bot task rewards (in Hrum)
       const channelTaskRewardHrum = parseInt(getSetting('channel_task_reward', '30')); // Default 30 Hrum per click
       const botTaskRewardHrum = parseInt(getSetting('bot_task_reward', '20')); // Default 20 Hrum per click
       
-      // Minimum convert amount in Hrum (10,000 Hrum = 1 TON)
+      // Minimum convert amount in Hrum (10,000 Hrum = 1 )
       const minimumConvertHrum = parseInt(getSetting('minimum_convert_pad', '100')); // Default 100 Hrum
       const minimumConvertTON = minimumConvertHrum / 10000; 
       
       // Minimum clicks for task creation
       const minimumClicks = parseInt(getSetting('minimum_clicks', '500')); // Default 500 clicks
       
-      const withdrawalCurrency = getSetting('withdrawal_currency', 'TON');
+      const withdrawalCurrency = getSetting('withdrawal_currency', '');
       
       // Referral reward settings
       const referralRewardEnabled = getSetting('referral_reward_enabled', 'false') === 'true';
-      const referralRewardTON = parseFloat(getSetting('referral_reward_usd', '0.0005'));
+      const referralReward = parseFloat(getSetting('referral_reward_usd', '0.0005'));
+      const referralRewardTON = referralReward;
       const referralRewardHrum = parseInt(getSetting('referral_reward_hrum', '50'));
       const referralAdsRequired = parseInt(getSetting('referral_ads_required', '1')); // Ads needed for affiliate bonus
       
@@ -1008,15 +1009,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bugRewardPerAd = parseInt(getSetting('bug_reward_per_ad', '1')); // BUG per ad watched
       const bugRewardPerTask = parseInt(getSetting('bug_reward_per_task', '10')); // BUG per task completed
       const bugRewardPerReferral = parseInt(getSetting('bug_reward_per_referral', '50')); // BUG per referral
-      const minimumBugForWithdrawal = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: $0.1 = 1000 BUG
-      const bugPerUsd = parseInt(getSetting('bug_per_usd', '10000')); // Default: 1 TON = 10000 BUG
+      const minimumBugForWithdrawal = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: TON0.1 = 1000 BUG
+      const bugPerUsd = parseInt(getSetting('bug_per_usd', '10000')); // Default: 1  = 10000 BUG
       const withdrawalBugRequirementEnabled = getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true';
       const activePromoCode = getSetting('active_promo_code', ''); // Current active promo code
       
       // Legacy compatibility - keep old values for backwards compatibility
       const taskCostPerClick = channelTaskCostTON; // Use channel cost as default
       const taskRewardPerClick = channelTaskRewardHrum / 10000; // Legacy TON format for compatibility
-      const minimumWithdrawal = minimumWithdrawalTON; // Legacy field
       
       res.json({
         dailyAdLimit,
@@ -1027,13 +1027,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         affiliateCommissionPercent: affiliateCommission,
         walletChangeFee: walletChangeFeeHrum,
         walletChangeFeeHrum,
-        minimumWithdrawal,
-        minimumWithdrawalTON,
-        minimumWithdrawalTON,
+        minWithdrawalAmount: minWithdrawalAmount,
+        minWithdrawalAmountTON: minWithdrawalAmount,
         withdrawalFeeTON,
-        withdrawalFeeTON,
-        channelTaskCostTON,
-        botTaskCostTON,
         channelTaskCostTON,
         botTaskCostTON,
         channelTaskRewardHrum,
@@ -1458,7 +1454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(referrals.status, 'completed')
         ));
       
-      // Sum all historical TON rewards stored at time of earning
+      // Sum all historical  rewards stored at time of earning
       let totalUsdEarned = 0;
       let totalBugEarned = 0;
       for (const ref of completedReferrals) {
@@ -1561,7 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const withdrawalAdRequirementEnabled = getSetting('withdrawal_ad_requirement_enabled', 'true') === 'true';
       const MINIMUM_ADS_FOR_WITHDRAWAL = parseInt(getSetting('minimum_ads_for_withdrawal', '100'));
-      const MINIMUM_BUG_FOR_WITHDRAWAL = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: $0.1 = 1000 BUG
+      const MINIMUM_BUG_FOR_WITHDRAWAL = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: TON0.1 = 1000 BUG
       
       let adsWatchedSinceLastWithdrawal = 0;
       
@@ -1730,12 +1726,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('🔧 Fixing production referral system...');
       
-      // 1. Update existing referral bonuses from $0.50 to $0.01
+      // 1. Update existing referral bonuses from TON0.50 to TON0.01
       console.log('📝 Updating referral bonus amounts...');
       await db.execute(sql`
         UPDATE ${earnings} 
         SET amount = '0.01', 
-            description = REPLACE(description, '$0.50', '$0.01')
+            description = REPLACE(description, 'TON0.50', 'TON0.01')
         WHERE source = 'referral' 
         AND amount = '0.50'
       `);
@@ -1785,7 +1781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: true,
         message: 'Production referral system fixed successfully!',
         changes: {
-          updatedReferralBonuses: 'Changed from $0.50 to $0.01',
+          updatedReferralBonuses: 'Changed from TON0.50 to TON0.01',
           totalReferralEarnings: totalReferralEarnings[0]?.total || '0',
           totalReferrals: totalReferrals[0]?.count || 0,
           generatedReferralCodes: usersWithoutCodes.length
@@ -2021,7 +2017,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Reward: 0.0001 TON = 1,000 Hrum
+      // Reward: 0.0001  = 1,000 Hrum
       const rewardAmount = '0.0001';
       
       // Get BUG reward setting
@@ -2775,16 +2771,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardPerAd: parseInt(getSetting('reward_per_ad', '2')), // Default 2 Hrum
         affiliateCommission: parseFloat(getSetting('affiliate_commission', '10')),
         walletChangeFee: parseInt(getSetting('wallet_change_fee', '100')), // Return as Hrum, default 100
-        minimumWithdrawalTON: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')), // NEW: Min TON withdrawal
-        withdrawalFeeTON: parseFloat(getSetting('withdrawal_fee_ton', '5')), // NEW: TON withdrawal fee %
-        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')), // NEW: Channel cost in TON (admin only)
-        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')), // NEW: Bot cost in TON (admin only)
-        channelTaskCostTON: parseFloat(getSetting('channel_task_cost_ton', '0.0003')), // TON cost for regular users
-        botTaskCostTON: parseFloat(getSetting('bot_task_cost_ton', '0.0003')), // TON cost for regular users
+        minWithdrawalAmount: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')), // NEW: Min  withdrawal
+        withdrawalFeeTON: parseFloat(getSetting('withdrawal_fee_ton', '5')), // NEW:  withdrawal fee %
+        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')), // NEW: Channel cost in  (admin only)
+        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')), // NEW: Bot cost in  (admin only)
+        channelTaskCostTON: parseFloat(getSetting('channel_task_cost_ton', '0.0003')), //  cost for regular users
+        botTaskCostTON: parseFloat(getSetting('bot_task_cost_ton', '0.0003')), //  cost for regular users
         channelTaskReward: parseInt(getSetting('channel_task_reward', '30')), // NEW: Channel reward in Hrum
         botTaskReward: parseInt(getSetting('bot_task_reward', '20')), // NEW: Bot reward in Hrum
         partnerTaskReward: parseInt(getSetting('partner_task_reward', '5')), // NEW: Partner reward in Hrum
-        minimumConvertHrum: parseInt(getSetting('minimum_convert_pad', '100')), // NEW: Min convert in Hrum (100 Hrum = $0.01)
+        minimumConvertHrum: parseInt(getSetting('minimum_convert_pad', '100')), // NEW: Min convert in Hrum (100 Hrum = TON0.01)
         minimumConvertTON: parseInt(getSetting('minimum_convert_pad', '100')) / 10000, // Convert to TON
         minimumClicks: parseInt(getSetting('minimum_clicks', '500')), // NEW: Min clicks for task creation
         seasonBroadcastActive: getSetting('season_broadcast_active', 'false') === 'true',
@@ -2813,7 +2809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Withdrawal packages
         withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
         // Legacy fields for backwards compatibility
-        minimumWithdrawal: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')),
+        minWithdrawalAmount: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')),
         taskPerClickReward: parseInt(getSetting('channel_task_reward', '30')),
         taskCreationCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')),
         minimumConvert: parseInt(getSetting('minimum_convert_pad', '100')) / 10000,
@@ -2832,7 +2828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardPerAd, 
         affiliateCommission,
         walletChangeFee,
-        minimumWithdrawalTON,
+        minWithdrawalAmount,
         withdrawalFeeTON,
         channelTaskCost,
         botTaskCost,
@@ -2887,17 +2883,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      // Update all provided settings (all values are already in correct format - Hrum or TON)
+      // Update all provided settings (all values are already in correct format - Hrum or )
       await updateSetting('daily_ad_limit', dailyAdLimit);
       await updateSetting('reward_per_ad', rewardPerAd); // Hrum
       await updateSetting('affiliate_commission', affiliateCommission);
       await updateSetting('wallet_change_fee', walletChangeFee); // Hrum
-      await updateSetting('minimum_withdrawal_ton', minimumWithdrawalTON); // TON
-      await updateSetting('withdrawal_fee_ton', withdrawalFeeTON); // % fee for TON
-      await updateSetting('channel_task_cost_usd', channelTaskCost); // TON (admin only)
-      await updateSetting('bot_task_cost_usd', botTaskCost); // TON (admin only)
-      await updateSetting('channel_task_cost_ton', channelTaskCostTON); // TON (regular users)
-      await updateSetting('bot_task_cost_ton', botTaskCostTON); // TON (regular users)
+      await updateSetting('minimum_withdrawal_ton', minWithdrawalAmount); // TON
+      await updateSetting('withdrawal_fee_ton', withdrawalFee); // % fee for TON
+      await updateSetting('channel_task_cost_usd', channelTaskCost); //  (admin only)
+      await updateSetting('bot_task_cost_usd', botTaskCost); //  (admin only)
+      await updateSetting('channel_task_cost_ton', channelTaskCost); //  (regular users)
+      await updateSetting('bot_task_cost_ton', botTaskCost); //  (regular users)
       await updateSetting('channel_task_reward', channelTaskReward); // Hrum
       await updateSetting('bot_task_reward', botTaskReward); // Hrum
       await updateSetting('partner_task_reward', partnerTaskReward); // Hrum
@@ -2905,7 +2901,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await updateSetting('minimum_clicks', minimumClicks); // Minimum clicks for task creation
       await updateSetting('season_broadcast_active', seasonBroadcastActive);
       await updateSetting('referral_reward_enabled', referralRewardEnabled);
-      await updateSetting('referral_reward_usd', referralRewardTON);
+      await updateSetting('referral_reward_usd', referralReward);
       await updateSetting('referral_reward_hrum', referralRewardHrum);
       await updateSetting('referral_ads_required', validatedReferralAdsRequired);
       
@@ -3757,7 +3753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isDailyTask) {
         console.log(`💰 Using dynamic reward amount: ${rewardAmount} TON`);
       } else {
-        console.log(`💰 Using dynamic reward amount: $${rewardAmount}`);
+        console.log(`💰 Using dynamic reward amount: TON${rewardAmount}`);
       }
       
       // Complete the task using appropriate method
@@ -3770,10 +3766,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let updatedBalance;
         try {
           updatedBalance = await storage.getUserBalance(userId);
-          console.log(`💰 Balance updated for user ${userId}: $${updatedBalance?.balance || '0'}`);
+          console.log(`💰 Balance updated for user ${userId}: TON${updatedBalance?.balance || '0'}`);
           
           // Send real-time balance update to WebSocket clients
-          const currencySymbol = isDailyTask ? 'TON' : '$';
+          const currencySymbol = isDailyTask ? '' : '';
           const balanceUpdate = {
             type: 'balance_update',
             balance: updatedBalance?.balance || '0',
@@ -3914,16 +3910,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!cwalletId || !cwalletId.trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid TON wallet address'
+          message: 'Please enter a valid  wallet address'
         });
       }
       
-      // Validate TON wallet address (must start with UQ or EQ)
-      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(cwalletId.trim())) {
-        console.log('🚫 Invalid TON wallet address format');
+      // Validate  wallet address (must start with UQ or EQ)
+      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(cwalletId.trim())) {
+        console.log('🚫 Invalid  wallet address format');
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid TON wallet address'
+          message: 'Please enter a valid  wallet address'
         });
       }
       
@@ -3954,10 +3950,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
         
         if (walletInUse) {
-          console.log('🚫 TON wallet address already linked to another account');
+          console.log('🚫  wallet address already linked to another account');
           return res.status(400).json({
             success: false,
-            message: 'This TON wallet address is already linked to another account.'
+            message: 'This  wallet address is already linked to another account.'
           });
         }
       }
@@ -3971,18 +3967,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(users.id, userId));
       
-      console.log('✅ TON wallet address saved successfully');
+      console.log('✅  wallet address saved successfully');
       
       res.json({
         success: true,
-        message: 'TON wallet address saved successfully.'
+        message: ' wallet address saved successfully.'
       });
       
     } catch (error) {
-      console.error('❌ Error saving TON wallet address:', error);
+      console.error('❌ Error saving  wallet address:', error);
       res.status(500).json({ 
         success: false, 
-        message: 'Failed to save TON wallet address' 
+        message: 'Failed to save  wallet address' 
       });
     }
   });
@@ -4006,16 +4002,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!walletId || !walletId.trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Missing TON wallet address'
+          message: 'Missing  wallet address'
         });
       }
       
-      // Validate TON wallet address (must start with UQ or EQ)
-      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(walletId.trim())) {
-        console.log('🚫 Invalid TON wallet address format');
+      // Validate  wallet address (must start with UQ or EQ)
+      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(walletId.trim())) {
+        console.log('🚫 Invalid  wallet address format');
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid TON wallet address'
+          message: 'Please enter a valid  wallet address'
         });
       }
       
@@ -4046,10 +4042,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
         
         if (walletInUse) {
-          console.log('🚫 TON wallet address already linked to another account');
+          console.log('🚫  wallet address already linked to another account');
           return res.status(400).json({
             success: false,
-            message: 'This TON wallet address is already linked to another account.'
+            message: 'This  wallet address is already linked to another account.'
           });
         }
       }
@@ -4099,16 +4095,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!newWalletId || !newWalletId.trim()) {
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid TON wallet address'
+          message: 'Please enter a valid  wallet address'
         });
       }
       
-      // Validate TON wallet address (must start with UQ or EQ)
-      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(newWalletId.trim())) {
-        console.log('🚫 Invalid TON wallet address format');
+      // Validate  wallet address (must start with UQ or EQ)
+      if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(newWalletId.trim())) {
+        console.log('🚫 Invalid  wallet address format');
         return res.status(400).json({
           success: false,
-          message: 'Please enter a valid TON wallet address'
+          message: 'Please enter a valid  wallet address'
         });
       }
       
@@ -4117,7 +4113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const feeInPad = parseInt(walletChangeFee);
       const feeInTon = feeInPad / 10000000;
       
-      console.log(`💰 Wallet change fee: ${feeInPad} Hrum (${feeInTon} TON)`);
+      console.log(`💰 Wallet change fee: ${feeInPad} Hrum (${feeInTon} )`);
       
       // Use database transaction to ensure atomicity
       const result = await db.transaction(async (tx) => {
@@ -4157,7 +4153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
         
         if (walletInUse) {
-          throw new Error('This TON wallet address is already linked to another account');
+          throw new Error('This  wallet address is already linked to another account');
         }
         
         const currentBalance = parseFloat(user.balance || '0');
@@ -4250,7 +4246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ success: true, skipAuth: true });
       }
 
-      const { padAmount, convertTo = 'TON' } = req.body;
+      const { padAmount, convertTo = '' } = req.body;
       
       console.log('💵 Hrum conversion request:', { userId, padAmount, convertTo });
       
@@ -4295,14 +4291,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let convertedAmount = 0;
         let convertedCurrency = convertTo;
         
-        if (convertTo === 'TON') {
+        if (convertTo === '') {
           const conversionRateSetting = await storage.getAppSetting('pad_to_usd_rate', '10000');
           const Hrum_TO_TON_RATE = parseFloat(conversionRateSetting);
           convertedAmount = convertAmount / Hrum_TO_TON_RATE;
           const currentUsdBalance = parseFloat(user.tonBalance || '0');
           updateData.tonBalance = (currentUsdBalance + convertedAmount).toFixed(10);
-          console.log(`✅ Hrum to TON: ${convertAmount} Hrum → $${convertedAmount.toFixed(4)} TON`);
-        } else if (convertTo === 'TON') {
+          console.log(`✅ Hrum to TON: ${convertAmount} Hrum → TON${convertedAmount.toFixed(4)} TON`);
+        } else if (convertTo === '') {
           const padToTonRateSetting = await storage.getAppSetting('hrum_to_ton_rate', '10000000');
           const Hrum_TO_TON_RATE = parseFloat(padToTonRateSetting);
           convertedAmount = convertAmount / Hrum_TO_TON_RATE;
@@ -4346,19 +4342,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Hrum to TON conversion endpoint
+  // Hrum to  conversion endpoint
   app.post('/api/convert-to-ton', async (req: any, res) => {
     try {
       const userId = req.session?.user?.user?.id || req.user?.user?.id;
       
       if (!userId) {
-        console.log("⚠️ TON conversion requested without session - skipping");
+        console.log("⚠️  conversion requested without session - skipping");
         return res.json({ success: true, skipAuth: true });
       }
 
       const { padAmount } = req.body;
       
-      console.log('💎 Hrum to TON conversion request:', { userId, padAmount });
+      console.log('💎 Hrum to  conversion request:', { userId, padAmount });
       
       const convertAmount = parseFloat(padAmount);
       if (!padAmount || isNaN(convertAmount) || convertAmount <= 0) {
@@ -4375,11 +4371,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (convertAmount < minimumConvertHrum) {
         return res.status(400).json({
           success: false,
-          message: `Minimum ${minimumConvertHrum.toLocaleString()} Hrum required for TON conversion`
+          message: `Minimum ${minimumConvertHrum.toLocaleString()} Hrum required for  conversion`
         });
       }
       
-      // Get conversion rate from admin settings (default: 10,000,000 Hrum = 1 TON)
+      // Get conversion rate from admin settings (default: 10,000,000 Hrum = 1 )
       const conversionRateSetting = await storage.getAppSetting('hrum_to_ton_rate', '10000000');
       const Hrum_TO_TON_RATE = parseFloat(conversionRateSetting);
       const tonAmount = convertAmount / Hrum_TO_TON_RATE;
@@ -4420,7 +4416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
           .where(eq(users.id, userId));
         
-        console.log(`✅ Hrum to TON conversion successful: ${convertAmount} Hrum → ${tonAmount.toFixed(6)} TON`);
+        console.log(`✅ Hrum to  conversion successful: ${convertAmount} Hrum → ${tonAmount.toFixed(6)} TON`);
         
         return {
           padAmount: convertAmount,
@@ -4438,7 +4434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         success: true,
-        message: 'Conversion to TON successful!',
+        message: 'Conversion to  successful!',
         ...result
       });
       
@@ -4582,7 +4578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate Optimism TONT address (0x... format, 42 characters)
-      if (!/^0x[a-fA-F0-9]{40}$/.test(usdtAddress.trim())) {
+      if (!/^0x[a-fA-F0-9]{40}/.test(usdtAddress.trim())) {
         return res.status(400).json({
           success: false,
           message: 'Please enter a valid Optimism TONT address'
@@ -4718,7 +4714,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Validate username format: @username (letters, numbers, underscores only, no spaces or special chars)
-      if (!/^@[a-zA-Z0-9_]{1,32}$/.test(telegramUsername)) {
+      if (!/^@[a-zA-Z0-9_]{1,32}/.test(telegramUsername)) {
         return res.status(400).json({
           success: false,
           message: 'Invalid username format. Use only letters, numbers, and underscores (e.g., @szxzyz)'
@@ -4930,58 +4926,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = userData;
       const isAdmin = userIsAdmin;
 
-      // Admin users: use TON balance and TON-based costs
-      // Regular users: use TON tokens
+      // Admin users: use  balance and TON-based costs
+      // Regular users: use  tokens
       if (isAdmin) {
         // Fetch TON-based costs for admin
         const channelCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'channel_task_cost_usd')).limit(1);
         const botCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'bot_task_cost_usd')).limit(1);
         
-        const channelCostPerClickTON = parseFloat(channelCostSetting[0]?.settingValue || "0.003");
-        const botCostPerClickTON = parseFloat(botCostSetting[0]?.settingValue || "0.003");
+        const channelCostPerClick = parseFloat(channelCostSetting[0]?.settingValue || "0.003");
+        const botCostPerClick = parseFloat(botCostSetting[0]?.settingValue || "0.003");
         
-        const costPerClickTON = taskType === "channel" ? channelCostPerClickTON : botCostPerClickTON;
-        const totalCostTON = costPerClickTON * totalClicksRequired;
+        const costPerClick = taskType === "channel" ? channelCostPerClick : botCostPerClickTON;
+        const totalCost = costPerClick * totalClicksRequired;
 
-        console.log('🔑 Admin task creation - using TON balance');
+        console.log('🔑 Admin task creation - using  balance');
         const currentTONBalance = parseFloat(user.tonBalance || '0');
 
-        console.log('💰 Payment check (TON):', { currentTONBalance, totalCostTON, sufficient: currentTONBalance >= totalCostTON });
+        console.log('💰 Payment check ():', { currentTONBalance, totalCostTON, sufficient: currentTONBalance >= totalCost });
 
-        if (currentTONBalance < totalCostTON) {
+        if (currentTONBalance < totalCost) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient TON balance. You need $${totalCostTON.toFixed(2)} TON to create this task.`
+            message: `Insufficient  balance. You need TON${totalCost.toFixed(2)}  to create this task.`
           });
         }
 
-        // Deduct TON balance
-        const newTONBalance = (currentTONBalance - totalCostTON).toFixed(10);
+        // Deduct  balance
+        const newTONBalance = (currentTONBalance - totalCost).toFixed(10);
         await db
           .update(users)
           .set({ tonBalance: newTONBalance })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (TON):', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: totalCostTON });
+        console.log('✅ Payment deducted ():', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: totalCost });
 
         await storage.logTransaction({
           userId,
-          amount: totalCostTON.toFixed(10),
+          amount: totalCost.toFixed(10),
           type: "deduction",
           source: "task_creation",
           description: `Created ${taskType} task: ${title}`,
-          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: 'TON' }
+          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: '' }
         });
 
-        // Create task with TON cost
+        // Create task with  cost
         const task = await storage.createTask({
           advertiserId: userId,
           taskType,
           title,
           link,
           totalClicksRequired,
-          costPerClick: costPerClickTON.toFixed(10),
-          totalCost: totalCostTON.toFixed(10),
+          costPerClick: costPerClick.toFixed(10),
+          totalCost: totalCost.toFixed(10),
           status: "running",
         });
 
@@ -4999,19 +4995,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Regular users: TON-based costs from admin settings
-        console.log('👤 Regular user task creation - using TON balance');
+        console.log('👤 Regular user task creation - using  balance');
         
-        // Get TON cost per click from admin settings
+        // Get  cost per click from admin settings
         const channelTonCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'channel_task_cost_ton')).limit(1);
         const botTonCostSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'bot_task_cost_ton')).limit(1);
         
-        const channelCostPerClickTON = parseFloat(channelTonCostSetting[0]?.settingValue || "0.0003");
-        const botCostPerClickTON = parseFloat(botTonCostSetting[0]?.settingValue || "0.0003");
+        const channelCostPerClick = parseFloat(channelTonCostSetting[0]?.settingValue || "0.0003");
+        const botCostPerClick = parseFloat(botTonCostSetting[0]?.settingValue || "0.0003");
         
-        const costPerClickTON = taskType === "channel" ? channelCostPerClickTON : botCostPerClickTON;
-        const totalCostTON = costPerClickTON * totalClicksRequired;
+        const costPerClick = taskType === "channel" ? channelCostPerClick : botCostPerClickTON;
+        const totalCost = costPerClick * totalClicksRequired;
         
-        // Fetch TON balance
+        // Fetch  balance
         const [userTonData] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
@@ -5019,42 +5015,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const currentTONBalance = parseFloat(userTonData?.tonBalance || '0');
 
-        console.log('💰 Payment check (TON):', { currentTONBalance, totalCostTON, sufficient: currentTONBalance >= totalCostTON });
+        console.log('💰 Payment check ():', { currentTONBalance, totalCostTON, sufficient: currentTONBalance >= totalCost });
 
-        if (currentTONBalance < totalCostTON) {
+        if (currentTONBalance < totalCost) {
           return res.status(400).json({
             success: false,
-            message: `Insufficient TON. You need ${totalCostTON.toFixed(4)} TON to create this task.`
+            message: `Insufficient . You need ${totalCost.toFixed(4)}  to create this task.`
           });
         }
 
-        // Deduct TON balance
-        const newTONBalance = (currentTONBalance - totalCostTON).toFixed(10);
+        // Deduct  balance
+        const newTONBalance = (currentTONBalance - totalCost).toFixed(10);
         await db
           .update(users)
           .set({ tonBalance: newTONBalance, updatedAt: new Date() })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (TON):', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: totalCostTON });
+        console.log('✅ Payment deducted ():', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: totalCost });
 
         await storage.logTransaction({
           userId,
-          amount: totalCostTON.toFixed(10),
+          amount: totalCost.toFixed(10),
           type: "deduction",
           source: "task_creation",
           description: `Created ${taskType} task: ${title}`,
-          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: 'TON' }
+          metadata: { taskId: null, taskType, totalClicksRequired, paymentMethod: '' }
         });
 
-        // Create task with TON cost
+        // Create task with  cost
         const task = await storage.createTask({
           advertiserId: userId,
           taskType,
           title,
           link,
           totalClicksRequired,
-          costPerClick: costPerClickTON.toFixed(10),
-          totalCost: totalCostTON.toFixed(10),
+          costPerClick: costPerClick.toFixed(10),
+          totalCost: totalCost.toFixed(10),
           status: "under_review",
         });
 
@@ -5067,7 +5063,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Send notification to admin about new task submission
         try {
-          const adminNotification = `📝 <b>New Task Submitted</b>\n\nType: ${taskType}\nTitle: ${title}\nClicks: ${totalClicksRequired}\nCost: ${totalCostTON.toFixed(4)} TON\n\nPlease review.`;
+          const adminNotification = `📝 <b>New Task Submitted</b>\n\nType: ${taskType}\nTitle: ${title}\nClicks: ${totalClicksRequired}\nCost: ${totalCost.toFixed(4)} TON\n\nPlease review.`;
           await sendTelegramMessage(adminNotification);
           console.log('📩 Admin notification sent for new task');
         } catch (notifyError) {
@@ -5253,10 +5249,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
       const requiredAmount = parseFloat(additionalCost);
 
-      // Admin users: use TON balance
-      // Regular users: use TON balance
+      // Admin users: use  balance
+      // Regular users: use  balance
       if (isAdmin) {
-        console.log('🔑 Admin adding clicks - using TON balance');
+        console.log('🔑 Admin adding clicks - using  balance');
         const [adminUserData] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
@@ -5264,42 +5260,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const currentTONBalance = parseFloat(adminUserData?.tonBalance || '0');
 
-        // Check if admin has sufficient TON balance
+        // Check if admin has sufficient  balance
         if (currentTONBalance < requiredAmount) {
           return res.status(400).json({
             success: false,
-            message: "Insufficient TON balance. Please top up your TON balance."
+            message: "Insufficient  balance. Please top up your  balance."
           });
         }
 
-        // Deduct TON balance
+        // Deduct  balance
         const newTONBalance = (currentTONBalance - requiredAmount).toFixed(10);
         await db
           .update(users)
           .set({ tonBalance: newTONBalance, updatedAt: new Date() })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (TON):', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: additionalCost });
+        console.log('✅ Payment deducted ():', { oldBalance: currentTONBalance, newBalance: newTONBalance, deducted: additionalCost });
       } else {
-        console.log('👤 Regular user adding clicks - using TON balance');
+        console.log('👤 Regular user adding clicks - using  balance');
         const currentTonBalance = parseFloat(user.tonBalance || '0');
 
-        // Check if user has sufficient TON balance
+        // Check if user has sufficient  balance
         if (currentTonBalance < requiredAmount) {
           return res.status(400).json({
             success: false,
-            message: "Insufficient TON. You need TON to add more clicks."
+            message: "Insufficient . You need  to add more clicks."
           });
         }
 
-        // Deduct TON balance
+        // Deduct  balance
         const newTonBalance = (currentTonBalance - requiredAmount).toFixed(8);
         await db
           .update(users)
           .set({ tonBalance: newTonBalance, updatedAt: new Date() })
           .where(eq(users.id, userId));
 
-        console.log('✅ Payment deducted (TON):', { oldBalance: currentTonBalance, newBalance: newTonBalance, deducted: additionalCost });
+        console.log('✅ Payment deducted ():', { oldBalance: currentTonBalance, newBalance: newTonBalance, deducted: additionalCost });
       }
 
       // Increase task limit
@@ -5474,7 +5470,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
 
             if (isAdmin) {
-              // Admin: Refund to TON balance
+              // Admin: Refund to  balance
               const [adminUser] = await tx
                 .select({ tonBalance: users.tonBalance })
                 .from(users)
@@ -5486,16 +5482,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 .set({ tonBalance: newTONBalance, updatedAt: new Date() })
                 .where(eq(users.id, userId));
 
-              console.log('✅ Admin refund processed (TON):', { oldBalance: adminUser?.tonBalance, refundAmount, newBalance: newTONBalance });
+              console.log('✅ Admin refund processed ():', { oldBalance: adminUser?.tonBalance, refundAmount, newBalance: newTONBalance });
             } else {
-              // Non-admin: Refund to TON balance
+              // Non-admin: Refund to  balance
               const newTONBalance = (parseFloat(user.tonBalance || '0') + parseFloat(refundAmount)).toFixed(8);
               await tx
                 .update(users)
                 .set({ tonBalance: newTONBalance, updatedAt: new Date() })
                 .where(eq(users.id, userId));
 
-              console.log('✅ User refund processed (TON):', { oldBalance: user.tonBalance, refundAmount, newBalance: newTONBalance });
+              console.log('✅ User refund processed ():', { oldBalance: user.tonBalance, refundAmount, newBalance: newTONBalance });
             }
 
             // Log transaction
@@ -5504,8 +5500,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               amount: refundAmount,
               type: "credit",
               source: "task_deletion_refund",
-              description: `Refund for deleting task: ${task.title} (${isAdmin ? 'TON' : 'TON'})`,
-              metadata: { taskId, remainingClicks, currency: isAdmin ? 'TON' : 'TON' }
+              description: `Refund for deleting task: ${task.title} (${isAdmin ? '' : ''})`,
+              metadata: { taskId, remainingClicks, currency: isAdmin ? '' : '' }
             });
           }
         }
@@ -5723,7 +5719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Withdrawal request received:', { userId, method, starPackage, withdrawalPackage });
 
       // Validate withdrawal method
-      const validMethods = ['TON', 'TONT', 'STARS'];
+      const validMethods = ['', 'TONT', 'STARS'];
       if (!method || !validMethods.includes(method)) {
         return res.status(400).json({
           success: false,
@@ -5913,7 +5909,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(adminSettings)
           .where(eq(adminSettings.settingKey, 'bug_per_usd'))
           .limit(1);
-        const bugPerUsd = parseInt(bugPerUsdSetting?.settingValue || '10000'); // Default: 1 TON = 10000 BUG
+        const bugPerUsd = parseInt(bugPerUsdSetting?.settingValue || '10000'); // Default: 1  = 10000 BUG
         
         // Determine BUG requirement based on package or FULL withdrawal
         const currentUsdBalanceForBug = parseFloat(user.tonBalance || '0');
@@ -5929,32 +5925,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           minimumBugForWithdrawal = selectedPkg.bug;
           packageUsdAmount = selectedPkg.usd;
           
-          // Check if user has enough TON balance for this package
+          // Check if user has enough  balance for this package
           if (currentUsdBalanceForBug < packageUsdAmount) {
-            throw new Error(`Insufficient balance. You need $${packageUsdAmount.toFixed(2)} for this package.`);
+            throw new Error(`Insufficient balance. You need TON${packageUsdAmount.toFixed(2)} for this package.`);
           }
         } else {
-          // FULL withdrawal: dynamic BUG requirement based on full TON balance
+          // FULL withdrawal: dynamic BUG requirement based on full  balance
           minimumBugForWithdrawal = Math.ceil(currentUsdBalanceForBug * bugPerUsd);
         }
         
         const currentBugBalance = parseFloat(user.bugBalance || '0');
         if (withdrawalBugRequirementEnabled && currentBugBalance < minimumBugForWithdrawal) {
           const remaining = minimumBugForWithdrawal - currentBugBalance;
-          const amountStr = packageUsdAmount ? `$${packageUsdAmount.toFixed(2)}` : `$${currentUsdBalanceForBug.toFixed(2)}`;
+          const amountStr = packageUsdAmount ? `TON${packageUsdAmount.toFixed(2)}` : `TON${currentUsdBalanceForBug.toFixed(2)}`;
           throw new Error(`Earn ${remaining.toFixed(0)} more BUG to unlock your ${amountStr} withdrawal. Required: ${minimumBugForWithdrawal.toLocaleString()} BUG.`);
         }
 
         // Check if user has appropriate wallet address based on method
         let walletAddress: string;
-        if (method === 'TON') {
+        if (method === '') {
           if (!user.cwalletId) {
-            throw new Error('TON address not set');
+            throw new Error(' address not set');
           }
           walletAddress = user.cwalletId;
-        } else if (method === 'TON' || method === 'TONT') {
+        } else if (method === '' || method === 'TONT') {
           if (!user.usdtWalletAddress) {
-            throw new Error('TON address not set');
+            throw new Error(' address not set');
           }
           walletAddress = user.usdtWalletAddress;
         } else if (method === 'STARS') {
@@ -5974,16 +5970,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .from(adminSettings)
           .where(eq(adminSettings.settingKey, 'minimum_withdrawal_ton'))
           .limit(1);
-        const minimumWithdrawalTON = parseFloat(minWithdrawalSetting?.settingValue || '0.5');
+        const minWithdrawalAmount = parseFloat(minWithdrawalSetting?.settingValue || '0.5');
         
         const [feePercentTONSetting] = await tx
           .select({ settingValue: adminSettings.settingValue })
           .from(adminSettings)
           .where(eq(adminSettings.settingKey, 'withdrawal_fee_ton'))
           .limit(1);
-        const feePercentTON = parseFloat(feePercentTONSetting?.settingValue || '5') / 100;
+        const feePercent = parseFloat(feePercentTONSetting?.settingValue || '5') / 100;
         
-        // Calculate withdrawal amount and fee (ALL IN TON ONLY)
+        // Calculate withdrawal amount and fee (ALL IN  ONLY)
         let withdrawalAmount: number; // Always in TON
         let fee: number;
         let usdToDeduct: number;
@@ -6012,22 +6008,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const totalCost = selectedPkg.usdCost * 1.05;
           if (currentUsdBalance < totalCost) {
-            throw new Error(`Insufficient balance. You need $${totalCost.toFixed(2)} (including 5% fee)`);
+            throw new Error(`Insufficient balance. You need TON${totalCost.toFixed(2)} (including 5% fee)`);
           }
           
-          withdrawalAmount = selectedPkg.usdCost; // TON amount
+          withdrawalAmount = selectedPkg.usdCost; //  amount
           fee = selectedPkg.usdCost * 0.05;
           usdToDeduct = totalCost;
           withdrawalDetails.starPackage = starPackage;
           withdrawalDetails.stars = starPackage;
           withdrawalDetails.telegramUsername = walletAddress;
         } else {
-          // TON or TON withdrawal - package-based or FULL balance
+          //  or  withdrawal - package-based or FULL balance
           if (currentUsdBalance <= 0) {
             throw new Error('Insufficient balance for withdrawal');
           }
           
-          // Determine the TON amount to withdraw based on package selection
+          // Determine the  amount to withdraw based on package selection
           let baseAmount: number;
           if (packageUsdAmount !== null) {
             // Package-based withdrawal: use exact package amount
@@ -6037,7 +6033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             baseAmount = currentUsdBalance;
             
             // Check minimum withdrawal requirement only for FULL withdrawals
-            const requiredMinimum = minimumWithdrawalTON;
+            const requiredMinimum = minWithdrawalAmount;
             if (baseAmount < requiredMinimum) {
               throw new Error(`Minimum ${requiredMinimum.toFixed(2)}`);
             }
@@ -6046,7 +6042,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Use admin-configured fees
           const feePercent = feePercentTON;
           fee = baseAmount * feePercent;
-          withdrawalAmount = baseAmount - fee; // TON amount after fee
+          withdrawalAmount = baseAmount - fee; //  amount after fee
           usdToDeduct = baseAmount;
           
           // Store package info if applicable
@@ -6057,17 +6053,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           withdrawalDetails.bugDeducted = minimumBugForWithdrawal;
           
           // Store wallet address based on method
-          if (method === 'TON') {
+          if (method === '') {
             withdrawalDetails.tonWalletAddress = walletAddress;
-          } else if (method === 'TON' || method === 'TONT') {
+          } else if (method === '' || method === 'TONT') {
             withdrawalDetails.usdtWalletAddress = walletAddress;
           }
         }
 
-        console.log(`📝 Creating withdrawal request for $${withdrawalAmount.toFixed(2)} TON via ${method} (balance will be deducted on approval)`);
+        console.log(`📝 Creating withdrawal request for TON${withdrawalAmount.toFixed(2)}  via ${method} (balance will be deducted on approval)`);
 
         // Store the fee percentage from admin settings for consistent display
-        const feePercentForDetails = method === 'TON' ? feePercentTON : (method === 'STARS' ? 0.05 : feePercentTON);
+        const feePercentForDetails = method === '' ? feePercent : (method === 'STARS' ? 0.05 : feePercent);
         withdrawalDetails.totalDeducted = usdToDeduct.toFixed(10);
         withdrawalDetails.fee = fee.toFixed(10);
         withdrawalDetails.feePercent = (feePercentForDetails * 100).toString(); // Store exact percentage (e.g., "5" or "2.5")
@@ -6088,11 +6084,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // NOTE: Balance is NOT deducted here - it will be deducted ONLY when admin approves the withdrawal
         // This prevents "insufficient balance" errors during approval when balance was already deducted at request time
-        console.log(`📋 Withdrawal request created for $${usdToDeduct.toFixed(2)} TON (balance will be deducted on admin approval)`);
+        console.log(`📋 Withdrawal request created for TON${usdToDeduct.toFixed(2)}  (balance will be deducted on admin approval)`);
         
         return { 
           withdrawal, 
-          withdrawnAmount: withdrawalAmount, // TON amount
+          withdrawnAmount: withdrawalAmount, //  amount
           fee: fee,
           feePercent: (feePercentForDetails * 100).toString(), // Fee percentage as string (exact value)
           method: method,
@@ -6104,7 +6100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
 
-      console.log(`✅ Withdrawal request created: ${newWithdrawal.withdrawal.id} for user ${userId}, amount: $${newWithdrawal.withdrawnAmount.toFixed(2)} via ${newWithdrawal.method}`);
+      console.log(`✅ Withdrawal request created: ${newWithdrawal.withdrawal.id} for user ${userId}, amount: TON${newWithdrawal.withdrawnAmount.toFixed(2)} via ${newWithdrawal.method}`);
 
       // Send withdrawal_requested notification via WebSocket
       sendRealtimeUpdate(userId, {
@@ -6251,7 +6247,7 @@ ${walletAddress}
       
       const { walletAddress, comment } = req.body;
 
-      console.log('📝 Withdrawal via /api/withdraw (withdrawing all TON balance):', { userId });
+      console.log('📝 Withdrawal via /api/withdraw (withdrawing all  balance):', { userId });
 
       // Check for pending withdrawals
       const pendingWithdrawals = await db
@@ -6272,7 +6268,7 @@ ${walletAddress}
 
       // Use transaction for atomicity
       const result = await db.transaction(async (tx) => {
-        // Lock user row and get TON balance, ban status, and device info
+        // Lock user row and get  balance, ban status, and device info
         const [user] = await tx
           .select({ 
             tonBalance: users.tonBalance,
@@ -6334,7 +6330,7 @@ ${walletAddress}
         const currentTonBalance = parseFloat(user.tonBalance || '0');
         
         if (currentTonBalance < 0.001) {
-          throw new Error('You need at least 0.001 TON');
+          throw new Error('You need at least 0.001 ');
         }
 
         // Deduct balance instantly
@@ -6515,7 +6511,7 @@ ${walletAddress}
             type: 'withdrawal_approved',
             amount: result.withdrawal.amount,
             method: result.withdrawal.method,
-            message: `Your withdrawal of ${result.withdrawal.amount} TON has been approved and processed`
+            message: `Your withdrawal of ${result.withdrawal.amount}  has been approved and processed`
           });
           
           // Broadcast to all admins for instant UI update
@@ -6566,7 +6562,7 @@ ${walletAddress}
             type: 'withdrawal_rejected',
             amount: result.withdrawal.amount,
             method: result.withdrawal.method,
-            message: `Your withdrawal of ${result.withdrawal.amount} TON has been rejected`
+            message: `Your withdrawal of ${result.withdrawal.amount}  has been rejected`
           });
           
           // Broadcast to all admins for instant UI update
@@ -6998,10 +6994,10 @@ ${walletAddress}
         });
       }
       
-      // Add reward based on type - Hrum, TON, TON supported (PDZ is deprecated, treated as TON)
+      // Add reward based on type - Hrum, TON,  supported (PDZ is deprecated, treated as )
       let rewardType = promoCode.rewardType || 'Hrum';
       // Convert any legacy PDZ to TON
-      if (rewardType === 'PDZ') rewardType = 'TON';
+      if (rewardType === 'PDZ') rewardType = '';
       const rewardAmount = result.reward;
       
       if (rewardType === 'Hrum') {
@@ -7021,8 +7017,8 @@ ${walletAddress}
           reward: rewardAmount,
           rewardType: 'Hrum'
         });
-      } else if (rewardType === 'TON') {
-        // Add TON balance - direct update required since addEarning only handles Hrum balance
+      } else if (rewardType === '') {
+        // Add  balance - direct update required since addEarning only handles Hrum balance
         const [currentUser] = await db
           .select({ tonBalance: users.tonBalance })
           .from(users)
@@ -7043,24 +7039,24 @@ ${walletAddress}
           type: "credit",
           source: "promo_code",
           description: `Redeemed promo code: ${code}`,
-          metadata: { code, rewardType: 'TON' }
+          metadata: { code, rewardType: '' }
         });
         
         res.json({ 
           success: true, 
-          message: `${rewardAmount} TON added to your balance!`,
+          message: `${rewardAmount}  added to your balance!`,
           reward: rewardAmount,
-          rewardType: 'TON'
+          rewardType: ''
         });
-      } else if (rewardType === 'TON') {
-        // Add TON balance
+      } else if (rewardType === '') {
+        // Add  balance
         await storage.addTONBalance(userId, rewardAmount || '0', 'promo_code', `Redeemed promo code: ${code}`);
         
         res.json({ 
           success: true, 
-          message: `$${rewardAmount} TON added to your balance!`,
+          message: `TON${rewardAmount}  added to your balance!`,
           reward: rewardAmount,
-          rewardType: 'TON'
+          rewardType: ''
         });
       } else if (rewardType === 'BUG') {
         // Add BUG balance
@@ -7144,10 +7140,10 @@ ${walletAddress}
       }
       
       // Validate reward type - Hrum, TON, TON, BUG supported (PDZ is deprecated)
-      let finalRewardType = rewardType || 'TON';
+      let finalRewardType = rewardType || '';
       // Convert legacy PDZ to TON
-      if (finalRewardType === 'PDZ') finalRewardType = 'TON';
-      if (finalRewardType !== 'Hrum' && finalRewardType !== 'TON' && finalRewardType !== 'TON' && finalRewardType !== 'BUG') {
+      if (finalRewardType === 'PDZ') finalRewardType = '';
+      if (finalRewardType !== 'Hrum' && finalRewardType !== '' && finalRewardType !== '' && finalRewardType !== 'BUG') {
         return res.status(400).json({ message: 'Reward type must be Hrum, TON, TON, or BUG' });
       }
       
@@ -7246,10 +7242,10 @@ ${walletAddress}
       // Check if amount is below minimum
       if (tonAmount < 0.1) {
         console.error(`❌ Amount below minimum: ${tonAmount} < 0.1`);
-        return res.status(400).json({ error: 'Minimum top-up is 0.1 TON' });
+        return res.status(400).json({ error: 'Minimum top-up is 0.1 ' });
       }
 
-      console.log(`✅ Amount validated: ${tonAmount} TON - creating ArcPay payment for user ${userId}`);
+      console.log(`✅ Amount validated: ${tonAmount}  - creating ArcPay payment for user ${userId}`);
 
       // Create checkout
       const result = await createArcPayCheckout(tonAmount, userId, userEmail);
@@ -7314,11 +7310,11 @@ ${walletAddress}
             return res.status(404).json({ error: 'User not found' });
           }
 
-          // Credit TON to user
+          // Credit  to user
           const currentTon = parseFloat(user.tonBalance?.toString() || '0');
           const newTon = currentTon + tonAmount;
 
-          // Update user's TON balance
+          // Update user's  balance
           await db.update(users).set({
             tonBalance: newTon.toString(),
             updatedAt: new Date(),
@@ -7330,7 +7326,7 @@ ${walletAddress}
             amount: tonAmount.toString(),
             type: 'addition',
             source: 'arcpay_ton_topup',
-            description: `Top-up ${tonAmount} TON via ArcPay (Order: ${order_id})`,
+            description: `Top-up ${tonAmount}  via ArcPay (Order: ${order_id})`,
             metadata: {
               orderId: order_id,
               arcpayAmount: amount,
@@ -7339,13 +7335,13 @@ ${walletAddress}
             },
           });
 
-          console.log(`💚 TON balance updated for user ${userId}: +${tonAmount} (Total: ${newTon})`);
+          console.log(`💚  balance updated for user ${userId}: +${tonAmount} (Total: ${newTon})`);
 
           // CRITICAL: Send real-time update via WebSocket to the user's frontend
           sendRealtimeUpdate(userId, {
             type: 'balance_update',
             tonBalance: newTon.toString(),
-            message: `🎉 Top-up successful! +${tonAmount} TON credited.`
+            message: `🎉 Top-up successful! +${tonAmount}  credited.`
           });
 
           // Send notification to user via Telegram
@@ -7358,12 +7354,12 @@ ${walletAddress}
 
           return res.json({
             success: true,
-            message: 'TON credited successfully',
+            message: ' credited successfully',
             newBalance: newTon,
           });
         } catch (dbError) {
           console.error('❌ Error crediting TON:', dbError);
-          return res.status(500).json({ error: 'Failed to credit TON' });
+          return res.status(500).json({ error: 'Failed to credit ' });
         }
       }
 
@@ -7428,8 +7424,8 @@ ${walletAddress}
     { type: 'Hrum', amount: 800, rarity: 'rare', weight: 8 },        // VERY LOW CHANCE
     { type: 'Hrum', amount: 1000, rarity: 'rare', weight: 3 },       // EXTREMELY LOW CHANCE
     { type: 'Hrum', amount: 10000, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
-    { type: 'TON', amount: 0.01, rarity: 'rare', weight: 5 },       // VERY LOW CHANCE
-    { type: 'TON', amount: 0.10, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
+    { type: '', amount: 0.01, rarity: 'rare', weight: 5 },       // VERY LOW CHANCE
+    { type: '', amount: 0.10, rarity: 'ultra_rare', weight: 1 }, // EXTREMELY LOW CHANCE
   ];
 
   // Weighted random selection
@@ -7595,7 +7591,7 @@ ${walletAddress}
           balance: newBalance.toString(),
           updatedAt: new Date(),
         }).where(eq(users.id, userId));
-      } else if (reward.type === 'TON') {
+      } else if (reward.type === '') {
         const currentTon = parseFloat(user.tonBalance?.toString() || '0');
         const newTon = currentTon + reward.amount;
         await db.update(users).set({
@@ -8078,7 +8074,7 @@ ${walletAddress}
         photo_url: shareImageUrl,
         thumbnail_url: shareImageUrl,
         title: '💵 Get Paid with Money Adz!',
-        description: 'Join Money Adz and earn $Hrum tokens by watching ads or completing simple tasks!',
+        description: 'Join Money Adz and earn TONHrum tokens by watching ads or completing simple tasks!',
         caption: '💵 Get paid for completing tasks and watching ads.',
         parse_mode: 'HTML',
         reply_markup: {

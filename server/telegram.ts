@@ -20,15 +20,15 @@ const pendingRejections = new Map<string, {
 // State management for admin broadcast flow
 const pendingBroadcasts = new Map<string, { timestamp: number }>();
 
-// Utility function to format USD amounts
-function formatUSD(value: string | number): string {
+// Utility function to format  amounts
+function formatTON(value: string | number): string {
   const num = parseFloat(String(value));
   return num.toFixed(2);
 }
 
 // Escape special characters for Telegram MarkdownV2
 function escapeMarkdownV2(text: string): string {
-  return text.replace(/[_*\[\]()~`>#+\-=|{}.!]/g, '\\$&');
+  return text.replace(/[_*\[\]()~`>#+\-=|{}.!]/g, '\\TON&');
 }
 
 interface TelegramMessage {
@@ -319,7 +319,7 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 <code>${walletAddress}</code>
-💸 Amount: ${netAmount.toFixed(5)} USD
+💸 Amount: ${netAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyAdzbot`;
@@ -349,7 +349,7 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 }
 
 // Send notification to referrer when referred user watches their first ad
-// Uses USD reward from Admin Settings (referral_reward_usd)
+// Uses  reward from Admin Settings (referral_reward_usd)
 export async function sendReferralRewardNotification(
   referrerTelegramId: string,
   referredUserName: string,
@@ -362,12 +362,12 @@ export async function sendReferralRewardNotification(
 
   try {
     const safeName = escapeHtml(referredUserName);
-    const formattedUSD = parseFloat(usdRewardAmount).toFixed(2);
+    const formatted = parseFloat(usdRewardAmount).toFixed(2);
     
     const message = `🎉 <b>New Referral Activity!</b>
 
 Your friend <b>${safeName}</b> watched their first ad.
-💰 You earned <b>$${formattedUSD}</b>
+💰 You earned <b>TON${formatted}</b>
 
 Keep inviting more friends to earn more!`;
 
@@ -463,7 +463,7 @@ export function formatWelcomeMessage(): { message: string; inlineKeyboard: any }
   const message = `Stop wasting time on useless airdrops.
 Start earning real rewards today.
 
-Money Adz is a Telegram mini-app where you earn $PAD tokens by watching ads or completing simple tasks — and swap them instantly to $USD, even before any airdrop. 💸
+Money Adz is a Telegram mini-app where you earn TONHrum tokens by watching ads or completing simple tasks — and swap them instantly to TON, even before any airdrop. 💸
 
 Every ad has value.
 Every task pays. 🚀`;
@@ -656,7 +656,7 @@ export async function handleInlineQuery(inlineQuery: any): Promise<boolean> {
         photo_url: shareImageUrl,
         thumbnail_url: shareImageUrl,
         title: '💵 Get Paid with Money Adz!',
-        description: 'Join Money Adz and earn $PAD tokens by watching ads or completing simple tasks!',
+        description: 'Join Money Adz and earn TONHrum tokens by watching ads or completing simple tasks!',
         caption: '💵 Get paid for completing tasks and watching ads.',
         parse_mode: 'HTML',
         reply_markup: {
@@ -675,7 +675,7 @@ export async function handleInlineQuery(inlineQuery: any): Promise<boolean> {
         type: 'article',
         id: `article_${user.referralCode}_${Date.now()}`,
         title: '💸 Share with friends',
-        description: 'Share and earn bonus PAD for every friend who joins!',
+        description: 'Share and earn bonus Hrum for every friend who joins!',
         thumbnail_url: shareImageUrl,
         input_message_content: {
           message_text: '💵 <b>Get paid for completing tasks and watching ads.</b>\n\n🎯 Join Money Adz and get rewarded for simple tasks!\n\n👇 Click the button below to start earning:',
@@ -767,13 +767,13 @@ export async function handleTelegramMessage(update: any): Promise<boolean> {
             
             const inviteMessage = `👫🏼 <b>Invite Your Friends!</b>
 
-Share your unique referral link and earn PAD when your friends join:
+Share your unique referral link and earn Hrum when your friends join:
 
 🔗 <code>${referralLink}</code>
 
 📋 Just tap the link above to copy it, then share it with your friends!
 
-💰 You'll earn bonus PAD for every friend who joins using your link.`;
+💰 You'll earn bonus Hrum for every friend who joins using your link.`;
 
             await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
               method: 'POST',
@@ -812,7 +812,7 @@ Share your unique referral link and earn PAD when your friends join:
         try {
           const stats = await storage.getAppStats();
           
-          const statsMessage = `📊 Application Stats\n\n👥 Total Registered Users: ${stats.totalUsers.toLocaleString()}\n👤 Active Users Today: ${stats.activeUsersToday}\n🔗 Total Friends Invited: ${stats.totalInvites.toLocaleString()}\n\n💰 Total Earnings (All Users): $${parseFloat(stats.totalEarnings).toFixed(2)}\n💎 Total Referral Earnings: $${parseFloat(stats.totalReferralEarnings).toFixed(2)}\n🏦 Total Payouts: $${parseFloat(stats.totalPayouts).toFixed(2)}\n\n🚀 Growth (Last 24h): +${stats.newUsersLast24h} new users`;
+          const statsMessage = `📊 Application Stats\n\n👥 Total Registered Users: ${stats.totalUsers.toLocaleString()}\n👤 Active Users Today: ${stats.activeUsersToday}\n🔗 Total Friends Invited: ${stats.totalInvites.toLocaleString()}\n\n💰 Total Earnings (All Users): TON${parseFloat(stats.totalEarnings).toFixed(2)}\n💎 Total Referral Earnings: TON${parseFloat(stats.totalReferralEarnings).toFixed(2)}\n🏦 Total Payouts: TON${parseFloat(stats.totalPayouts).toFixed(2)}\n\n🚀 Growth (Last 24h): +${stats.newUsersLast24h} new users`;
           
           const refreshButton = {
             inline_keyboard: [[
@@ -855,9 +855,9 @@ Share your unique referral link and earn PAD when your friends join:
           const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users);
           const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users);
           const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`);
-          const totalPADSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
-          const todayPADQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
-          const yesterdayPADQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
+          const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
+          const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
+          const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
           const totalPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
           const todayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE`);
           const yesterdayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE - INTERVAL '1 day'`);
@@ -873,12 +873,12 @@ Share your unique referral link and earn PAD when your friends join:
           const totalAds = totalAdsSum[0]?.total || 0;
           const todayAds = todayAdsSum[0]?.total || 0;
           const yesterdayAds = (yesterdayAdsQuery.rows[0] as any)?.total || 0;
-          const totalPAD = Math.round(parseFloat(totalPADSum[0]?.total || '0') * 100000);
-          const todayPAD = Math.round(parseFloat((todayPADQuery.rows[0] as any)?.total || '0') * 100000);
-          const yesterdayPAD = Math.round(parseFloat((yesterdayPADQuery.rows[0] as any)?.total || '0') * 100000);
-          const totalPayouts = formatUSD(totalPayoutsSum[0]?.total || '0');
-          const todayPayouts = formatUSD(todayPayoutsSum[0]?.total || '0');
-          const yesterdayPayouts = formatUSD(yesterdayPayoutsSum[0]?.total || '0');
+          const totalHrum = Math.round(parseFloat(totalHrumSum[0]?.total || '0') * 100000);
+          const todayHrum = Math.round(parseFloat((todayHrumQuery.rows[0] as any)?.total || '0') * 100000);
+          const yesterdayHrum = Math.round(parseFloat((yesterdayHrumQuery.rows[0] as any)?.total || '0') * 100000);
+          const totalPayouts = formatTON(totalPayoutsSum[0]?.total || '0');
+          const todayPayouts = formatTON(todayPayoutsSum[0]?.total || '0');
+          const yesterdayPayouts = formatTON(yesterdayPayoutsSum[0]?.total || '0');
           const totalTasks = totalTasksCount[0]?.count || 0;
           const todayTasks = todayTasksCount[0]?.count || 0;
           const yesterdayTasks = yesterdayTasksCount[0]?.count || 0;
@@ -899,12 +899,12 @@ Share your unique referral link and earn PAD when your friends join:
             `├ Today     ∙ <code>${todayAds.toLocaleString()}</code>\n` +
             `└ Yesterday ∙ <code>${yesterdayAds.toLocaleString()}</code>\n\n` +
             
-            `💰 <b>PAD DISTRIBUTED</b>\n` +
-            `┌ Total     ∙ <code>${totalPAD.toLocaleString()}</code>\n` +
-            `├ Today     ∙ <code>${todayPAD.toLocaleString()}</code>\n` +
-            `└ Yesterday ∙ <code>${yesterdayPAD.toLocaleString()}</code>\n\n` +
+            `💰 <b>Hrum DISTRIBUTED</b>\n` +
+            `┌ Total     ∙ <code>${totalHrum.toLocaleString()}</code>\n` +
+            `├ Today     ∙ <code>${todayHrum.toLocaleString()}</code>\n` +
+            `└ Yesterday ∙ <code>${yesterdayHrum.toLocaleString()}</code>\n\n` +
             
-            `💸 <b>PAYOUTS (TON)</b>\n` +
+            `💸 <b>PAYOUTS ()</b>\n` +
             `┌ Total     ∙ <code>${totalPayouts}</code>\n` +
             `├ Today     ∙ <code>${todayPayouts}</code>\n` +
             `└ Yesterday ∙ <code>${yesterdayPayouts}</code>\n\n` +
@@ -1044,7 +1044,7 @@ Share your unique referral link and earn PAD when your friends join:
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${netAmount.toFixed(5)} USD
+💸 Amount: ${netAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${createdAt}
 🤖 Bot: @MoneyAdzbot`;
@@ -1214,7 +1214,7 @@ ${walletAddress}
             const userTelegramId = user?.telegram_id || '';
             const userTelegramUsername = user?.username ? `@${user.username}` : 'N/A';
             const currentDate = new Date().toUTCString();
-            const method = result.withdrawal.method || 'USD';
+            const method = result.withdrawal.method || '';
             const paymentSystemId = withdrawalDetails?.paymentSystemId || '';
             
             const adminSuccessMessage = `✅ Withdrawal Successful
@@ -1224,7 +1224,7 @@ ${walletAddress}
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 ${walletAddress}
-💸 Amount: ${netAmount.toFixed(5)} USD
+💸 Amount: ${netAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyAdzbot`;
@@ -1244,7 +1244,7 @@ ${walletAddress}
               // User confirmation message with Amount (net after fee) and Fee with percentage
               const userConfirmationMessage = `🚀 Your payout has been successfully processed.
 
-💵 Amount: ${netAmount.toFixed(3)} USD
+💵 Amount: ${netAmount.toFixed(3)} TON
 🛂 Fee: ${feeAmount.toFixed(3)} (${feePercent}%)`;
               
               // Always show "Share in Group" button instead of transaction button
@@ -1747,9 +1747,9 @@ ${walletAddress}
         const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users);
         const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users);
         const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`);
-        const totalPADSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
-        const todayPADQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
-        const yesterdayPADQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
+        const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
+        const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
+        const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
         const totalPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
         const todayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE`);
         const yesterdayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE - INTERVAL '1 day'`);
@@ -1765,12 +1765,12 @@ ${walletAddress}
         const totalAds = totalAdsSum[0]?.total || 0;
         const todayAds = todayAdsSum[0]?.total || 0;
         const yesterdayAds = (yesterdayAdsQuery.rows[0] as any)?.total || 0;
-        const totalPAD = Math.round(parseFloat(totalPADSum[0]?.total || '0') * 100000);
-        const todayPAD = Math.round(parseFloat((todayPADQuery.rows[0] as any)?.total || '0') * 100000);
-        const yesterdayPAD = Math.round(parseFloat((yesterdayPADQuery.rows[0] as any)?.total || '0') * 100000);
-        const totalPayouts = formatUSD(totalPayoutsSum[0]?.total || '0');
-        const todayPayouts = formatUSD(todayPayoutsSum[0]?.total || '0');
-        const yesterdayPayouts = formatUSD(yesterdayPayoutsSum[0]?.total || '0');
+        const totalHrum = Math.round(parseFloat(totalHrumSum[0]?.total || '0') * 100000);
+        const todayHrum = Math.round(parseFloat((todayHrumQuery.rows[0] as any)?.total || '0') * 100000);
+        const yesterdayHrum = Math.round(parseFloat((yesterdayHrumQuery.rows[0] as any)?.total || '0') * 100000);
+        const totalPayouts = formatTON(totalPayoutsSum[0]?.total || '0');
+        const todayPayouts = formatTON(todayPayoutsSum[0]?.total || '0');
+        const yesterdayPayouts = formatTON(yesterdayPayoutsSum[0]?.total || '0');
         const totalTasks = totalTasksCount[0]?.count || 0;
         const todayTasks = todayTasksCount[0]?.count || 0;
         const yesterdayTasks = yesterdayTasksCount[0]?.count || 0;
@@ -1791,12 +1791,12 @@ ${walletAddress}
           `├ Today     ∙ <code>${todayAds.toLocaleString()}</code>\n` +
           `└ Yesterday ∙ <code>${yesterdayAds.toLocaleString()}</code>\n\n` +
           
-          `💰 <b>PAD DISTRIBUTED</b>\n` +
-          `┌ Total     ∙ <code>${totalPAD.toLocaleString()}</code>\n` +
-          `├ Today     ∙ <code>${todayPAD.toLocaleString()}</code>\n` +
-          `└ Yesterday ∙ <code>${yesterdayPAD.toLocaleString()}</code>\n\n` +
+          `💰 <b>Hrum DISTRIBUTED</b>\n` +
+          `┌ Total     ∙ <code>${totalHrum.toLocaleString()}</code>\n` +
+          `├ Today     ∙ <code>${todayHrum.toLocaleString()}</code>\n` +
+          `└ Yesterday ∙ <code>${yesterdayHrum.toLocaleString()}</code>\n\n` +
           
-          `💸 <b>PAYOUTS (TON)</b>\n` +
+          `💸 <b>PAYOUTS ()</b>\n` +
           `┌ Total     ∙ <code>${totalPayouts}</code>\n` +
           `├ Today     ∙ <code>${todayPayouts}</code>\n` +
           `└ Yesterday ∙ <code>${yesterdayPayouts}</code>\n\n` +
@@ -1987,7 +1987,7 @@ Please contact support if you believe this is a mistake.`;
           const details = withdrawal.details as any;
           
           requestsList += `👤 User: ${userName} (ID: ${user?.telegram_id || 'N/A'})\n`;
-          requestsList += `💰 Amount: $${parseFloat(withdrawal.amount).toFixed(2)}\n`;
+          requestsList += `💰 Amount: TON${parseFloat(withdrawal.amount).toFixed(2)}\n`;
           requestsList += `💳 Method: ${withdrawal.method}\n`;
           requestsList += `📋 Details: ${details?.paymentDetails || 'N/A'}\n`;
           requestsList += `⏰ Requested: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}\n`;
@@ -2000,7 +2000,7 @@ Please contact support if you believe this is a mistake.`;
           const userName = user ? (user.firstName || user.username || 'Unknown User') : 'Unknown User';
           const details = withdrawal.details as any;
           
-          const adminMessage = `💵 Withdraw request from user ${userName} (ID: ${user?.telegram_id || 'N/A'})\nAmount: $${parseFloat(withdrawal.amount).toFixed(2)}\nPayment System: ${withdrawal.method}\nPayment Details: ${details?.paymentDetails || 'N/A'}\nTime: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}`;
+          const adminMessage = `💵 Withdraw request from user ${userName} (ID: ${user?.telegram_id || 'N/A'})\nAmount: TON${parseFloat(withdrawal.amount).toFixed(2)}\nPayment System: ${withdrawal.method}\nPayment Details: ${details?.paymentDetails || 'N/A'}\nTime: ${withdrawal.createdAt ? new Date(withdrawal.createdAt.toString()).toLocaleString() : 'Unknown'}`;
           
           const adminKeyboard = {
             inline_keyboard: [
