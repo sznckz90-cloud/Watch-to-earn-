@@ -139,22 +139,21 @@ export default function CreateTask() {
       : (appSettings?.channelTaskRewardHrum || 30);
   const minimumClicks = taskType === 'partner' ? 1 : (appSettings?.minimumClicks || 500);
   
-  const clicksNum = parseInt(totalClicks) || 0;
-  const totalCost = costPerClick * clicksNum;
-  const totalRewardsHrum = rewardPerClickHrum * clicksNum;
   const tonBalance = parseFloat((user as any)?.tonBalance || "0");
-  const additionalCost = tonCostPerClick * (parseInt(additionalClicks) || 0);
+  const tonCostPerClickValue = taskType === 'bot' 
+    ? (appSettings?.botTaskCost || 0.0003)
+    : (appSettings?.channelTaskCost || 0.0003);
+  const additionalCostValue = tonCostPerClickValue * (parseInt(additionalClicks) || 0);
+  
+  const clicksNum = parseInt(totalClicks) || 0;
   
   // Determine payment method based on user type
   // Admin uses TON, Regular users use TON
   const paymentCurrency = "TON";
   //  cost per click from admin settings (separate for channel and bot)
-  const tonCostPerClick = taskType === 'bot' 
-    ? (appSettings?.botTaskCost || 0.0003)
-    : (appSettings?.channelTaskCost || 0.0003);
-  const totalCost = tonCostPerClick * clicksNum;
+  const totalCostValue = tonCostPerClickValue * clicksNum;
   const availableBalance = tonBalance;
-  const hasSufficientBalance = availableBalance >= totalCost;
+  const hasSufficientBalance = availableBalance >= totalCostValue;
 
   const { data: myTasksData, isLoading: myTasksLoading, refetch: refetchMyTasks } = useQuery<{
     success: boolean;
@@ -335,11 +334,11 @@ export default function CreateTask() {
       return;
     }
 
-    const additionalCost = tonCostPerClick * (parseInt(additionalClicks) || 0);
+    const additionalCostValue = tonCostPerClickValue * (parseInt(additionalClicks) || 0);
     const balance = tonBalance;
     const currency = "TON";
 
-    if (balance < additionalCost) {
+    if (balance < additionalCostValue) {
       showNotification(`Insufficient ${currency} balance`, "error");
       return;
     }
@@ -560,7 +559,7 @@ export default function CreateTask() {
                     ? "Publishing..." 
                     : taskType === "partner" 
                       ? "Publish Partner Task" 
-                      : `Pay ${totalCost.toFixed(4)} ${paymentCurrency} & Publish`}
+                      : `Pay ${totalCostValue.toFixed(4)} ${paymentCurrency} & Publish`}
                 </Button>
               </form>
             )}
@@ -743,10 +742,10 @@ export default function CreateTask() {
               </div>
             )}
             <DrawerFooter className="pt-2">
-              <Button
+                <Button
                 className="w-full btn-primary"
                 onClick={handleIncreaseClicks}
-                disabled={increaseClicksMutation.isPending || (isAdmin ? usdBalance < additionalCost : tonBalance < (tonCostPerClick * (parseInt(additionalClicks) || 0)))}
+                disabled={increaseClicksMutation.isPending || tonBalance < (tonCostPerClickValue * (parseInt(additionalClicks) || 0))}
               >
                 {increaseClicksMutation.isPending ? "Processing..." : `Pay & Add`}
               </Button>

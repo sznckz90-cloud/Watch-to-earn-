@@ -1545,12 +1545,8 @@ function SettingsSection() {
     const reward = parseInt(settings.rewardPerAd);
     const affiliate = parseFloat(settings.affiliateCommission);
     const walletFee = parseInt(settings.walletChangeFee);
-    const minWithdrawal = parseFloat(settings.minWithdrawalAmount);
-    const minWithdrawal = parseFloat(settings.minWithdrawalAmount);
-    const withdrawalFee = parseFloat(settings.withdrawalFee);
-    const withdrawalFee = parseFloat(settings.withdrawalFee);
-    const channelCost = parseFloat(settings.channelTaskCost);
-    const botCost = parseFloat(settings.botTaskCost);
+    const minWithdrawal = parseFloat(settings.minWithdrawalAmountTON);
+    const withdrawalFee = parseFloat(settings.withdrawalFeeTON);
     const channelCost = parseFloat(settings.channelTaskCost);
     const botCost = parseFloat(settings.botTaskCost);
     const channelReward = parseInt(settings.channelTaskReward);
@@ -1558,9 +1554,9 @@ function SettingsSection() {
     const partnerReward = parseInt(settings.partnerTaskReward);
     const minConvertHrum = parseInt(settings.minimumConvertHrum);
     const minClicks = parseInt(settings.minimumClicks);
-    const refReward = parseFloat(settings.referralReward);
+    const refReward = parseFloat(settings.referralRewardTON);
     const refRewardHrum = parseInt(settings.referralRewardHrum);
-    
+
     if (isNaN(adLimit) || adLimit <= 0) {
       toast({
         title: "Validation Error",
@@ -1569,7 +1565,7 @@ function SettingsSection() {
       });
       return;
     }
-    
+
     if (isNaN(reward) || reward <= 0) {
       toast({
         title: "Validation Error",
@@ -1578,7 +1574,7 @@ function SettingsSection() {
       });
       return;
     }
-    
+
     setIsSaving(true);
     try {
       const response = await apiRequest('PUT', '/api/admin/settings', {
@@ -1586,22 +1582,18 @@ function SettingsSection() {
         rewardPerAd: reward,
         affiliateCommission: affiliate,
         walletChangeFee: walletFee,
-        minWithdrawalAmountTON: minWithdrawalTON,
-        minWithdrawalAmountTON: minWithdrawalTON,
-        withdrawalFeeTON: withdrawalFeeTON,
-        withdrawalFeeTON: withdrawalFeeTON,
+        minWithdrawalAmountTON: minWithdrawal,
+        withdrawalFeeTON: withdrawalFee,
         channelTaskCost: channelCost,
         botTaskCost: botCost,
-        channelTaskCostTON: channelCostTON,
-        botTaskCostTON: botCostTON,
         channelTaskReward: channelReward,
         botTaskReward: botReward,
-        partnerTaskReward: partnerReward,
+        partnerReward: partnerReward,
         minimumConvertHrum: minConvertHrum,
         minimumClicks: minClicks,
         seasonBroadcastActive: settings.seasonBroadcastActive,
         referralRewardEnabled: settings.referralRewardEnabled,
-        referralRewardTON: refRewardTON,
+        referralRewardTON: refReward,
         referralRewardHrum: refRewardHrum,
         referralAdsRequired: parseInt(settings.referralAdsRequired) || 1,
         withdrawalAdRequirementEnabled: settings.withdrawalAdRequirementEnabled,
@@ -1611,7 +1603,6 @@ function SettingsSection() {
         streakReward: parseInt(settings.streakReward) || 100,
         shareTaskReward: parseInt(settings.shareTaskReward) || 1000,
         communityTaskReward: parseInt(settings.communityTaskReward) || 1000,
-        // BUG currency settings
         bugRewardPerAd: parseInt(settings.bugRewardPerAd) || 1,
         bugRewardPerTask: parseInt(settings.bugRewardPerTask) || 10,
         bugRewardPerReferral: parseInt(settings.bugRewardPerReferral) || 50,
@@ -1666,7 +1657,7 @@ function SettingsSection() {
             cat.id === 'bug' ? 'from-lime-500/20 to-lime-500/10 border-lime-500 text-lime-400' :
             'from-purple-500/20 to-purple-500/10 border-purple-500 text-purple-400';
           return (
-            <Button key={cat.id} size="sm" variant="outline" onClick={() => setActiveCategory(cat.id)} className={`text-xs h-7 ${isActive ? `bg-gradient-to-r ${catColors}` : 'border-white/20 text-muted-foreground hover:border-white/40'}`}>
+            <Button key={cat.id} size="sm" variant="outline" onClick={() => setActiveCategory(cat.id as SettingsCategory)} className={`text-xs h-7 ${isActive ? `bg-gradient-to-r ${catColors}` : 'border-white/20 text-muted-foreground hover:border-white/40'}`}>
               <i className={`fas fa-${cat.icon} mr-1`}></i>{cat.label}
             </Button>
           );
