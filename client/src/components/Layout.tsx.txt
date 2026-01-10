@@ -28,7 +28,7 @@ export default function Layout({ children }: LayoutProps) {
           {/* Admin Button - Top Right */}
           {isAdmin && (
             <Link href="/admin">
-              <button className={`p-2 rounded-lg transition-colors ${
+              <button className={`p-2 rounded-lg transition-colors TON{
                 location === "/admin" ? "bg-primary text-primary-foreground" : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
               }`} data-testid="admin-button">
                 <i className="fas fa-cog text-lg" style={{fontFamily: 'Font Awesome 5 Free', fontWeight: 900}}></i>
@@ -84,12 +84,12 @@ export default function Layout({ children }: LayoutProps) {
                 return (
                   <Link key={item.href} href={item.href}>
                     <motion.button
-                      className={`relative flex flex-col items-center gap-1 px-6 py-2.5 rounded-2xl transition-all duration-300 select-none ${
+                      className={`relative flex flex-col items-center gap-1 px-6 py-2.5 rounded-2xl transition-all duration-300 select-none TON{
                         isActive 
                           ? "text-primary" 
                           : "text-muted-foreground hover:text-foreground"
                       }`}
-                      data-testid={`link-${item.label.toLowerCase()}`}
+                      data-testid={`link-TON{item.label.toLowerCase()}`}
                       style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
                       whileTap={{ scale: 0.95 }}
                       animate={isActive ? {
@@ -142,7 +142,7 @@ export default function Layout({ children }: LayoutProps) {
                         }}
                       >
                         <Icon 
-                          className={`transition-all duration-300 ${
+                          className={`transition-all duration-300 TON{
                             isActive 
                               ? "w-6 h-6 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" 
                               : "w-5 h-5"
@@ -153,7 +153,7 @@ export default function Layout({ children }: LayoutProps) {
 
                       {/* Label */}
                       <motion.span 
-                        className={`text-xs font-medium relative z-10 transition-all duration-300 ${
+                        className={`text-xs font-medium relative z-10 transition-all duration-300 TON{
                           isActive ? "font-semibold" : ""
                         }`}
                         animate={isActive ? {

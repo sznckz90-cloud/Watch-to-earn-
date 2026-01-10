@@ -44,10 +44,10 @@ export default function CryptoConversionWidget() {
         <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
           <TrendingUp className="w-4 h-4 text-blue-400" />
         </div>
-        <span className="text-white text-sm font-bold">Live TON Rate</span>
+        <span className="text-white text-sm font-bold">Live $Rate</span>
       </div>
 
-      {/* Current TON Price */}
+      {/* Current $Price */}
       <div className="bg-white/5 rounded-xl p-3 mb-4">
         <div className="text-gray-400 text-xs mb-1">1 Hrum in TON</div>
         <div className="text-2xl font-black text-white">
