@@ -130,31 +130,31 @@ export default function CreateTask() {
   const costPerClick = taskType === 'partner' 
     ? 0 
     : taskType === 'bot' 
-      ? (appSettings?.botTaskCostUSD || 0.003) 
-      : (appSettings?.channelTaskCostUSD || 0.003);
-  const rewardPerClickPAD = taskType === 'partner'
+      ? (appSettings?.botTaskCost || 0.003) 
+      : (appSettings?.channelTaskCost || 0.003);
+  const rewardPerClickHrum = taskType === 'partner'
     ? 5
     : taskType === 'bot'
-      ? (appSettings?.botTaskRewardPAD || 20)
-      : (appSettings?.channelTaskRewardPAD || 30);
+      ? (appSettings?.botTaskRewardHrum || 20)
+      : (appSettings?.channelTaskRewardHrum || 30);
   const minimumClicks = taskType === 'partner' ? 1 : (appSettings?.minimumClicks || 500);
   
   const clicksNum = parseInt(totalClicks) || 0;
-  const totalCostUSD = costPerClick * clicksNum;
-  const totalRewardsPAD = rewardPerClickPAD * clicksNum;
+  const totalCost = costPerClick * clicksNum;
+  const totalRewardsHrum = rewardPerClickHrum * clicksNum;
   const usdBalance = parseFloat((user as any)?.usdBalance || "0");
   const tonBalance = parseFloat((user as any)?.tonBalance || "0");
-  const additionalCostUSD = costPerClick * (parseInt(additionalClicks) || 0);
+  const additionalCost = costPerClick * (parseInt(additionalClicks) || 0);
   
   // Determine payment method based on user type
-  // Admin uses USD, Regular users use TON
-  const paymentCurrency = isAdmin ? "USD" : "TON";
-  // TON cost per click from admin settings (separate for channel and bot)
+  // Admin uses TON, Regular users use TON
+  const paymentCurrency = isAdmin ? " : ";
+  //  cost per click from admin settings (separate for channel and bot)
   const tonCostPerClick = taskType === 'bot' 
-    ? (appSettings?.botTaskCostTON || 0.0003)
-    : (appSettings?.channelTaskCostTON || 0.0003);
-  const totalCostTON = tonCostPerClick * clicksNum;
-  const totalCost = isAdmin ? totalCostUSD : totalCostTON;
+    ? (appSettings?.botTaskCost || 0.0003)
+    : (appSettings?.channelTaskCost || 0.0003);
+  const totalCost = tonCostPerClick * clicksNum;
+  const totalCost = isAdmin ? totalCost : totalCostTON;
   const availableBalance = isAdmin ? usdBalance : tonBalance;
   const hasSufficientBalance = availableBalance >= totalCost;
 
@@ -337,10 +337,10 @@ export default function CreateTask() {
       return;
     }
 
-    const additionalCostTON = tonCostPerClick * (parseInt(additionalClicks) || 0);
-    const additionalCost = isAdmin ? additionalCostUSD : additionalCostTON;
+    const additionalCost = tonCostPerClick * (parseInt(additionalClicks) || 0);
+    const additionalCost = isAdmin ? additionalCost : additionalCostTON;
     const balance = isAdmin ? usdBalance : tonBalance;
-    const currency = isAdmin ? "USD" : "TON";
+    const currency = isAdmin ? " : ";
 
     if (balance < additionalCost) {
       showNotification(`Insufficient ${currency} balance`, "error");
@@ -376,7 +376,7 @@ export default function CreateTask() {
         {!isAdmin && (
           <div className="flex items-center justify-between mb-4 p-3 bg-gradient-to-r from-[#1A1A1A] to-[#0D1117] rounded-xl border border-[#2A2A2A] shadow-lg">
             <div className="flex items-center gap-2">
-              <img src="/images/ton.png" alt="TON" className="w-5 h-5 object-cover rounded-full" />
+              <img src="/images/ton.png" alt=" className="w-5 h-5 object-cover rounded-full" />
               <span className="text-sm font-semibold text-white">{tonBalance.toFixed(4)} TON</span>
             </div>
             <button 
@@ -489,7 +489,7 @@ export default function CreateTask() {
                     className="mt-1"
                   />
                   {taskType === "partner" && (
-                    <p className="text-xs text-green-400 mt-1">Partner tasks: 5 PAD reward, any link type allowed</p>
+                    <p className="text-xs text-green-400 mt-1">Partner tasks: 5 Hrum reward, any link type allowed</p>
                   )}
                 </div>
 
@@ -749,7 +749,7 @@ export default function CreateTask() {
               <Button
                 className="w-full btn-primary"
                 onClick={handleIncreaseClicks}
-                disabled={increaseClicksMutation.isPending || (isAdmin ? usdBalance < additionalCostUSD : tonBalance < (tonCostPerClick * (parseInt(additionalClicks) || 0)))}
+                disabled={increaseClicksMutation.isPending || (isAdmin ? usdBalance < additionalCost : tonBalance < (tonCostPerClick * (parseInt(additionalClicks) || 0)))}
               >
                 {increaseClicksMutation.isPending ? "Processing..." : `Pay & Add`}
               </Button>

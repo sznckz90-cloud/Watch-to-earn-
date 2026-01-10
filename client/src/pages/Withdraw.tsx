@@ -57,7 +57,7 @@ export default function Withdraw() {
   
   const [activeTab, setActiveTab] = useState<'withdraw' | 'wallet-setup'>('withdraw');
   
-  const [selectedMethod, setSelectedMethod] = useState<string>('TON');
+  const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [selectedPackage, setSelectedPackage] = useState<number | 'FULL'>('FULL');
   
   const [tonWalletId, setTonWalletId] = useState('');
@@ -109,7 +109,7 @@ export default function Withdraw() {
   
   // Dynamic BUG requirement: scales with selected package or full balance
   const withdrawalBugRequirementEnabled = appSettings?.withdrawalBugRequirementEnabled !== false;
-  const bugPerTON = appSettings?.bugPerTON ?? 10000;
+  const bugPer = appSettings?.bugPer ?? 10000;
   
   // Withdrawal packages from admin settings - compute BUG requirements using bugPerTON
   const defaultPackages = [
@@ -120,7 +120,7 @@ export default function Withdraw() {
   const rawPackages = appSettings?.withdrawalPackages || defaultPackages;
   const withdrawalPackages = rawPackages.map((pkg: {ton: number, bug?: number}) => ({
     ton: pkg.ton,
-    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPerTON)
+    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPer)
   }));
   
   // Get the withdrawal amount based on selected package
@@ -131,9 +131,9 @@ export default function Withdraw() {
     return selectedPackage;
   };
   
-  // Calculate BUG requirement based on selected package - always use bugPerTON for consistency
+  // Calculate BUG requirement based on selected package - always use bugPer for consistency
   const getBugRequirementForAmount = (tonAmount: number) => {
-    return Math.ceil(tonAmount * bugPerTON);
+    return Math.ceil(tonAmount * bugPer);
   };
   
   const getPackageBugRequirement = () => {
@@ -243,7 +243,7 @@ export default function Withdraw() {
       return response.json();
     },
     onSuccess: () => {
-      showNotification("TON wallet saved successfully.", "success");
+      showNotification(" wallet saved successfully.", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
     },
@@ -260,7 +260,7 @@ export default function Withdraw() {
       return response.json();
     },
     onSuccess: () => {
-      showNotification("TON wallet updated successfully", "success");
+      showNotification(" wallet updated successfully", "success");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setIsChangingTonWallet(false);
@@ -300,7 +300,7 @@ export default function Withdraw() {
         queryClient.refetchQueries({ queryKey: ['/api/withdrawals'] })
       ]);
       
-      setSelectedMethod('TON');
+      setSelectedMethod('');
       setSelectedPackage('FULL');
     },
     onError: (error: any) => {
@@ -308,11 +308,11 @@ export default function Withdraw() {
       
       if (errorMessage.toLowerCase().includes("minimum") || errorMessage === "minimum withdrawal") {
         const minAmount = selectedPaymentSystem?.minWithdrawal || 1;
-        showNotification(`minimum $${minAmount}`, "error");
+        showNotification(`minimum TON${minAmount}`, "error");
       } else if (errorMessage.toLowerCase().includes("pending")) {
         showNotification("You already have a pending withdrawal. Please wait for it to be processed.", "error");
       } else if (errorMessage.toLowerCase().includes("insufficient")) {
-        showNotification("Insufficient balance for withdrawal. Please convert Hrum to TON first.", "error");
+        showNotification("Insufficient balance for withdrawal. Please convert Hrum to  first.", "error");
       } else {
         showNotification(errorMessage, "error");
       }
@@ -321,11 +321,11 @@ export default function Withdraw() {
 
   const handleSaveTonWallet = () => {
     if (!tonWalletId.trim()) {
-      showNotification("Please enter your TON wallet address", "error");
+      showNotification("Please enter your  wallet address", "error");
       return;
     }
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(tonWalletId.trim())) {
-      showNotification("Please enter a valid TON wallet address", "error");
+    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(tonWalletId.trim())) {
+      showNotification("Please enter a valid  wallet address", "error");
       return;
     }
     saveTonWalletMutation.mutate();
@@ -333,11 +333,11 @@ export default function Withdraw() {
 
   const handleChangeTonWallet = () => {
     if (!newTonWalletId.trim()) {
-      showNotification("Please enter a new TON wallet address", "error");
+      showNotification("Please enter a new  wallet address", "error");
       return;
     }
-    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}$/.test(newTonWalletId.trim())) {
-      showNotification("Please enter a valid TON wallet address", "error");
+    if (!/^(UQ|EQ)[A-Za-z0-9_-]{46}/.test(newTonWalletId.trim())) {
+      showNotification("Please enter a valid  wallet address", "error");
       return;
     }
     changeTonWalletMutation.mutate();
@@ -345,7 +345,7 @@ export default function Withdraw() {
 
   const handleWithdraw = () => {
     if (!isTonWalletSet) {
-      showNotification("Please set up your TON wallet first", "error");
+      showNotification("Please set up your  wallet first", "error");
       setActiveTab('wallet-setup');
       return;
     }
@@ -393,14 +393,14 @@ export default function Withdraw() {
   
   // Check if user can afford a package
   const canAffordPackage = (pkgTON: number | 'FULL') => {
-    if (pkgTON === 'FULL') return tonBalance > 0;
+    if (pkg === 'FULL') return tonBalance > 0;
     return tonBalance >= pkgTON;
   };
   
-  // Check if user has enough BUG for a package - use consistent bugPerTON calculation
+  // Check if user has enough BUG for a package - use consistent bugPer calculation
   const hasEnoughBugForPackage = (pkgTON: number | 'FULL') => {
     if (!withdrawalBugRequirementEnabled) return true;
-    const tonAmount = pkgTON === 'FULL' ? tonBalance : pkgTON;
+    const tonAmount = pkg === 'FULL' ? tonBalance : pkgTON;
     const required = getBugRequirementForAmount(tonAmount);
     return bugBalance >= required;
   };
@@ -429,7 +429,7 @@ export default function Withdraw() {
     return 'text-gray-500';
   };
 
-  const formatTON = (amount: string) => {
+  const format = (amount: string) => {
     return parseFloat(amount).toFixed(2);
   };
 
@@ -512,7 +512,7 @@ export default function Withdraw() {
                     </div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
-                        <img src="/images/ton.png" alt="TON" className="w-6 h-6 object-cover" />
+                        <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover" />
                       </div>
                       <span className="text-white">{system.name}</span>
                       <span className="text-xs text-[#aaa] ml-auto">({system.fee}% fee)</span>
@@ -587,10 +587,10 @@ export default function Withdraw() {
                 <div className="pt-3 border-t border-[#2a2a2a] space-y-2">
                   <div>
                     <div className="text-xs text-[#aaa]">You will receive</div>
-                    <div className="text-2xl font-bold text-white">${calculateWithdrawalAmount().toFixed(2)}</div>
+                    <div className="text-2xl font-bold text-white" >TON {calculateWithdrawalAmount().toFixed(2)}</div>
                   </div>
                   <div className="text-xs text-[#aaa]">
-                    {selectedPackage === 'FULL' ? 'Full balance' : `$${(selectedPackage as number).toFixed(2)}`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
+                    {selectedPackage === 'FULL' ? 'Full balance' : `TON${(selectedPackage as number).toFixed(2)}`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
                   </div>
                   <div className="text-xs text-yellow-400/80">
                     Withdrawal method: {selectedMethod}
@@ -644,7 +644,7 @@ export default function Withdraw() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
-                ) : !isTonWalletSet ? 'Set Up Wallet First' : getWithdrawalUsdAmount() <= 0 ? 'Select a Package' : usdBalance < getWithdrawalUsdAmount() ? 'Insufficient Balance' : (!hasEnoughReferrals || !hasWatchedEnoughAds || !hasEnoughBug) ? 'Requirements Not Met' : `Withdraw $${getWithdrawalUsdAmount().toFixed(2)} via ${selectedMethod}`}
+                ) : !isTonWalletSet ? 'Set Up Wallet First' : getWithdrawalUsdAmount() <= 0 ? 'Select a Package' : usdBalance < getWithdrawalUsdAmount() ? 'Insufficient Balance' : (!hasEnoughReferrals || !hasWatchedEnoughAds || !hasEnoughBug) ? 'Requirements Not Met' : `Withdraw TON${getWithdrawalUsdAmount().toFixed(2)} via ${selectedMethod}`}
               </Button>
             </div>
             </>
@@ -676,7 +676,7 @@ export default function Withdraw() {
                         {getStatusIcon(withdrawal.status)}
                         <div>
                           <p className="text-sm text-white font-medium">
-                            ${formatUSD(getFullAmount(withdrawal))}
+                            ${formatTON(getFullAmount(withdrawal))}
                           </p>
                           <p className="text-xs text-gray-500">
                             {format(new Date(withdrawal.createdAt), 'MMM dd, yyyy')}
@@ -688,7 +688,7 @@ export default function Withdraw() {
                           {withdrawal.status}
                         </span>
                         <p className="text-xs text-gray-500">
-                          {withdrawal.method || 'TON'}
+                          {withdrawal.method || ''}
                         </p>
                       </div>
                     </div>
@@ -711,9 +711,9 @@ export default function Withdraw() {
                   </div>
                   <div className="flex-1 flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
-                      <img src="/images/ton.png" alt="TON" className="w-6 h-6 object-cover" />
+                      <img src="/images/ton.png" alt=" className="w-6 h-6 object-cover" />
                     </div>
-                    <span className="text-white truncate">{isTonWalletSet ? shortenAddress(tonWalletId) : 'TON Wallet'}</span>
+                    <span className="text-white truncate">{isTonWalletSet ? shortenAddress(tonWalletId) : ' Wallet'}</span>
                   </div>
                 </button>
               </div>
@@ -723,7 +723,7 @@ export default function Withdraw() {
               <>
                 <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                   <Check className="w-4 h-4 text-green-500" />
-                  <p className="text-xs text-green-500">TON wallet linked successfully</p>
+                  <p className="text-xs text-green-500"> wallet linked successfully</p>
                 </div>
               </>
             ) : isChangingTonWallet ? (
@@ -738,10 +738,10 @@ export default function Withdraw() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs text-[#c0c0c0]">New TON Wallet Address</label>
+                  <label className="text-xs text-[#c0c0c0]">New  Wallet Address</label>
                   <Input
                     type="text"
-                    placeholder="Enter TON wallet address (UQ... or EQ...)"
+                    placeholder="Enter  wallet address (UQ... or EQ...)"
                     value={newTonWalletId}
                     onChange={(e) => setNewTonWalletId(e.target.value)}
                     className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -750,19 +750,19 @@ export default function Withdraw() {
                 <div className="flex items-start gap-2 p-3 bg-[#4cd3ff]/10 rounded-lg border border-[#4cd3ff]/30">
                   <Info className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-[#c0c0c0]">
-                    Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} PAD</span> will be deducted
+                    Fee: <span className="text-[#4cd3ff] font-semibold">{walletChangeFee} Hrum</span> will be deducted
                   </div>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-xs text-[#c0c0c0]">
-                  Set up your <span className="text-[#4cd3ff] font-semibold">TON Network</span> wallet for withdrawals
+                  Set up your <span className="text-[#4cd3ff] font-semibold"> Network</span> wallet for withdrawals
                 </p>
                 <div className="space-y-2">
                   <Input
                     type="text"
-                    placeholder="Enter TON wallet address (UQ... or EQ...)"
+                    placeholder="Enter  wallet address (UQ... or EQ...)"
                     value={tonWalletId}
                     onChange={(e) => setTonWalletId(e.target.value)}
                     className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11"
@@ -775,7 +775,7 @@ export default function Withdraw() {
                 <div className="flex items-start gap-2 p-3 bg-[#0d0d0d] rounded-lg border border-white/5">
                   <HelpCircle className="w-4 h-4 text-[#4cd3ff] mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-[#c0c0c0]">
-                    Don't have a TON wallet?{' '}
+                    Don't have a  wallet?{' '}
                     <a 
                       href="https://ton.org/wallets" 
                       target="_blank" 
@@ -823,7 +823,7 @@ export default function Withdraw() {
                     disabled={changeTonWalletMutation.isPending}
                     className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
                   >
-                    {changeTonWalletMutation.isPending ? "Processing..." : `Pay ${walletChangeFee} PAD & Confirm`}
+                    {changeTonWalletMutation.isPending ? "Processing..." : `Pay ${walletChangeFee} Hrum & Confirm`}
                   </Button>
                 </>
               ) : (
@@ -840,7 +840,7 @@ export default function Withdraw() {
                     disabled={saveTonWalletMutation.isPending}
                     className="flex-1 bg-[#4cd3ff] hover:bg-[#6ddeff] text-black font-semibold"
                   >
-                    {saveTonWalletMutation.isPending ? "Saving..." : "Save TON Wallet"}
+                    {saveTonWalletMutation.isPending ? "Saving..." : "Save  Wallet"}
                   </Button>
                 </>
               )}

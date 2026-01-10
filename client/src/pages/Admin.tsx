@@ -218,14 +218,14 @@ export default function AdminPage() {
                   />
                   <StatCard 
                     icon="gem" 
-                    label="PAD Earned" 
+                    label="Hrum Earned" 
                     value={formatLargeNumber(parseFloat(stats?.totalEarnings || '0'))} 
                     iconColor="text-[#4cd3ff]"
                   />
                   <StatCard 
                     icon="dollar-sign" 
                     label="Withdrawn" 
-                    value={'$' + parseFloat(stats?.totalWithdrawals || '0').toFixed(2)} 
+                    value={'' + parseFloat(stats?.totalWithdrawals || '0').toFixed(2)} 
                     iconColor="text-green-400"
                   />
                 </div>
@@ -362,7 +362,7 @@ function AnalyticsSection({ stats }: { stats: AdminStats | undefined }) {
                 dataKey="earnings" 
                 stroke="#10b981" 
                 strokeWidth={2}
-                name="TON Earned"
+                name=" Earned"
                 dot={{ fill: '#10b981', r: 3 }}
                 activeDot={{ r: 5 }}
               />
@@ -371,7 +371,7 @@ function AnalyticsSection({ stats }: { stats: AdminStats | undefined }) {
                 dataKey="withdrawals" 
                 stroke="#ef4444" 
                 strokeWidth={2}
-                name="📉 TON Withdrawn"
+                name="📉  Withdrawn"
                 dot={{ fill: '#ef4444', r: 3 }}
                 activeDot={{ r: 5 }}
               />
@@ -530,7 +530,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
     { id: 'bans' as const, label: 'Ban History' },
   ];
 
-  const formatPAD = (value: any) => {
+  const formatHrum = (value: any) => {
     const num = parseFloat(value || '0');
     if (isNaN(num) || !isFinite(num)) return '0';
     return Math.round(num).toLocaleString();
@@ -576,17 +576,17 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
           <div className="bg-white/5 border border-white/10 p-3 rounded">
             <p className="text-xs text-muted-foreground mb-2">Balances</p>
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-xs text-muted-foreground">PAD</p><p className="font-bold text-[#4cd3ff]">{formatPAD(user.balance)}</p></div>
+              <div><p className="text-xs text-muted-foreground">Hrum</p><p className="font-bold text-[#4cd3ff]">{formatHrum(user.balance)}</p></div>
               <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
-              <div><p className="text-xs text-muted-foreground">USD</p><p className="font-bold text-green-400">${parseFloat(user.usdBalance || '0').toFixed(2)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-green-400" >TON {parseFloat(user.usdBalance || '0').toFixed(2)}</p></div>
             </div>
           </div>
 
           <div className="bg-white/5 border border-white/10 p-3 rounded">
             <p className="text-xs text-muted-foreground mb-2">Earnings</p>
             <div className="grid grid-cols-2 gap-2">
-              <div><p className="text-xs text-muted-foreground">Total Earned</p><p className="font-bold text-emerald-400">{formatPAD(user.totalEarned)} PAD</p></div>
-              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400">${parseFloat(user.totalWithdrawn || '0').toFixed(2)} USD</p></div>
+              <div><p className="text-xs text-muted-foreground">Total Earned</p><p className="font-bold text-emerald-400">{formatHrum(user.totalEarned)} Hrum</p></div>
+              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >TON {parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
             </div>
           </div>
 
@@ -610,7 +610,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
             <div className="bg-white/5 border border-white/10 p-2 rounded">
               <p className="text-xs text-muted-foreground mb-1">Wallet Addresses</p>
               {user.cwalletId && <p className="font-mono text-xs text-[#4cd3ff] break-all">TON: {user.cwalletId}</p>}
-              {user.usdtWalletAddress && <p className="font-mono text-xs text-green-400 break-all">USDT: {user.usdtWalletAddress}</p>}
+              {user.usdtWalletAddress && <p className="font-mono text-xs text-green-400 break-all">TONT: {user.usdtWalletAddress}</p>}
               {user.telegramStarsUsername && <p className="font-mono text-xs text-yellow-400">Stars: @{user.telegramStarsUsername}</p>}
             </div>
           )}
@@ -640,7 +640,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
                 <div key={task.id} className="bg-white/5 p-2 rounded border border-white/10">
                   <p className="text-sm font-medium">{task.title || 'Task'}</p>
                   <p className="text-xs text-muted-foreground">Completed: {task.completedAt ? new Date(task.completedAt).toLocaleDateString() : 'N/A'}</p>
-                  <p className="text-xs text-green-400">Reward: {formatPAD(task.reward)} PAD</p>
+                  <p className="text-xs text-green-400">Reward: {formatHrum(task.reward)} Hrum</p>
                 </div>
               ))}
             </div>
@@ -696,7 +696,7 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
               {userWithdrawals.withdrawals.map((w: any) => (
                 <div key={w.id} className="bg-white/5 p-2 rounded border border-white/10">
                   <div className="flex justify-between items-center">
-                    <p className="font-bold text-green-400">${parseFloat(w.amount || '0').toFixed(2)}</p>
+                    <p className="font-bold text-green-400" >TON {parseFloat(w.amount || '0').toFixed(2)}</p>
                     <Badge className={w.status === 'success' || w.status === 'paid' ? 'bg-green-600' : w.status === 'rejected' ? 'bg-red-600' : 'bg-yellow-600'}>
                       {w.status}
                     </Badge>
@@ -886,7 +886,7 @@ function PromoCreatorSection() {
   const [formData, setFormData] = useState({
     code: '',
     rewardAmount: '',
-    rewardType: 'TON' as 'PAD' | 'TON' | 'USD' | 'BUG',
+    rewardType: '' as 'Hrum' | '' | '' | 'BUG',
     usageLimit: '',
     perUserLimit: '1',
     expiresAt: ''
@@ -929,7 +929,7 @@ function PromoCreatorSection() {
       const result = await response.json();
       if (result.success) {
         toast({ title: "Created", description: `${rewardAmount} ${formData.rewardType}` });
-        setFormData({ code: '', rewardAmount: '', rewardType: 'TON', usageLimit: '', perUserLimit: '1', expiresAt: '' });
+        setFormData({ code: '', rewardAmount: '', rewardType: '', usageLimit: '', perUserLimit: '1', expiresAt: '' });
         queryClient.invalidateQueries({ queryKey: ["/api/admin/promo-codes"] });
         setActiveTab('manage');
       } else {
@@ -975,7 +975,7 @@ function PromoCreatorSection() {
             <Button type="button" variant="outline" onClick={handleGenerateCode} size="sm" className="h-8"><i className="fas fa-random"></i></Button>
           </div>
           <div className="grid grid-cols-4 gap-1">
-            {(['PAD', 'TON', 'USD', 'BUG'] as const).map(type => (
+            {(['Hrum', '', '', 'BUG'] as const).map(type => (
               <Button key={type} type="button" variant={formData.rewardType === type ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardType: type })} className="h-8 text-xs">{type}</Button>
             ))}
           </div>
@@ -1004,7 +1004,7 @@ function PromoCreatorSection() {
                     </div>
                     <Badge className={`${status.color} text-[10px]`}>{status.label}</Badge>
                   </div>
-                  <div className="flex justify-between text-xs mt-1 text-muted-foreground"><span>{promo.rewardType === 'USD' ? `$${parseFloat(promo.rewardAmount).toFixed(2)}` : `${Math.round(parseFloat(promo.rewardAmount))} ${promo.rewardType || 'PAD'}`}</span><span>{promo.usageCount || 0}/{promo.usageLimit || '∞'}</span></div>
+                  <div className="flex justify-between text-xs mt-1 text-muted-foreground"><span>{promo.rewardType === '' ? `TON${parseFloat(promo.rewardAmount).toFixed(2)}` : `${Math.round(parseFloat(promo.rewardAmount))} ${promo.rewardType || 'Hrum'}`}</span><span>{promo.usageCount || 0}/{promo.usageLimit || '∞'}</span></div>
                 </div>
               );
             })
@@ -1097,7 +1097,7 @@ function PayoutLogsSection({ data }: { data: any }) {
                 return (
                   <TableRow key={payout.id} className="hover:bg-white/5">
                     <TableCell className="text-xs py-2 font-medium text-[#4cd3ff]">{displayUsername}</TableCell>
-                    <TableCell className="text-xs py-2 font-semibold text-green-400">${usdAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-xs py-2 font-semibold text-green-400" >TON {usdAmount.toFixed(2)}</TableCell>
                     <TableCell className="py-2">{getStatusBadge(payout.status)}</TableCell>
                     <TableCell className="text-[10px] py-2 text-muted-foreground">{new Date(payout.createdAt || payout.created_on).toLocaleDateString()}</TableCell>
                   </TableRow>
@@ -1446,10 +1446,10 @@ function SettingsSection() {
     rewardPerAd: '2',
     affiliateCommission: '10',
     walletChangeFee: '100',
-    minimumWithdrawalUSD: '1.00',
-    minimumWithdrawalTON: '0.5',
+    minWithdrawalAmountTON: '1.00',
+    minWithdrawalAmountTON: '0.5',
     withdrawalFeeTON: '5',
-    withdrawalFeeUSD: '3',
+    withdrawalFeeTON: '3',
     channelTaskCost: '0.003',
     botTaskCost: '0.003',
     channelTaskCostTON: '0.0003',
@@ -1457,12 +1457,12 @@ function SettingsSection() {
     channelTaskReward: '30',
     botTaskReward: '20',
     partnerTaskReward: '5',
-    minimumConvertPAD: '100',
+    minimumConvertHrum: '100',
     minimumClicks: '500',
     seasonBroadcastActive: false,
     referralRewardEnabled: false,
-    referralRewardUSD: '0.0005',
-    referralRewardPAD: '50',
+    referralRewardTON: '0.0005',
+    referralRewardHrum: '50',
     referralAdsRequired: '1',
     // Withdrawal requirements
     withdrawalAdRequirementEnabled: true,
@@ -1491,10 +1491,10 @@ function SettingsSection() {
         rewardPerAd: settingsData.rewardPerAd?.toString() || '2',
         affiliateCommission: settingsData.affiliateCommission?.toString() || '10',
         walletChangeFee: settingsData.walletChangeFee?.toString() || '100',
-        minimumWithdrawalUSD: settingsData.minimumWithdrawalUSD?.toString() || '1.00',
-        minimumWithdrawalTON: settingsData.minimumWithdrawalTON?.toString() || '0.5',
+        minWithdrawalAmountTON: settingsData.minWithdrawalAmountTON?.toString() || '1.00',
+        minWithdrawalAmountTON: settingsData.minWithdrawalAmountTON?.toString() || '0.5',
         withdrawalFeeTON: settingsData.withdrawalFeeTON?.toString() || '5',
-        withdrawalFeeUSD: settingsData.withdrawalFeeUSD?.toString() || '3',
+        withdrawalFeeTON: settingsData.withdrawalFeeTON?.toString() || '3',
         channelTaskCost: settingsData.channelTaskCost?.toString() || '0.003',
         botTaskCost: settingsData.botTaskCost?.toString() || '0.003',
         channelTaskCostTON: settingsData.channelTaskCostTON?.toString() || '0.0003',
@@ -1502,12 +1502,12 @@ function SettingsSection() {
         channelTaskReward: settingsData.channelTaskReward?.toString() || '30',
         botTaskReward: settingsData.botTaskReward?.toString() || '20',
         partnerTaskReward: settingsData.partnerTaskReward?.toString() || '5',
-        minimumConvertPAD: settingsData.minimumConvertPAD?.toString() || '100',
+        minimumConvertHrum: settingsData.minimumConvertHrum?.toString() || '100',
         minimumClicks: settingsData.minimumClicks?.toString() || '500',
         seasonBroadcastActive: settingsData.seasonBroadcastActive || false,
         referralRewardEnabled: settingsData.referralRewardEnabled || false,
-        referralRewardUSD: settingsData.referralRewardUSD?.toString() || '0.0005',
-        referralRewardPAD: settingsData.referralRewardPAD?.toString() || '50',
+        referralRewardTON: settingsData.referralRewardTON?.toString() || '0.0005',
+        referralRewardHrum: settingsData.referralRewardHrum?.toString() || '50',
         referralAdsRequired: settingsData.referralAdsRequired?.toString() || '1',
         // Withdrawal requirements
         withdrawalAdRequirementEnabled: settingsData.withdrawalAdRequirementEnabled !== false,
@@ -1545,21 +1545,21 @@ function SettingsSection() {
     const reward = parseInt(settings.rewardPerAd);
     const affiliate = parseFloat(settings.affiliateCommission);
     const walletFee = parseInt(settings.walletChangeFee);
-    const minWithdrawalUSD = parseFloat(settings.minimumWithdrawalUSD);
-    const minWithdrawalTON = parseFloat(settings.minimumWithdrawalTON);
-    const withdrawalFeeTON = parseFloat(settings.withdrawalFeeTON);
-    const withdrawalFeeUSD = parseFloat(settings.withdrawalFeeUSD);
+    const minWithdrawal = parseFloat(settings.minWithdrawalAmount);
+    const minWithdrawal = parseFloat(settings.minWithdrawalAmount);
+    const withdrawalFee = parseFloat(settings.withdrawalFee);
+    const withdrawalFee = parseFloat(settings.withdrawalFee);
     const channelCost = parseFloat(settings.channelTaskCost);
     const botCost = parseFloat(settings.botTaskCost);
-    const channelCostTON = parseFloat(settings.channelTaskCostTON);
-    const botCostTON = parseFloat(settings.botTaskCostTON);
+    const channelCost = parseFloat(settings.channelTaskCost);
+    const botCost = parseFloat(settings.botTaskCost);
     const channelReward = parseInt(settings.channelTaskReward);
     const botReward = parseInt(settings.botTaskReward);
     const partnerReward = parseInt(settings.partnerTaskReward);
-    const minConvertPAD = parseInt(settings.minimumConvertPAD);
+    const minConvertHrum = parseInt(settings.minimumConvertHrum);
     const minClicks = parseInt(settings.minimumClicks);
-    const refRewardUSD = parseFloat(settings.referralRewardUSD);
-    const refRewardPAD = parseInt(settings.referralRewardPAD);
+    const refReward = parseFloat(settings.referralReward);
+    const refRewardHrum = parseInt(settings.referralRewardHrum);
     
     if (isNaN(adLimit) || adLimit <= 0) {
       toast({
@@ -1586,10 +1586,10 @@ function SettingsSection() {
         rewardPerAd: reward,
         affiliateCommission: affiliate,
         walletChangeFee: walletFee,
-        minimumWithdrawalUSD: minWithdrawalUSD,
-        minimumWithdrawalTON: minWithdrawalTON,
+        minWithdrawalAmountTON: minWithdrawalTON,
+        minWithdrawalAmountTON: minWithdrawalTON,
         withdrawalFeeTON: withdrawalFeeTON,
-        withdrawalFeeUSD: withdrawalFeeUSD,
+        withdrawalFeeTON: withdrawalFeeTON,
         channelTaskCost: channelCost,
         botTaskCost: botCost,
         channelTaskCostTON: channelCostTON,
@@ -1597,12 +1597,12 @@ function SettingsSection() {
         channelTaskReward: channelReward,
         botTaskReward: botReward,
         partnerTaskReward: partnerReward,
-        minimumConvertPAD: minConvertPAD,
+        minimumConvertHrum: minConvertHrum,
         minimumClicks: minClicks,
         seasonBroadcastActive: settings.seasonBroadcastActive,
         referralRewardEnabled: settings.referralRewardEnabled,
-        referralRewardUSD: refRewardUSD,
-        referralRewardPAD: refRewardPAD,
+        referralRewardTON: refRewardTON,
+        referralRewardHrum: refRewardHrum,
         referralAdsRequired: parseInt(settings.referralAdsRequired) || 1,
         withdrawalAdRequirementEnabled: settings.withdrawalAdRequirementEnabled,
         minimumAdsForWithdrawal: parseInt(settings.minimumAdsForWithdrawal) || 100,
@@ -1697,7 +1697,7 @@ function SettingsSection() {
             <div className="space-y-2">
               <Label htmlFor="reward-per-ad" className="text-sm font-semibold">
                 <i className="fas fa-gem mr-2 text-purple-600"></i>
-                Reward Per Ad (PAD)
+                Reward Per Ad (Hrum)
               </Label>
               <Input
                 id="reward-per-ad"
@@ -1708,7 +1708,7 @@ function SettingsSection() {
                 min="1"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.rewardPerAd || 1000} PAD
+                Current: {settingsData?.rewardPerAd || 1000} Hrum
               </p>
             </div>
           </div>
@@ -1758,22 +1758,22 @@ function SettingsSection() {
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 <div>
-                  <Label className="text-xs">PAD</Label>
+                  <Label className="text-xs">Hrum</Label>
                   <Input
                     type="number"
-                    value={settings.referralRewardPAD}
-                    onChange={(e) => setSettings({ ...settings, referralRewardPAD: e.target.value })}
+                    value={settings.referralRewardHrum}
+                    onChange={(e) => setSettings({ ...settings, referralRewardHrum: e.target.value })}
                     placeholder="50"
                     disabled={!settings.referralRewardEnabled}
                     className={`h-8 ${!settings.referralRewardEnabled ? 'opacity-50' : ''}`}
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">USD</Label>
+                  <Label className="text-xs">TON</Label>
                   <Input
                     type="number"
-                    value={settings.referralRewardUSD}
-                    onChange={(e) => setSettings({ ...settings, referralRewardUSD: e.target.value })}
+                    value={settings.referralReward}
+                    onChange={(e) => setSettings({ ...settings, referralRewardTON: e.target.value })}
                     placeholder="0.0005"
                     step="0.0001"
                     disabled={!settings.referralRewardEnabled}
@@ -1808,31 +1808,31 @@ function SettingsSection() {
             <div className="space-y-2">
               <Label htmlFor="minimum-withdrawal-ton" className="text-sm font-semibold">
                 <i className="fas fa-gem mr-2 text-blue-600"></i>
-                Min USD (TON Method)
+                Min  ( Method)
               </Label>
               <Input
                 id="minimum-withdrawal-ton"
                 type="number"
-                value={settings.minimumWithdrawalTON}
-                onChange={(e) => setSettings({ ...settings, minimumWithdrawalTON: e.target.value })}
+                value={settings.minWithdrawalAmount}
+                onChange={(e) => setSettings({ ...settings, minWithdrawalAmountTON: e.target.value })}
                 placeholder="0.5"
                 min="0"
                 step="0.01"
               />
               <p className="text-xs text-muted-foreground">
-                Current: ${settingsData?.minimumWithdrawalTON || 0.5}
+                Current: ${settingsData?.minWithdrawalAmount || 0.5}
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="withdrawal-fee-ton" className="text-sm font-semibold">
                 <i className="fas fa-percent mr-2 text-blue-600"></i>
-                TON Fee (%)
+                 Fee (%)
               </Label>
               <Input
                 id="withdrawal-fee-ton"
                 type="number"
-                value={settings.withdrawalFeeTON}
+                value={settings.withdrawalFee}
                 onChange={(e) => setSettings({ ...settings, withdrawalFeeTON: e.target.value })}
                 placeholder="5"
                 min="0"
@@ -1840,7 +1840,7 @@ function SettingsSection() {
                 step="0.1"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.withdrawalFeeTON || 5}%
+                Current: {settingsData?.withdrawalFee || 5}%
               </p>
             </div>
 
@@ -1939,7 +1939,7 @@ function SettingsSection() {
               </Label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">Cost (USD)</Label>
+                  <Label className="text-xs">Cost ()</Label>
                   <Input
                     type="number"
                     value={settings.channelTaskCost}
@@ -1950,10 +1950,10 @@ function SettingsSection() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Cost (TON)</Label>
+                  <Label className="text-xs">Cost ()</Label>
                   <Input
                     type="number"
-                    value={settings.channelTaskCostTON}
+                    value={settings.channelTaskCost}
                     onChange={(e) => setSettings({ ...settings, channelTaskCostTON: e.target.value })}
                     placeholder="0.0003"
                     step="0.0001"
@@ -1962,7 +1962,7 @@ function SettingsSection() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Reward (PAD)</Label>
+                <Label className="text-xs">Reward (Hrum)</Label>
                 <Input
                   type="number"
                   value={settings.channelTaskReward}
@@ -1980,7 +1980,7 @@ function SettingsSection() {
               </Label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label className="text-xs">Cost (USD)</Label>
+                  <Label className="text-xs">Cost ()</Label>
                   <Input
                     type="number"
                     value={settings.botTaskCost}
@@ -1991,10 +1991,10 @@ function SettingsSection() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Cost (TON)</Label>
+                  <Label className="text-xs">Cost ()</Label>
                   <Input
                     type="number"
-                    value={settings.botTaskCostTON}
+                    value={settings.botTaskCost}
                     onChange={(e) => setSettings({ ...settings, botTaskCostTON: e.target.value })}
                     placeholder="0.0003"
                     step="0.0001"
@@ -2003,7 +2003,7 @@ function SettingsSection() {
                 </div>
               </div>
               <div>
-                <Label className="text-xs">Reward (PAD)</Label>
+                <Label className="text-xs">Reward (Hrum)</Label>
                 <Input
                   type="number"
                   value={settings.botTaskReward}
@@ -2017,7 +2017,7 @@ function SettingsSection() {
             <div className="space-y-2">
               <Label htmlFor="partner-task-reward" className="text-sm font-semibold">
                 <i className="fas fa-handshake mr-2 text-green-600"></i>
-                Partner Task Reward (PAD)
+                Partner Task Reward (Hrum)
               </Label>
               <Input
                 id="partner-task-reward"
@@ -2027,7 +2027,7 @@ function SettingsSection() {
                 placeholder="5"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.partnerTaskReward || 5} PAD
+                Current: {settingsData?.partnerTaskReward || 5} Hrum
               </p>
             </div>
 
@@ -2121,14 +2121,14 @@ function SettingsSection() {
                 min="0"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.minimumBugForWithdrawal || 1000} BUG (1000 BUG = $0.1)
+                Current: {settingsData?.minimumBugForWithdrawal || 1000} BUG (1000 BUG = TON0.1)
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="pad-to-bug-rate" className="text-sm font-semibold">
                 <i className="fas fa-exchange-alt mr-2 text-lime-600"></i>
-                PAD to BUG Rate
+                Hrum to BUG Rate
               </Label>
               <Input
                 id="pad-to-bug-rate"
@@ -2139,14 +2139,14 @@ function SettingsSection() {
                 min="1"
               />
               <p className="text-xs text-muted-foreground">
-                1 PAD = {settingsData?.padToBugRate || 1} BUG
+                1 Hrum = {settingsData?.padToBugRate || 1} BUG
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="minimum-convert-pad-to-bug" className="text-sm font-semibold">
                 <i className="fas fa-coins mr-2 text-lime-600"></i>
-                Min PAD to Convert to BUG
+                Min Hrum to Convert to BUG
               </Label>
               <Input
                 id="minimum-convert-pad-to-bug"
@@ -2157,14 +2157,14 @@ function SettingsSection() {
                 min="1"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.minimumConvertPadToBug || 1000} PAD
+                Current: {settingsData?.minimumConvertPadToBug || 1000} Hrum
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="bug-per-usd" className="text-sm font-semibold">
                 <i className="fas fa-dollar-sign mr-2 text-lime-600"></i>
-                BUG per USD (Withdrawal)
+                BUG per  (Withdrawal)
               </Label>
               <Input
                 id="bug-per-usd"
@@ -2175,7 +2175,7 @@ function SettingsSection() {
                 min="1"
               />
               <p className="text-xs text-muted-foreground">
-                1 USD = {settingsData?.bugPerUsd || 10000} BUG required for withdrawal
+                1  = {settingsData?.bugPerUsd || 10000} BUG required for withdrawal
               </p>
             </div>
 
@@ -2201,7 +2201,7 @@ function SettingsSection() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {settings.withdrawalBugRequirementEnabled 
-                  ? 'Users must have enough BUG (based on USD amount × BUG per USD) to withdraw' 
+                  ? 'Users must have enough BUG (based on  amount × BUG per ) to withdraw' 
                   : 'BUG requirement disabled - users can withdraw without BUG'}
               </p>
             </div>
@@ -2213,7 +2213,7 @@ function SettingsSection() {
             <div className="space-y-2">
               <Label htmlFor="wallet-change-fee" className="text-sm font-semibold">
                 <i className="fas fa-exchange-alt mr-2 text-yellow-600"></i>
-                Wallet Change Fee (PAD)
+                Wallet Change Fee (Hrum)
               </Label>
               <Input
                 id="wallet-change-fee"
@@ -2223,24 +2223,24 @@ function SettingsSection() {
                 placeholder="5000"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.walletChangeFee || 5000} PAD
+                Current: {settingsData?.walletChangeFee || 5000} Hrum
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="minimum-convert-pad" className="text-sm font-semibold">
                 <i className="fas fa-repeat mr-2 text-indigo-600"></i>
-                Min Convert (PAD)
+                Min Convert (Hrum)
               </Label>
               <Input
                 id="minimum-convert-pad"
                 type="number"
-                value={settings.minimumConvertPAD}
-                onChange={(e) => setSettings({ ...settings, minimumConvertPAD: e.target.value })}
+                value={settings.minimumConvertHrum}
+                onChange={(e) => setSettings({ ...settings, minimumConvertHrum: e.target.value })}
                 placeholder="100"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.minimumConvertPAD || 100} PAD
+                Current: {settingsData?.minimumConvertHrum || 100} Hrum
               </p>
             </div>
 
@@ -2527,7 +2527,7 @@ function TaskManagementSection() {
                 </div>
                 <div className="bg-[#1a1a1a] rounded-lg p-2">
                   <p className="text-gray-500 mb-0.5">Amount</p>
-                  <p className="text-white">${parseFloat(task.totalCost).toFixed(2)}</p>
+                  <p className="text-white" >TON {parseFloat(task.totalCost).toFixed(2)}</p>
                 </div>
                 <div className="bg-[#1a1a1a] rounded-lg p-2">
                   <p className="text-gray-500 mb-0.5">Created</p>

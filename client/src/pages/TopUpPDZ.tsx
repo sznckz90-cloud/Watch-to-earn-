@@ -19,7 +19,7 @@ export default function TopUpTON() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*/.test(value)) {
       setTonAmount(value);
       setValidationError(""); // Clear error when user types
     }
@@ -27,7 +27,7 @@ export default function TopUpTON() {
 
   const validateAmount = (): boolean => {
     if (!tonAmount || tonAmount.trim() === "") {
-      setValidationError("Enter amount (Min 0.1 TON)");
+      setValidationError("Enter amount (Min 0.1 )");
       return false;
     }
 
@@ -70,7 +70,7 @@ export default function TopUpTON() {
     // Set debounce timeout to prevent spam
     debounceTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log(`💳 Sending payment request: ${amount} TON (type: ${typeof amount})`);
+        console.log(`💳 Sending payment request: ${amount}  (type: ${typeof amount})`);
         
         const response = await apiRequest("POST", "/api/arcpay/create-payment", {
           tonAmount: amount, // Send as Number, NOT parseInt
@@ -110,7 +110,7 @@ export default function TopUpTON() {
             </div>
             <CardTitle className="text-2xl">Top-Up TON</CardTitle>
             <p className="text-sm text-muted-foreground mt-2">
-              Add TON to your balance
+              Add  to your balance
             </p>
           </CardHeader>
 
@@ -122,15 +122,15 @@ export default function TopUpTON() {
                   Payment Method:
                 </span>
                 <span className="text-lg font-bold text-blue-900 dark:text-blue-100">
-                  TON Blockchain
+                   Blockchain
                 </span>
               </div>
             </div>
 
-            {/* TON Amount Input */}
+            {/*  Amount Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                How much TON do you want to add? (Minimum: {MINIMUM_AMOUNT})
+                How much  do you want to add? (Minimum: {MINIMUM_AMOUNT})
               </label>
               <Input
                 type="text"
@@ -157,7 +157,7 @@ export default function TopUpTON() {
             {tonAmount && !validationError && (
               <div className="bg-muted rounded-lg p-4 space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-muted-foreground">TON Amount:</span>
+                  <span className="text-muted-foreground"> Amount:</span>
                   <span className="font-semibold">{parseFloat(tonAmount).toFixed(2)} TON</span>
                 </div>
                 <div className="border-t border-border pt-2 flex justify-between items-center font-semibold">
@@ -178,8 +178,8 @@ export default function TopUpTON() {
               <ul className="list-disc list-inside space-y-1 text-amber-900 dark:text-amber-100">
                 <li>You'll be redirected to secure ArcPay checkout</li>
                 <li>After payment, you'll return to Telegram bot</li>
-                <li>TON will be credited to your account</li>
-                <li>Payment processed on TON blockchain</li>
+                <li> will be credited to your account</li>
+                <li>Payment processed on  blockchain</li>
               </ul>
             </div>
 
@@ -205,7 +205,7 @@ export default function TopUpTON() {
 
             {/* Warning */}
             <p className="text-xs text-center text-muted-foreground">
-              Secured by ArcPay • TON Network
+              Secured by ArcPay •  Network
             </p>
           </CardContent>
         </Card>

@@ -109,7 +109,7 @@ export default function WalletSetup() {
                 className={paymentType === 'ton' ? 'bg-[#4cd3ff] hover:bg-[#6ddeff] text-black' : ''}
               >
                 <Gem className="w-4 h-4 mr-2" />
-                TON Coin
+                 Coin
               </Button>
               <Button
                 type="button"
@@ -125,13 +125,13 @@ export default function WalletSetup() {
             {paymentType === 'ton' ? (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium mb-3 text-white">TON Payment</p>
+                  <p className="text-sm font-medium mb-3 text-white"> Payment</p>
                   <p className="text-xs text-muted-foreground mb-4">Enter your payment details to withdraw earned funds.</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">TON Address</Label>
+                  <Label className="text-white"> Address</Label>
                   <Input
-                    placeholder="Enter TON address"
+                    placeholder="Enter  address"
                     value={tonAddress}
                     onChange={(e) => setTonAddress(e.target.value)}
                     className="bg-[#0d0d0d] border-[#4cd3ff]/30 text-white"

@@ -75,7 +75,7 @@ export default function Home() {
   const [convertPopupOpen, setConvertPopupOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [selectedConvertType, setSelectedConvertType] = useState<'TON' | 'BUG'>('TON');
+  const [selectedConvertType, setSelectedConvertType] = useState<'' | 'BUG'>('');
   const [convertAmount, setConvertAmount] = useState<string>("");
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
   
@@ -713,7 +713,7 @@ export default function Home() {
 
   const rawBalance = parseFloat((user as User)?.balance || "0");
   const padBalance = rawBalance < 1 ? Math.round(rawBalance * 10000000) : Math.round(rawBalance);
-  const balanceTON = parseFloat((user as User)?.tonBalance || "0");
+  const balance = parseFloat((user as User)?.tonBalance || "0");
   const balanceBUG = parseFloat((user as User)?.bugBalance || "0");
   
   const displayName = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || (user as User)?.firstName || (user as User)?.username || "User";
@@ -726,9 +726,9 @@ export default function Home() {
       return;
     }
 
-    const minimumConvertHrum = selectedConvertType === 'TON' 
+    const minimumConvertHrum = selectedConvertType === '' 
       ? (appSettings?.minimumConvertHrum || 10000)
-      : selectedConvertType === 'TON'
+      : selectedConvertType === ''
         ? (appSettings?.minimumConvertPadToTon || 10000)
         : (appSettings?.minimumConvertPadToBug || 1000);
     
@@ -1463,14 +1463,14 @@ export default function Home() {
 
             <div className="flex bg-[#1a1a1a] p-1 rounded-xl mb-6">
               <button
-                onClick={() => setSelectedConvertType('TON')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'TON' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
+                onClick={() => setSelectedConvertType('')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
               >
                 TO TON
               </button>
               <button
-                onClick={() => setSelectedConvertType('TON')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'TON' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'}`}
+                onClick={() => setSelectedConvertType('')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'}`}
               >
                 TO TON
               </button>
@@ -1512,9 +1512,9 @@ export default function Home() {
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-medium">Estimated Value</span>
                   <span className="text-white font-bold">
-                    {selectedConvertType === 'TON' 
-                      ? `TON ${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
-                      : selectedConvertType === 'TON'
+                    {selectedConvertType === '' 
+                      ? ` ${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
+                      : selectedConvertType === ''
                         ? `${(parseFloat(convertAmount || "0") / (appSettings?.padToTonRate || 1000000)).toFixed(4)} TON`
                         : `${(parseFloat(convertAmount || "0") / (appSettings?.padToBugRate || 1000)).toFixed(2)} BUG`
                     }

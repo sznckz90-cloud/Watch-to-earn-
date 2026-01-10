@@ -64,7 +64,7 @@ export default function WalletActivity() {
     );
   }
 
-  const formatUSD = (amount: string) => {
+  const format = (amount: string) => {
     return parseFloat(amount).toFixed(2);
   };
 
@@ -113,10 +113,10 @@ export default function WalletActivity() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-[#4cd3ff]">
-                        ${formatUSD(withdrawal.amount)}
+                        ${formatTON(withdrawal.amount)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        USD
+                        TON
                       </p>
                     </div>
                   </div>
