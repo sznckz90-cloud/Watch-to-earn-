@@ -169,68 +169,54 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="space-y-4">
-      <Card className="minimal-card mb-0 hover:bg-[#1A1A1A]/50 transition-all">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-white/5">
-                <img 
-                  src="/images/hrum-logo.jpg" 
-                  alt="Hrum" 
-                  className="w-full h-full object-cover scale-150"
-                  style={{ objectPosition: 'center' }}
-                />
+    <div className="bg-zinc-900/50 border border-white/5 rounded-none px-4 h-[72px] flex items-center">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5 shadow-lg">
+            <img 
+              src="/images/ads_icon.png" 
+              alt="Ads" 
+              className="w-8 h-8 object-contain"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">Watch Daily Ads</h3>
+            <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[13px] font-black text-white">+{adsWatchedToday}</span>
+                <span className="text-[13px] font-black text-white/40">/ {dailyLimit}</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-semibold text-sm truncate">Monetag Adz</h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className="flex items-center gap-1 bg-[#0D0D0D] px-1.5 py-0.5 rounded border border-white/5">
-                    <span className="text-[11px] text-white font-black leading-none">{adsWatchedToday}</span>
-                    <span className="text-[10px] text-gray-500 font-bold leading-none">/</span>
-                    <span className="text-[11px] text-gray-400 font-bold leading-none">{dailyLimit}</span>
-                  </div>
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Daily Limit</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Button
-                onClick={handleStartEarning}
-                disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-                className={`h-9 px-4 text-xs min-w-[90px] font-bold rounded-xl border-0 shadow-md transition-all active:scale-95 ${
-                  isShowingAds
-                    ? "bg-gradient-to-r from-gray-500 to-gray-600"
-                    : "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-                } text-white`}
-              >
-                {isShowingAds ? (
-                  <div className="flex items-center gap-1">
-                    {currentAdStep === 'verifying' ? (
-                      <Shield className="w-3.5 h-3.5 animate-pulse text-green-400" />
-                    ) : (
-                      <Clock className="w-3.5 h-3.5 animate-spin" />
-                    )}
-                    <span>
-                      {currentAdStep === 'monetag' ? 'Wait...' : 
-                       currentAdStep === 'verifying' ? 'Verifying' : 'Loading'}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5" />
-                    <span>+{appSettings?.rewardPerAd || 2} Hrum</span>
-                  </div>
-                )}
-              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-      
-      <p className="px-1 text-[9px] text-center text-gray-500 font-medium italic">
-        Watch {dailyLimit - adsWatchedToday} more ads to reach your daily goal
-      </p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <Button
+            onClick={handleStartEarning}
+            disabled={isShowingAds || adsWatchedToday >= dailyLimit}
+            className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
+              isShowingAds
+                ? "bg-white/5 text-white/40 border border-white/5"
+                : "bg-white text-black hover:bg-gray-200"
+            }`}
+          >
+            {isShowingAds ? (
+              <div className="flex items-center gap-1">
+                {currentAdStep === 'verifying' ? (
+                  <Shield className="w-3.5 h-3.5 animate-pulse text-green-400" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                )}
+                <span>
+                  {currentAdStep === 'monetag' ? 'Wait...' : 
+                   currentAdStep === 'verifying' ? 'Verifying' : 'Loading'}
+                </span>
+              </div>
+            ) : (
+              <span>Watch</span>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
