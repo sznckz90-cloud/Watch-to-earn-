@@ -1025,9 +1025,19 @@ export default function Home() {
     };
 
     updateMining();
-    const interval = setInterval(updateMining, 1000);
+    const interval = setInterval(updateMining, 100);
     return () => clearInterval(interval);
   }, [user?.lastMiningClaim, user?.miningRate]);
+
+  const formatMiningBalance = (balance: number) => {
+    const parts = balance.toFixed(5).split('.');
+    return (
+      <span className="flex items-baseline">
+        <span className="text-[20px] font-black">{parts[0]}</span>
+        <span className="text-[14px] font-black">.{parts[1]}</span>
+      </span>
+    );
+  };
 
   const claimMiningMutation = useMutation({
     mutationFn: async () => {
@@ -1072,7 +1082,14 @@ export default function Home() {
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
         {/* Unified Profile & Balance Section */}
-        <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4">
+        <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4 relative pt-12">
+          {/* Top Rate Badge - Centered between Avatar/Username and Settings icon */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
+            <div className="bg-[#7c3aed] text-white px-3 py-1.5 rounded-b-xl text-[12px] font-black shadow-lg flex items-center gap-1.5 border-x border-b border-white/20 whitespace-nowrap min-w-[120px] justify-center">
+              <span className="opacity-80">{miningBalance.toFixed(2)} / 117.84</span>
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-90">Hrum</span>
+            </div>
+          </div>
           <div className="flex justify-between items-center mb-4 relative">
             <div className="flex items-center gap-3">
               <div 
@@ -1104,13 +1121,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Top Rate Badge - Centered between Avatar/Username and Settings icon */}
-            <div className="absolute left-1/2 -translate-x-1/2 -top-6">
-              <div className="bg-[#7c3aed] text-white px-4 py-1 rounded-full text-[13px] font-bold shadow-lg flex items-center gap-2 border border-white/20 whitespace-nowrap">
-                <span>{(parseFloat(user?.miningRate || "0.00001") * 3600).toFixed(2)} MF/H</span>
-              </div>
-            </div>
-
             <Button 
               variant="ghost" 
               size="icon" 
@@ -1132,14 +1142,12 @@ export default function Home() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold text-sm truncate">Hrum Mining</h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <div className="flex items-center gap-1 bg-[#0D0D0D] px-1.5 py-0.5 rounded border border-white/5">
-                      <span className="text-[11px] text-white font-black leading-none">{miningBalance.toFixed(2)}</span>
-                      <span className="text-[10px] text-gray-500 font-bold leading-none">/</span>
-                      <span className="text-[11px] text-gray-400 font-bold leading-none">117.84</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-white font-black leading-none tracking-tight">
+                        {formatMiningBalance(miningBalance)}
+                      </span>
                     </div>
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Hrum</span>
                   </div>
                 </div>
               </div>
