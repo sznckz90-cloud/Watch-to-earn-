@@ -1080,269 +1080,259 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-4 pb-8">
-        {/* Unified Profile & Balance Section */}
-        <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4 relative pt-12">
-          {/* Top Rate Badge - Centered between Avatar/Username and Settings icon */}
-          <div className="absolute left-1/2 -translate-x-1/2 top-0 z-10">
-            <div className="bg-[#7c3aed] text-white px-3 py-1.5 rounded-b-xl text-[12px] font-black shadow-lg flex items-center gap-1.5 border-x border-b border-white/20 whitespace-nowrap min-w-[120px] justify-center">
-              <span className="opacity-80">{miningBalance.toFixed(2)} / 117.84</span>
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-90">Hrum</span>
-            </div>
-          </div>
-          <div className="flex justify-between items-center mb-4 relative">
-            <div className="flex items-center gap-3">
-              <div 
-                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
-                onClick={() => isAdmin && setLocation("/admin")}
-              >
-                {photoUrl ? (
-                  <img 
-                    src={photoUrl} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <UserIcon className="w-6 h-6 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span 
-                  className={`text-white font-black text-base leading-none tracking-tight ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
+      <main className="h-screen flex flex-col overflow-hidden">
+        <div className="flex-none px-4 pt-4">
+          {/* Unified Profile & Balance Section */}
+          <div className="bg-[#0d0d0d] rounded-none p-3 border border-white/5 mb-4 relative">
+            <div className="flex justify-between items-center mb-3 relative">
+              <div className="flex items-center gap-2">
+                <div 
+                  className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
                   onClick={() => isAdmin && setLocation("/admin")}
                 >
-                  {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
-                </span>
-                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">
-                  ID: {(user as User)?.id?.substring(0, 8) || "N/A"}
-                </span>
+                  {photoUrl ? (
+                    <img 
+                      src={photoUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <UserIcon className="w-5 h-5 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span 
+                    className={`text-white font-black text-sm leading-none tracking-tight ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
+                    onClick={() => isAdmin && setLocation("/admin")}
+                  >
+                    {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
+                  </span>
+                  <span className="text-[#B9FF66] text-[9px] font-black uppercase tracking-widest mt-1 opacity-90">
+                    ID: {(user as User)?.id?.substring(0, 8) || "N/A"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-white/60 hover:text-white hover:bg-white/10"
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Settings className="w-6 h-6" />
-            </Button>
-          </div>
-
-          <div className="bg-[#1A1A1A]/40 backdrop-blur-md rounded-xl p-3 border border-white/5 shadow-lg mb-4 relative overflow-hidden">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-white/5">
-                  <img 
-                    src="/images/hrum-logo.jpg" 
-                    alt="Hrum" 
-                    className="w-full h-full object-cover scale-150"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <div className="flex items-center gap-1">
-                      <span className="text-white font-black leading-none tracking-tight">
-                        {formatMiningBalance(miningBalance)}
-                      </span>
+            <div className="bg-[#1A1A1A]/40 backdrop-blur-md rounded-xl p-3 border border-white/5 shadow-lg mb-4 relative overflow-hidden">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-white/5">
+                    <img 
+                      src="/images/hrum-logo.jpg" 
+                      alt="Hrum" 
+                      className="w-full h-full object-cover scale-150"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1">
+                        <span className="text-white font-black leading-none tracking-tight">
+                          {formatMiningBalance(miningBalance)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Button 
-                  className="h-9 px-4 text-xs min-w-[90px] font-bold rounded-xl border-0 shadow-md transition-all active:scale-95 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
-                  onClick={() => claimMiningMutation.mutate()}
-                  disabled={claimMiningMutation.isPending || miningBalance < 0.001}
-                >
-                  {claimMiningMutation.isPending ? (
-                    <Clock className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <span>Claim</span>
-                  )}
-                </Button>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Button 
+                    className="h-9 px-4 text-xs min-w-[90px] font-bold rounded-xl border-0 shadow-md transition-all active:scale-95 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
+                    onClick={() => claimMiningMutation.mutate()}
+                    disabled={claimMiningMutation.isPending || miningBalance < 0.001}
+                  >
+                    {claimMiningMutation.isPending ? (
+                      <Clock className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <span>Claim</span>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={handleConvertClick}
-              className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Convert
-            </Button>
-            <Button
-              onClick={() => setPromoPopupOpen(true)}
-              className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
-            >
-              <Ticket className="w-4 h-4" />
-              Promo
-            </Button>
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleConvertClick}
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Convert
+              </Button>
+              <Button
+                onClick={() => setPromoPopupOpen(true)}
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
+              >
+                <Ticket className="w-4 h-4" />
+                Promo
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-2">
-          <Tabs defaultValue="earn" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
-              <TabsTrigger 
-                value="earn" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Earn
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="tasks" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-              >
-                <ClipboardList className="w-4 h-4" />
-                Tasks
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="referrals" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-              >
-                <HeartHandshake className="w-4 h-4" />
-                Referrals
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-              </TabsTrigger>
-            </TabsList>
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Tabs defaultValue="earn" className="flex-1 flex flex-col min-h-0">
+            <div className="px-4 flex-none">
+              <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
+                <TabsTrigger 
+                  value="earn" 
+                  className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Earn
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="tasks" 
+                  className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  Tasks
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="referrals" 
+                  className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                >
+                  <HeartHandshake className="w-4 h-4" />
+                  Referrals
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <TabsContent value="earn" className="mt-0 outline-none">
-              <div className="space-y-4">
-                <AdWatchingSection user={user as User} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="tasks" className="mt-0 outline-none">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Active Tasks</h2>
-                  </div>
-                  <div className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider tabular-nums">
-                    {unifiedTasksData?.tasks?.length || 0} Available
-                  </div>
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-20 scrollbar-hide">
+              <TabsContent value="earn" className="mt-0 outline-none">
+                <div className="space-y-4">
                 </div>
-                
-                <div className="flex flex-col gap-3">
-                  <AnimatePresence mode="popLayout">
-                    {isLoadingTasks ? (
-                      <div className="py-12 flex justify-center">
-                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                      </div>
-                    ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
-                      unifiedTasksData.tasks.map((task) => (
-                        <motion.div
-                          key={task.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 flex-1 min-w-0">
-                              <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5">
-                                <span className="text-white/80">
-                                  {getTaskIcon(task)}
-                                </span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">{task.title}</h3>
-                                <div className="flex items-center gap-3 mt-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <DiamondIcon size={14} />
-                                    <span className="text-[13px] font-black text-white">+{task.rewardHrum.toLocaleString()}</span>
-                                  </div>
-                                  {task.rewardBUG && task.rewardBUG > 0 && (
+              </TabsContent>
+
+              <TabsContent value="tasks" className="mt-0 outline-none">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                      <h2 className="text-lg font-black text-white uppercase tracking-tight">Active Tasks</h2>
+                    </div>
+                    <div className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider tabular-nums">
+                      {unifiedTasksData?.tasks?.length || 0} Available
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3">
+                    <AdWatchingSection user={user as User} />
+                    <AnimatePresence mode="popLayout">
+                      {isLoadingTasks ? (
+                        <div className="py-12 flex justify-center">
+                          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                        </div>
+                      ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
+                        unifiedTasksData.tasks.map((task) => (
+                          <motion.div
+                            key={task.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5">
+                                  <span className="text-white/80">
+                                    {getTaskIcon(task)}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">{task.title}</h3>
+                                  <div className="flex items-center gap-3 mt-1">
                                     <div className="flex items-center gap-1.5">
-                                      <Bug className="w-3.5 h-3.5 text-blue-400" />
-                                      <span className="text-[13px] font-black text-blue-400">+{task.rewardBUG}</span>
+                                      <DiamondIcon size={14} />
+                                      <span className="text-[13px] font-black text-white">+{task.rewardHrum.toLocaleString()}</span>
                                     </div>
-                                  )}
+                                    {task.rewardBUG && task.rewardBUG > 0 && (
+                                      <div className="flex items-center gap-1.5">
+                                        <Bug className="w-3.5 h-3.5 text-blue-400" />
+                                        <span className="text-[13px] font-black text-blue-400">+{task.rewardBUG}</span>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
+                              <Button
+                                onClick={() => handleUnifiedTask(task)}
+                                disabled={isTaskPending || claimAdvertiserTaskMutation.isPending || completedTasks.has(task.id)}
+                                className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
+                                  completedTasks.has(task.id)
+                                    ? "bg-white/5 text-white/40 border border-white/5"
+                                    : clickedTasks.has(task.id)
+                                      ? "bg-blue-600 text-white"
+                                      : "bg-white text-black hover:bg-gray-200"
+                                }`}
+                              >
+                                {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? "Claim" : "Start"}
+                              </Button>
                             </div>
-                            <Button
-                              onClick={() => handleUnifiedTask(task)}
-                              disabled={isTaskPending || claimAdvertiserTaskMutation.isPending || completedTasks.has(task.id)}
-                              className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
-                                completedTasks.has(task.id)
-                                  ? "bg-white/5 text-white/40 border border-white/5"
-                                  : clickedTasks.has(task.id)
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-white text-black hover:bg-gray-200"
-                              }`}
-                            >
-                              {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? "Claim" : "Start"}
-                            </Button>
+                          </motion.div>
+                        ))
+                      ) : (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="py-16 px-6 text-center"
+                        >
+                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+                            <Check className="w-10 h-10 text-white/20" />
                           </div>
+                          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
+                          <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
+                            You've completed all available missions. Check back soon for new opportunities to earn!
+                          </p>
                         </motion.div>
-                      ))
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="py-16 px-6 text-center"
-                      >
-                        <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
-                          <Check className="w-10 h-10 text-white/20" />
-                        </div>
-                        <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
-                        <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
-                          You've completed all available missions. Check back soon for new opportunities to earn!
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="referrals" className="mt-0 outline-none">
-              <div className="flex flex-col items-center text-center pt-4">
-                <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
-                <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
-                  10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
-                </p>
-
-                <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">User referred</p>
-                    <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">Successful</p>
-                    <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
+              </TabsContent>
 
-                <div className="flex w-full gap-2">
-                  <Button
-                    onClick={copyReferralLink}
-                    disabled={!referralLink}
-                    className="flex-1 h-12 bg-[#111111] hover:bg-[#1a1a1a] text-white rounded-2xl font-bold text-sm gap-2"
-                  >
-                    <Copy className="w-4 h-4" />
-                    Copy Link
-                  </Button>
-                  <Button
-                    onClick={shareReferralLink}
-                    disabled={!referralLink || isSharing}
-                    className="flex-1 h-12 bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl font-bold text-sm"
-                  >
-                    {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Invite Friends +"}
-                  </Button>
+              <TabsContent value="referrals" className="mt-0 outline-none">
+                <div className="flex flex-col items-center text-center pt-4 pb-8">
+                  <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
+                  <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
+                    10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
+                  </p>
+
+                  <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">User referred</p>
+                      <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">Successful</p>
+                      <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex w-full gap-2">
+                    <Button
+                      onClick={copyReferralLink}
+                      disabled={!referralLink}
+                      className="flex-1 h-12 bg-[#111111] hover:bg-[#1a1a1a] text-white rounded-2xl font-bold text-sm gap-2"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      onClick={shareReferralLink}
+                      disabled={!referralLink || isSharing}
+                      className="flex-1 h-12 bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl font-bold text-sm"
+                    >
+                      {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Invite Friends +"}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </main>
@@ -1484,43 +1474,61 @@ export default function Home() {
       )}
 
       {promoPopupOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a]">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Ticket className="w-5 h-5 text-purple-400" />
-              <h2 className="text-lg font-bold text-white">Promo Code</h2>
-            </div>
-            
-            <p className="text-xs text-gray-400 mb-4 text-center">
-              Enter your promo code below to claim special rewards!
-            </p>
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-[#0d0d0d] rounded-[24px] p-6 w-full max-w-[320px] border border-white/5 relative shadow-2xl overflow-hidden"
+          >
+            <div className="relative z-10 pt-2">
+              <h2 className="text-xl font-black text-white text-center mb-1 uppercase tracking-tight">Promo code</h2>
+              <p className="text-[11px] text-zinc-400 text-center mb-4 font-bold leading-relaxed px-1">
+                Enter your promo code below to claim special rewards!
+              </p>
 
-            <div className="space-y-4">
-              <Input
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="ENTER CODE"
-                className="bg-[#1a1a1a] border-[#333] text-white font-bold text-center h-12 rounded-xl focus:border-purple-500 transition-all uppercase placeholder:text-gray-600"
-              />
-              
-              <div className="flex gap-3">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Enter code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="bg-white/5 border-white/10 h-11 rounded-xl text-white text-center font-black uppercase tracking-widest placeholder:text-zinc-600 text-sm"
+                />
+                
                 <Button
-                  onClick={() => setPromoPopupOpen(false)}
-                  variant="outline"
-                  className="flex-1 bg-transparent border-[#333] text-white rounded-xl h-12"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleApplyPromo}
+                  onClick={() => promoCode.trim() && redeemPromoMutation.mutate(promoCode.trim())}
                   disabled={isApplyingPromo || !promoCode.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl h-12 shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                  className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-white/5 transition-all"
                 >
-                  {isApplyingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Claim'}
+                  {isApplyingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : "REDEEM"}
                 </Button>
+
+                <div className="pt-3 border-t border-white/5 mt-2">
+                  <p className="text-[9px] text-zinc-500 text-center mb-2 font-black uppercase tracking-wider opacity-60">
+                    Join our telegram channel for more gift codes!
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open("https://t.me/PaidAdzGroup", "_blank")}
+                      className="flex-1 h-10 bg-blue-500/10 border-blue-500/20 hover:bg-blue-500/20 text-blue-400 rounded-lg font-black text-[10px] uppercase tracking-wider gap-1"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Join
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setPromoPopupOpen(false)}
+                      className="h-10 px-4 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
