@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 interface User {
   id: string;
   balance: string;
+  tonBalance?: string;
   usdBalance?: string;
   bugBalance?: string;
   friendsInvited?: number;
@@ -24,6 +25,7 @@ interface User {
   adsWatched?: number;
   adsWatchedSinceLastWithdrawal?: number;
   referralCode?: string;
+  tonWalletAddress?: string;
 }
 
 interface WithdrawalDetails {
@@ -119,21 +121,72 @@ export default function Withdraw() {
     },
   });
 
+  const saveTonWalletMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/user/wallet", {
+        tonWalletAddress: tonWalletId
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      showNotification("Wallet saved successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      refetchUser();
+      setTonWalletId('');
+    },
+    onError: (error: Error) => {
+      showNotification(error.message, "error");
+    },
+  });
+
+  const changeTonWalletMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/user/wallet/change", {
+        tonWalletAddress: newTonWalletId
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      showNotification("Wallet changed successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      refetchUser();
+      setNewTonWalletId('');
+      setIsChangingTonWallet(false);
+    },
+    onError: (error: Error) => {
+      showNotification(error.message, "error");
+    },
+  });
+
+  const handleSaveTonWallet = () => {
+    if (!tonWalletId.trim()) {
+      showNotification("Please enter a wallet address", "error");
+      return;
+    }
+    saveTonWalletMutation.mutate();
+  };
+
+  const handleChangeTonWallet = () => {
+    if (!newTonWalletId.trim()) {
+      showNotification("Please enter a new wallet address", "error");
+      return;
+    }
+    changeTonWalletMutation.mutate();
+  };
+
   const hasPendingWithdrawal = withdrawalsResponse?.withdrawals?.some(w => w.status === 'pending') || false;
   const isTonWalletSet = !!user?.tonWalletAddress;
   const tonWalletAddress = user?.tonWalletAddress || '';
-
-  const getWithdrawalTONAmount = () => {
-    if (selectedPackage === 'FULL') {
-      return tonBalance;
-    }
-    return Number(selectedPackage) || 0;
-  };
 
   const walletChangeFee = appSettings?.walletChangeFee || 5000;
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
+  
+  const MINIMUM_ADS_FOR_WITHDRAWAL = appSettings?.minimumAdsForWithdrawal || 10;
+  const MINIMUM_VALID_REFERRALS_REQUIRED = appSettings?.minimumReferralsForWithdrawal || 3;
+  const withdrawalAdRequirementEnabled = appSettings?.withdrawalAdRequirementEnabled !== false;
+  const withdrawalInviteRequirementEnabled = appSettings?.withdrawalInviteRequirementEnabled !== false;
   
   const adsWatchedSinceLastWithdrawal = user?.adsWatchedSinceLastWithdrawal ?? user?.adsWatched ?? 0;
   const hasWatchedEnoughAds = !withdrawalAdRequirementEnabled || adsWatchedSinceLastWithdrawal >= MINIMUM_ADS_FOR_WITHDRAWAL;
@@ -169,17 +222,17 @@ export default function Withdraw() {
     {ton: 0.8}
   ];
   const rawPackages = appSettings?.withdrawalPackages || defaultPackages;
+  const bugPerTON = bugPerUsd * tonPriceUsd;
   const withdrawalPackages = rawPackages.map((pkg: {ton: number, bug?: number}) => ({
     ton: pkg.ton,
-    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPer)
+    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPerTON)
   }));
   
-  // Get the withdrawal amount based on selected package
   const getWithdrawalTONAmount = () => {
     if (selectedPackage === 'FULL') {
       return tonBalance;
     }
-    return selectedPackage;
+    return selectedPackage as number;
   };
 
   const handleWithdraw = () => {
@@ -359,7 +412,7 @@ export default function Withdraw() {
                 <div className="text-xs text-[#aaa]">Select Withdrawal Package</div>
                 
                 <div className="grid grid-cols-3 gap-2">
-                  {withdrawalPackages.map((pkg) => {
+                  {withdrawalPackages.map((pkg: {ton: number, bug: number}) => {
                     const isSelected = selectedPackage === pkg.ton;
                     const canAfford = canAffordPackage(pkg.ton);
                     const hasBug = hasEnoughBugForPackage(pkg.ton);
