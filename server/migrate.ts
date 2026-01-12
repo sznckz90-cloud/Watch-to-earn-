@@ -116,6 +116,10 @@ export async function ensureDatabaseSchema(): Promise<void> {
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_channel_group_verified BOOLEAN DEFAULT false`);
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_membership_check TIMESTAMP`);
       
+      // Add mining fields
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_mining_claim TIMESTAMP DEFAULT NOW()`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS mining_rate DECIMAL(20, 8) DEFAULT '0.00001'`);
+      
       // Alter existing balance columns to new precision (safely handle existing data)
       await db.execute(sql`ALTER TABLE users ALTER COLUMN balance TYPE DECIMAL(20, 0) USING ROUND(balance)`);
       await db.execute(sql`ALTER TABLE users ALTER COLUMN usd_balance TYPE DECIMAL(30, 10)`);
