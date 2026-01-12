@@ -189,7 +189,6 @@ export default function Withdraw() {
   const isTonWalletSet = !!user?.tonWalletAddress;
   const tonWalletAddress = user?.tonWalletAddress || '';
 
-  const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
   
@@ -204,6 +203,7 @@ export default function Withdraw() {
 
   // BUG logic
   const withdrawalBugRequirementEnabled = appSettings?.withdrawalBugRequirementEnabled !== false;
+  const walletChangeFee = appSettings?.walletChangeFee || 5000;
 
   const getBugRequirementForAmount = (tonAmount: number) => {
     return Math.ceil(tonAmount * tonPriceUsd * bugPerUsd);
@@ -331,7 +331,7 @@ export default function Withdraw() {
   return (
     <Layout>
       <div className="flex flex-col h-full overflow-hidden">
-        <main className="flex-1 overflow-y-auto px-4 pt-3 scrollbar-hide pb-24">
+        <main className="flex-1 overflow-y-auto px-4 pt-3 scrollbar-hide pb-2">
         <div className="flex gap-3 mb-4">
           <Button
             type="button"

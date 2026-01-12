@@ -1197,8 +1197,8 @@ export default function Home() {
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide pb-24">
-              <TabsContent value="tasks" className="mt-0 outline-none pb-4">
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide pb-0">
+              <TabsContent value="tasks" className="mt-0 outline-none pb-0">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-3">
@@ -1307,8 +1307,8 @@ export default function Home() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="referrals" className="mt-0 outline-none">
-                <div className="flex flex-col items-center text-center pt-4 pb-8">
+              <TabsContent value="referrals" className="mt-0 outline-none pb-0">
+                <div className="flex flex-col items-center text-center pt-4 pb-2">
                   <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
                   <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
                     10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
