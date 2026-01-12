@@ -1082,7 +1082,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
+      <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-none px-4 pt-4">
           {/* Unified Profile & Balance Section */}
           <div className="bg-[#0d0d0d] rounded-none p-3 border border-white/5 mb-4 relative">
@@ -1198,15 +1198,15 @@ export default function Home() {
             </div>
 
             <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide pb-24">
-              <TabsContent value="tasks" className="mt-0 outline-none">
-                <div className="space-y-4 pb-4">
+              <TabsContent value="tasks" className="mt-0 outline-none pb-4">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
                       <h2 className="text-lg font-black text-white uppercase tracking-tight">Active Tasks</h2>
                     </div>
                     <div className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider tabular-nums">
-                      {unifiedTasksData?.tasks?.length || 0} Available
+                      {(unifiedTasksData?.tasks?.length || 0) + (adsWatchedToday < dailyLimit ? 1 : 0)} Available
                     </div>
                   </div>
                   
@@ -1264,18 +1264,41 @@ export default function Home() {
                             </div>
                           </motion.div>
                         ))
+                      ) : adsWatchedToday < dailyLimit ? (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="py-16 px-6 text-center bg-zinc-900/30 rounded-3xl border border-white/5"
+                        >
+                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
+                            <Film className="w-10 h-10 text-blue-400 animate-pulse" />
+                          </div>
+                          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">
+                            Ads Available!
+                          </h3>
+                          <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
+                            You've finished the one-time missions! Now watch your daily ads above to reach your goal.
+                          </p>
+                          <Button 
+                            variant="link" 
+                            className="mt-4 text-blue-400 font-black uppercase text-xs tracking-widest"
+                            onClick={() => document.querySelector('button')?.scrollIntoView({ behavior: 'smooth' })}
+                          >
+                            Go to Ads ↑
+                          </Button>
+                        </motion.div>
                       ) : (
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="py-16 px-6 text-center"
+                          className="py-16 px-6 text-center bg-zinc-900/30 rounded-3xl border border-white/5"
                         >
-                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
-                            <Check className="w-10 h-10 text-white/20" />
+                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
+                            <Check className="w-10 h-10 text-green-400" />
                           </div>
                           <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
                           <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
-                            You've completed all available missions. Check back soon for new opportunities to earn!
+                            You've completed all available opportunities. Check back later for more!
                           </p>
                         </motion.div>
                       )}

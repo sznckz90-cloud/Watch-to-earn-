@@ -96,19 +96,71 @@ export default function Withdraw() {
     staleTime: 0,
   });
 
+  const isLoadingRequirements = isLoadingReferrals || withdrawalsLoading;
+
+  const withdrawMutation = useMutation({
+    mutationFn: async () => {
+      const withdrawAmount = getWithdrawalTONAmount();
+      const res = await apiRequest("POST", "/api/withdrawals", {
+        method: selectedMethod,
+        amount: withdrawAmount
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      showNotification("Withdrawal request submitted successfully", "success");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/withdrawals"] });
+      refetchUser();
+      refetchWithdrawals();
+    },
+    onError: (error: Error) => {
+      showNotification(error.message, "error");
+    },
+  });
+
+  const hasPendingWithdrawal = withdrawalsResponse?.withdrawals?.some(w => w.status === 'pending') || false;
+  const isTonWalletSet = !!user?.tonWalletAddress;
+  const tonWalletAddress = user?.tonWalletAddress || '';
+
+  const getWithdrawalTONAmount = () => {
+    if (selectedPackage === 'FULL') {
+      return tonBalance;
+    }
+    return Number(selectedPackage) || 0;
+  };
+
   const walletChangeFee = appSettings?.walletChangeFee || 5000;
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
   
-  const withdrawalAdRequirementEnabled = appSettings?.withdrawalAdRequirementEnabled === true;
-  const MINIMUM_ADS_FOR_WITHDRAWAL = appSettings?.minimumAdsForWithdrawal ?? 100;
-  const withdrawalInviteRequirementEnabled = appSettings?.withdrawalInviteRequirementEnabled === true;
-  const MINIMUM_VALID_REFERRALS_REQUIRED = appSettings?.minimumInvitesForWithdrawal ?? 3;
-  
-  // Dynamic BUG requirement: scales with selected package or full balance
+  const adsWatchedSinceLastWithdrawal = user?.adsWatchedSinceLastWithdrawal ?? user?.adsWatched ?? 0;
+  const hasWatchedEnoughAds = !withdrawalAdRequirementEnabled || adsWatchedSinceLastWithdrawal >= MINIMUM_ADS_FOR_WITHDRAWAL;
+  const hasEnoughReferrals = !withdrawalInviteRequirementEnabled || validReferralCount >= MINIMUM_VALID_REFERRALS_REQUIRED;
+
+  // BUG logic
   const withdrawalBugRequirementEnabled = appSettings?.withdrawalBugRequirementEnabled !== false;
-  const bugPer = appSettings?.bugPer ?? 10000;
+  const bugPerUsd = appSettings?.bugPerUsd || 10000;
+  const tonPriceUsd = appSettings?.tonPriceUsd || 5; // Default if not set
+
+  const getBugRequirementForAmount = (tonAmount: number) => {
+    return Math.ceil(tonAmount * tonPriceUsd * bugPerUsd);
+  };
+
+  const getWithdrawalUsdAmount = () => {
+    const tonAmount = getWithdrawalTONAmount();
+    return tonAmount * tonPriceUsd;
+  };
+
+  const getPackageBugRequirement = () => {
+    return getBugRequirementForAmount(getWithdrawalTONAmount());
+  };
+
+  const minimumBugForWithdrawal = getPackageBugRequirement();
+  const hasEnoughBug = !withdrawalBugRequirementEnabled || bugBalance >= minimumBugForWithdrawal;
+
+  const withdrawalsData = withdrawalsResponse?.withdrawals || [];
   
   // Withdrawal packages from admin settings - compute BUG requirements using bugPerTON
   const defaultPackages = [
@@ -174,14 +226,14 @@ export default function Withdraw() {
   
   // Check if user can afford a package
   const canAffordPackage = (pkgTON: number | 'FULL') => {
-    if (pkg === 'FULL') return tonBalance > 0;
+    if (pkgTON === 'FULL') return tonBalance > 0;
     return tonBalance >= pkgTON;
   };
   
   // Check if user has enough BUG for a package - use consistent bugPer calculation
   const hasEnoughBugForPackage = (pkgTON: number | 'FULL') => {
     if (!withdrawalBugRequirementEnabled) return true;
-    const tonAmount = pkg === 'FULL' ? tonBalance : pkgTON;
+    const tonAmount = pkgTON === 'FULL' ? tonBalance : pkgTON;
     const required = getBugRequirementForAmount(tonAmount);
     return bugBalance >= required;
   };
@@ -223,7 +275,8 @@ export default function Withdraw() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-3">
+      <div className="flex flex-col h-full overflow-hidden">
+        <main className="flex-1 overflow-y-auto px-4 pt-3 scrollbar-hide pb-24">
         <div className="flex gap-3 mb-4">
           <Button
             type="button"
@@ -629,7 +682,8 @@ export default function Withdraw() {
           </div>
         )}
 
-      </main>
+        </main>
+      </div>
     </Layout>
   );
 }
