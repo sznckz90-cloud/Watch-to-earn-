@@ -81,6 +81,17 @@ export default function Withdraw() {
     refetchOnMount: true,
   });
 
+  const tonBalance = parseFloat(user?.tonBalance || "0");
+  const bugPerUsd = appSettings?.bugPerUsd || 10000;
+  const tonPriceUsd = appSettings?.tonPriceUsd || 5;
+
+  const getWithdrawalTONAmount = () => {
+    if (selectedPackage === 'FULL') {
+      return tonBalance;
+    }
+    return typeof selectedPackage === 'number' ? selectedPackage : 0;
+  };
+
   const { data: validReferralData, isLoading: isLoadingReferrals, isFetched: isReferralsFetched } = useQuery<{ validReferralCount: number }>({
     queryKey: ['/api/referrals/valid-count'],
     retry: false,
@@ -178,7 +189,6 @@ export default function Withdraw() {
   const isTonWalletSet = !!user?.tonWalletAddress;
   const tonWalletAddress = user?.tonWalletAddress || '';
 
-  const walletChangeFee = appSettings?.walletChangeFee || 5000;
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const bugBalance = parseFloat(user?.bugBalance || "0");
   const validReferralCount = validReferralData?.validReferralCount ?? 0;
@@ -194,8 +204,6 @@ export default function Withdraw() {
 
   // BUG logic
   const withdrawalBugRequirementEnabled = appSettings?.withdrawalBugRequirementEnabled !== false;
-  const bugPerUsd = appSettings?.bugPerUsd || 10000;
-  const tonPriceUsd = appSettings?.tonPriceUsd || 5; // Default if not set
 
   const getBugRequirementForAmount = (tonAmount: number) => {
     return Math.ceil(tonAmount * tonPriceUsd * bugPerUsd);
@@ -213,7 +221,7 @@ export default function Withdraw() {
   const minimumBugForWithdrawal = getPackageBugRequirement();
   const hasEnoughBug = !withdrawalBugRequirementEnabled || bugBalance >= minimumBugForWithdrawal;
 
-  const withdrawalsData = withdrawalsResponse?.withdrawals || [];
+  const withdrawalsData = Array.isArray(withdrawalsResponse?.withdrawals) ? withdrawalsResponse.withdrawals : [];
   
   // Withdrawal packages from admin settings - compute BUG requirements using bugPerTON
   const defaultPackages = [
@@ -221,20 +229,13 @@ export default function Withdraw() {
     {ton: 0.4},
     {ton: 0.8}
   ];
-  const rawPackages = appSettings?.withdrawalPackages || defaultPackages;
+  const rawPackages = Array.isArray(appSettings?.withdrawalPackages) ? appSettings.withdrawalPackages : defaultPackages;
   const bugPerTON = bugPerUsd * tonPriceUsd;
   const withdrawalPackages = rawPackages.map((pkg: {ton: number, bug?: number}) => ({
-    ton: pkg.ton,
-    bug: pkg.bug ?? Math.ceil(pkg.ton * bugPerTON)
+    ton: pkg.ton || 0,
+    bug: pkg.bug ?? Math.ceil((pkg.ton || 0) * bugPerTON)
   }));
   
-  const getWithdrawalTONAmount = () => {
-    if (selectedPackage === 'FULL') {
-      return tonBalance;
-    }
-    return selectedPackage as number;
-  };
-
   const handleWithdraw = () => {
     if (!isTonWalletSet) {
       showNotification("Please set up your $wallet first", "error");
@@ -268,7 +269,7 @@ export default function Withdraw() {
     withdrawMutation.mutate();
   };
 
-  const paymentSystems = getPaymentSystems(appSettings);
+  const paymentSystems = Array.isArray(getPaymentSystems(appSettings)) ? getPaymentSystems(appSettings) : [];
   const selectedPaymentSystem = paymentSystems.find(p => p.id === selectedMethod);
   
   const calculateWithdrawalAmount = () => {
@@ -292,7 +293,7 @@ export default function Withdraw() {
   };
 
   const getStatusIcon = (status: string) => {
-    const lowerStatus = status.toLowerCase();
+    const lowerStatus = (status || '').toLowerCase();
     if (lowerStatus.includes('approved') || lowerStatus.includes('success') || lowerStatus.includes('paid')) {
       return <CheckCircle className="w-4 h-4 text-green-500" />;
     } else if (lowerStatus.includes('reject')) {
@@ -304,7 +305,7 @@ export default function Withdraw() {
   };
 
   const getStatusColor = (status: string) => {
-    const lowerStatus = status.toLowerCase();
+    const lowerStatus = (status || '').toLowerCase();
     if (lowerStatus.includes('approved') || lowerStatus.includes('success') || lowerStatus.includes('paid')) {
       return 'text-green-500';
     } else if (lowerStatus.includes('reject')) {
@@ -315,15 +316,16 @@ export default function Withdraw() {
     return 'text-gray-500';
   };
 
-  const formatTon = (amount: string) => {
-    return parseFloat(amount).toFixed(2);
+  const formatTon = (amount: any) => {
+    const val = parseFloat(amount);
+    return isNaN(val) ? "0.00" : val.toFixed(2);
   };
 
   const getFullAmount = (withdrawal: Withdrawal): string => {
-    if (typeof withdrawal.details === 'object' && withdrawal.details?.totalDeducted) {
-      return withdrawal.details.totalDeducted;
+    if (withdrawal?.details && typeof withdrawal.details === 'object' && 'totalDeducted' in (withdrawal.details as any)) {
+      return (withdrawal.details as any).totalDeducted || withdrawal.amount;
     }
-    return withdrawal.amount;
+    return withdrawal?.amount || "0";
   };
 
   return (
@@ -566,13 +568,13 @@ export default function Withdraw() {
                             {formatTon(getFullAmount(withdrawal))} TON
                           </p>
                           <p className="text-xs text-gray-500">
-                            {format(new Date(withdrawal.createdAt), 'MMM dd, yyyy')}
+                            {withdrawal?.createdAt ? format(new Date(withdrawal.createdAt), 'MMM dd, yyyy') : 'Recently'}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className={`text-xs font-medium capitalize ${getStatusColor(withdrawal.status)}`}>
-                          {withdrawal.status}
+                        <span className={`text-xs font-medium capitalize ${getStatusColor(withdrawal.status || 'pending')}`}>
+                          {withdrawal.status || 'pending'}
                         </span>
                         <p className="text-xs text-gray-500">
                           {withdrawal.method || ''}
@@ -600,7 +602,7 @@ export default function Withdraw() {
                     <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center">
                       <img src="/images/ton.png" alt="" className="w-6 h-6 object-cover" />
                     </div>
-                    <span className="text-white truncate">{isTonWalletSet ? shortenAddress(tonWalletId) : ' Wallet'}</span>
+                    <span className="text-white truncate">{isTonWalletSet ? shortenAddress(tonWalletAddress) : 'Wallet'}</span>
                   </div>
                 </button>
               </div>
@@ -619,7 +621,7 @@ export default function Withdraw() {
                   <label className="text-xs text-[#c0c0c0]">Current Wallet</label>
                   <Input
                     type="text"
-                    value={tonWalletId}
+                    value={tonWalletAddress}
                     disabled={true}
                     className="bg-[#0d0d0d] border-white/20 text-white placeholder:text-[#808080] focus:border-[#4cd3ff] transition-colors rounded-lg h-11 disabled:opacity-60 disabled:cursor-not-allowed"
                   />
