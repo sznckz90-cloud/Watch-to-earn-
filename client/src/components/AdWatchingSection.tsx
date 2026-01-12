@@ -183,7 +183,7 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
             <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">Watch Daily Ads</h3>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-[13px] font-black text-white">+{adsWatchedToday}</span>
+                <span className={`text-[13px] font-black ${adsWatchedToday >= dailyLimit ? 'text-green-400' : 'text-white'}`}>+{adsWatchedToday}</span>
                 <span className="text-[13px] font-black text-white/40">/ {dailyLimit}</span>
               </div>
             </div>
