@@ -10,11 +10,13 @@ import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
 import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
+import { TonCoinIcon } from "@/components/TonCoinIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { showNotification } from "@/components/AppNotification";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -1080,7 +1082,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
         <div className="flex-none px-4 pt-4">
           {/* Unified Profile & Balance Section */}
           <div className="bg-[#0d0d0d] rounded-none p-3 border border-white/5 mb-4 relative">
@@ -1172,8 +1174,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-          <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col">
+          <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0">
             <div className="px-4 flex-none">
               <TabsList className="grid w-full grid-cols-2 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
                 <TabsTrigger 
@@ -1195,9 +1197,9 @@ export default function Home() {
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide pb-24">
               <TabsContent value="tasks" className="mt-0 outline-none">
-                <div className="space-y-4">
+                <div className="space-y-4 pb-4">
                   <div className="flex items-center justify-between px-1">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
@@ -1519,96 +1521,97 @@ export default function Home() {
       )}
 
       {convertPopupOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a]">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <RefreshCw className="w-5 h-5 text-[#4cd3ff]" />
-              <h2 className="text-lg font-bold text-white">Convert Hrum</h2>
-            </div>
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-[#0d0d0d] rounded-[24px] p-6 w-full max-w-[320px] border border-white/5 relative shadow-2xl overflow-hidden"
+          >
+            <div className="relative z-10 pt-2">
+              <h2 className="text-xl font-black text-white text-center mb-1 uppercase tracking-tight">Exchange Hrum for TON</h2>
+              <p className="text-[11px] text-zinc-400 text-center mb-4 font-bold leading-relaxed px-1">
+                Convert your earned Hrum into TON cryptocurrency instantly.
+              </p>
 
-            <div className="flex bg-[#1a1a1a] p-1 rounded-xl mb-6">
-              <button
-                onClick={() => setSelectedConvertType('')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
-              >
-                TO TON
-              </button>
-              <button
-                onClick={() => setSelectedConvertType('')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'}`}
-              >
-                TO TON
-              </button>
-              <button
-                onClick={() => setSelectedConvertType('BUG')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'BUG' ? 'bg-green-600 text-white shadow-lg' : 'text-gray-400'}`}
-              >
-                TO BUG
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-gray-500 mb-1.5 block ml-1 uppercase font-bold tracking-wider">Amount to Convert</label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={convertAmount}
-                    onChange={(e) => setConvertAmount(e.target.value)}
-                    placeholder="0"
-                    className="bg-[#1a1a1a] border-[#333] text-white font-bold h-14 rounded-xl pl-12 focus:border-[#4cd3ff] transition-all"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                    <DiamondIcon size={18} />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Amount (Hrum):</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={convertAmount}
+                      onChange={(e) => setConvertAmount(e.target.value)}
+                      className="bg-white/5 border-white/10 h-11 rounded-xl text-white pl-4 pr-10 font-black text-sm focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10">
+                        <img 
+                          src="/images/hrum-logo.jpg" 
+                          alt="Hrum" 
+                          className="w-full h-full object-cover scale-150"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => setConvertAmount(padBalance.toString())}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#4cd3ff] hover:text-white transition-colors"
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase">Bal: {parseFloat((user as User)?.balance || '0').toLocaleString()}</span>
+                    <button 
+                      onClick={() => setConvertAmount((user as User)?.balance || '0')}
+                      className="text-[9px] font-black text-blue-500 uppercase hover:text-blue-400"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">To receive (TON):</Label>
+                  <div className="relative">
+                    <div className="bg-white/5 border border-white/10 text-white h-11 rounded-xl pl-4 pr-10 font-black text-sm flex items-center">
+                      {(Number(convertAmount || 0) / 10000).toFixed(4)}
+                    </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10 flex items-center justify-center bg-[#0088CC]">
+                        <img 
+                          src="/images/ton-logo.png" 
+                          alt="TON" 
+                          className="w-full h-full object-contain scale-125"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    onClick={() => convertMutation.mutate({ amount: Number(convertAmount), convertTo: 'TON' })}
+                    disabled={convertMutation.isPending || !convertAmount || Number(convertAmount) <= 0}
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5"
                   >
-                    MAX
-                  </button>
+                    {convertMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Swap Now"
+                    )}
+                  </Button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-2 ml-1">
-                  Balance: <span className="text-white">{padBalance.toLocaleString()} Hrum</span>
-                </p>
-              </div>
 
-              <div className="bg-[#1a1a1a]/50 border border-white/5 rounded-xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Estimated Value</span>
-                  <span className="text-white font-bold">
-                    {selectedConvertType === '' 
-                      ? ` ${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
-                      : selectedConvertType === ''
-                        ? `${(parseFloat(convertAmount || "0") / (appSettings?.padToTonRate || 1000000)).toFixed(4)} TON`
-                        : `${(parseFloat(convertAmount || "0") / (appSettings?.padToBugRate || 1000)).toFixed(2)} BUG`
-                    }
-                  </span>
+                <div className="pt-3 border-t border-white/5 mt-1">
+                  <p className="text-[9px] text-zinc-500 text-center mb-2 font-black uppercase tracking-wider opacity-60">
+                    Rate: 10,000 Hrum = 1 TON
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setConvertPopupOpen(false)}
+                    className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
+                  >
+                    Close
+                  </Button>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Fee</span>
-                  <span className="text-white font-bold">0.00%</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setConvertPopupOpen(false)}
-                  variant="outline"
-                  className="flex-1 bg-transparent border-[#333] text-white rounded-xl h-14"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleConvertConfirm}
-                  disabled={isConverting || convertMutation.isPending || !convertAmount}
-                  className="flex-1 bg-[#4cd3ff] hover:bg-[#3db8e0] text-black font-bold rounded-xl h-14 shadow-[0_0_20px_rgba(76,211,255,0.3)]"
-                >
-                  {isConverting || convertMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Convert'}
-                </Button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
