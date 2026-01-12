@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAdmin } from "@/hooks/useAdmin";
 import { motion, AnimatePresence } from "framer-motion";
-import { HeartHandshake, CircleDollarSign, User, Plus } from "lucide-react";
+import { ShoppingCart, CircleDollarSign, User, Plus, LayoutDashboard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import { useSeasonEnd } from "@/lib/SeasonEndContext";
@@ -28,6 +28,8 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const navItems = [
+    { href: "/shop", icon: ShoppingCart, label: "SHOP" },
+    { href: "/", icon: LayoutDashboard, label: "EARN" },
     { href: "/withdraw", icon: CircleDollarSign, label: "PAYOUT" },
   ];
 
@@ -39,7 +41,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="h-screen w-full flex flex-col bg-black overflow-hidden">
       <Header />
-      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: '90px', paddingTop: '64px' }}>
+      <div className="flex-1 overflow-hidden" style={{ paddingTop: '64px', paddingBottom: '85px' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location}
@@ -61,36 +63,6 @@ export default function Layout({ children }: LayoutProps) {
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-[#1A1A1A] pb-[env(safe-area-inset-bottom,12px)]">
           <div className="max-w-md mx-auto px-4">
             <div className="flex justify-around items-center py-2.5 pb-3">
-              {/* WATCH with Profile Photo */}
-              <Link href="/">
-                <button
-                  className={`flex flex-col items-center justify-center min-w-[60px] min-h-[52px] transition-all ${
-                    isHomeActive 
-                      ? "text-[#007BFF]" 
-                      : "text-[#AAAAAA] hover:text-[#FFFFFF]"
-                  }`}
-                >
-                  {userPhotoUrl ? (
-                    <img 
-                      src={userPhotoUrl} 
-                      alt="Profile" 
-                      className={`w-7 h-7 rounded-full object-cover transition-all mb-[8px] ${
-                        isHomeActive ? "ring-2 ring-[#007BFF]" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div className={`w-7 h-7 rounded-full bg-[#2a2a2a] flex items-center justify-center mb-[8px] ${
-                      isHomeActive ? "ring-2 ring-[#007BFF]" : ""
-                    }`}>
-                      <User className="w-4 h-4" />
-                    </div>
-                  )}
-                  <span className={`text-[11px] font-medium ${isHomeActive ? 'font-semibold' : ''}`}>
-                    EARN
-                  </span>
-                </button>
-              </Link>
-
               {navItems.map((item) => {
                 const isActive = location === item.href;
                 const Icon = item.icon;
