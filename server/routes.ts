@@ -2842,7 +2842,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Withdrawal packages
         withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
         // Legacy fields for backwards compatibility
-        minWithdrawalAmount: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')),
         taskPerClickReward: parseInt(getSetting('channel_task_reward', '30')),
         taskCreationCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')),
         minimumConvert: parseInt(getSetting('minimum_convert_pad', '100')) / 10000,
@@ -4298,7 +4297,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .select({ 
             balance: users.balance,
             tonBalance: users.tonBalance,
-            tonBalance: users.tonBalance,
             bugBalance: users.bugBalance
           })
           .from(users)
@@ -4892,8 +4890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get user data to check if admin early for partner task validation
       const [userData] = await db
         .select({ 
-          tonBalance: users.tonBalance, 
-          tonBalance: users.tonBalance, 
+          tonBalance: users.tonBalance,
           telegram_id: users.telegram_id 
         })
         .from(users)
