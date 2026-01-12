@@ -1080,7 +1080,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="h-screen flex flex-col overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-none px-4 pt-4">
           {/* Unified Profile & Balance Section */}
           <div className="bg-[#0d0d0d] rounded-none p-3 border border-white/5 mb-4 relative">
@@ -1172,18 +1172,10 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col">
-          <Tabs defaultValue="earn" className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <div className="px-4 flex-none">
-              <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
-                <TabsTrigger 
-                  value="earn" 
-                  className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Earn
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
                 <TabsTrigger 
                   value="tasks" 
                   className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
@@ -1203,12 +1195,7 @@ export default function Home() {
               </TabsList>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 pb-20 scrollbar-hide">
-              <TabsContent value="earn" className="mt-0 outline-none">
-                <div className="space-y-4">
-                </div>
-              </TabsContent>
-
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide">
               <TabsContent value="tasks" className="mt-0 outline-none">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-1">
@@ -1335,8 +1322,7 @@ export default function Home() {
             </div>
           </Tabs>
         </div>
-      </main>
-
+      </div>
 
       {boosterPopupOpen && (
         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
