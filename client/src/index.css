@@ -4,40 +4,40 @@
 @tailwind utilities;
 
 :root {
-  --background: #000000;
+  --background: #0E0F12;
   --foreground: #FFFFFF;
-  --card: #111111;
+  --card: #1A1C20;
   --card-foreground: #FFFFFF;
-  --popover: #111111;
+  --popover: #1A1C20;
   --popover-foreground: #FFFFFF;
-  --primary: #007BFF;
+  --primary: #2D6CDF;
   --primary-foreground: #FFFFFF;
-  --secondary: #333333;
-  --secondary-foreground: #CCCCCC;
-  --muted: #1A1A1A;
-  --muted-foreground: #AAAAAA;
-  --accent: #1A1A1A;
+  --secondary: #3A3D44;
+  --secondary-foreground: #8A8D95;
+  --muted: #1A1C20;
+  --muted-foreground: #7A7D85;
+  --accent: #1F2229;
   --accent-foreground: #FFFFFF;
   --destructive: #ef4444;
   --destructive-foreground: #FFFFFF;
-  --border: #2A2A2A;
-  --input: #2A2A2A;
-  --ring: #007BFF;
-  --chart-1: #007BFF;
-  --chart-2: #00A8E8;
-  --chart-3: #00C9A7;
-  --chart-4: #007BFF;
-  --chart-5: #00A8E8;
-  --sidebar: #000000;
+  --border: rgba(47, 50, 56, 0.5);
+  --input: #24262C;
+  --ring: #0098EA;
+  --chart-1: #0098EA;
+  --chart-2: #F5C542;
+  --chart-3: #26D07C;
+  --chart-4: #0098EA;
+  --chart-5: #F5C542;
+  --sidebar: #0E0F12;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #007BFF;
+  --sidebar-primary: #2D6CDF;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1A1A1A;
+  --sidebar-accent: #1F2229;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: #2A2A2A;
-  --sidebar-ring: #007BFF;
+  --sidebar-border: rgba(47, 50, 56, 0.5);
+  --sidebar-ring: #0098EA;
   --font-sans: "Inter", system-ui, sans-serif;
-  --radius: 20px;
+  --radius: 16px;
 }
 
 @layer base {
@@ -48,12 +48,12 @@
   html {
     overflow: hidden;
     height: 100%;
-    background: #000000;
+    background: #0E0F12;
   }
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: #000000;
+    background: #0E0F12;
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
     overflow: hidden;
@@ -72,20 +72,20 @@
   }
 
   input, textarea, select {
-    background-color: #2A2A2A !important;
-    border: 1px solid #333333 !important;
+    background-color: #24262C !important;
+    border: 1px solid rgba(47, 50, 56, 0.5) !important;
     outline: none !important;
     color: #FFFFFF !important;
     border-radius: 12px !important;
   }
 
   input::placeholder, textarea::placeholder {
-    color: #888888 !important;
+    color: #7A7D85 !important;
   }
 
   input:focus, textarea:focus, select:focus {
-    border: 1px solid #007BFF !important;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1) !important;
+    border: 1px solid #0098EA !important;
+    box-shadow: 0 0 0 3px rgba(0, 152, 234, 0.1) !important;
     outline: none !important;
   }
 
@@ -118,39 +118,39 @@
 
 /* Minimal Dark Theme Card Styling */
 .minimal-card {
-  background: #111111;
-  border: 1px solid #1A1A1A;
-  border-radius: 20px;
+  background: #1A1C20;
+  border: 1px solid rgba(47, 50, 56, 0.5);
+  border-radius: 16px;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .minimal-card-inner {
-  background: #1A1A1A;
-  border-radius: 16px;
-  border: 1px solid #2A2A2A;
+  background: #24262C;
+  border-radius: 12px;
+  border: 1px solid rgba(47, 50, 56, 0.5);
 }
 
 /* Task Box Styling (like reference image) */
 .task-box {
-  background: #1A1A1A;
+  background: #1A1C20;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid #2A2A2A;
+  border: 1px solid rgba(47, 50, 56, 0.5);
 }
 
 /* Primary Button Styling */
 .btn-primary {
-  background: #007BFF;
+  background: #2D6CDF;
   color: #FFFFFF;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #0056b3;
+  background: #2458b8;
   transform: translateY(-1px);
 }
 
@@ -159,36 +159,45 @@
 }
 
 .btn-primary:disabled {
-  background: #333333;
-  color: #888888;
+  background: #3A3D44;
+  color: #8A8D95;
   cursor: not-allowed;
 }
 
 /* Secondary/Inactive Button */
 .btn-secondary {
-  background: #333333;
-  color: #CCCCCC;
+  background: #3A3D44;
+  color: #8A8D95;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   font-weight: 500;
 }
 
 /* Badge Styling */
 .reward-badge {
-  background: rgba(0, 123, 255, 0.15);
-  border: 1px solid rgba(0, 123, 255, 0.3);
+  background: rgba(0, 152, 234, 0.15);
+  border: 1px solid rgba(0, 152, 234, 0.3);
   border-radius: 8px;
   padding: 4px 12px;
-  color: #007BFF;
+  color: #0098EA;
   font-weight: 600;
   font-size: 14px;
 }
 
 /* Remove all diamond/glow effects */
 .frosted-glass, .diamond-glow, .neon-glow-border, .neon-glow-border-strong {
-  background: #111111 !important;
-  border: 1px solid #1A1A1A !important;
+  background: #1A1C20 !important;
+  border: 1px solid rgba(47, 50, 56, 0.5) !important;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Icon Background Utility */
+.icon-container {
+  background-color: #1F2229;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Animation utilities */
