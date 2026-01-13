@@ -1103,8 +1103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bugPerUsd,
         withdrawalBugRequirementEnabled,
         activePromoCode,
-        // Withdrawal packages (JSON array of {usd, bug} objects)
-        withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
+        // Withdrawal packages (JSON array of {ton, bug} objects)
+        withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"ton":0.2,"bug":2000},{"ton":0.4,"bug":4000},{"ton":0.8,"bug":8000}]')),
       });
     } catch (error) {
       console.error("Error fetching app settings:", error);
@@ -2921,7 +2921,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await updateSetting('affiliate_commission', affiliateCommission);
       await updateSetting('wallet_change_fee', walletChangeFee); // Hrum
       await updateSetting('minimum_withdrawal_ton', minWithdrawalAmount); // TON
-      await updateSetting('withdrawal_fee_ton', withdrawalFee); // % fee for TON
+      await updateSetting('withdrawal_fee_ton', withdrawalFeeTON); // % fee for TON
       await updateSetting('channel_task_cost_usd', channelTaskCost); //  (admin only)
       await updateSetting('bot_task_cost_usd', botTaskCost); //  (admin only)
       await updateSetting('channel_task_cost_ton', channelTaskCost); //  (regular users)
@@ -2933,7 +2933,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await updateSetting('minimum_clicks', minimumClicks); // Minimum clicks for task creation
       await updateSetting('season_broadcast_active', seasonBroadcastActive);
       await updateSetting('referral_reward_enabled', referralRewardEnabled);
-      await updateSetting('referral_reward_usd', referralReward);
+      await updateSetting('referral_reward_usd', referralRewardTON);
       await updateSetting('referral_reward_hrum', referralRewardHrum);
       await updateSetting('referral_ads_required', validatedReferralAdsRequired);
       
@@ -5944,30 +5944,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Determine BUG requirement based on package or FULL withdrawal
         const currentUsdBalanceForBug = parseFloat(user.tonBalance || '0');
         let minimumBugForWithdrawal: number;
-        let packageUsdAmount: number | null = null;
+        let packageTONAmount: number | null = null;
         
         if (withdrawalPackage && withdrawalPackage !== 'FULL') {
           // Package-based withdrawal: use package's BUG requirement
-          const selectedPkg = withdrawalPackagesConfig.find((p: any) => p.usd === withdrawalPackage);
+          const selectedPkg = withdrawalPackagesConfig.find((p: any) => p.ton === withdrawalPackage);
           if (!selectedPkg) {
             throw new Error('Invalid withdrawal package selected');
           }
           minimumBugForWithdrawal = selectedPkg.bug;
-          packageUsdAmount = selectedPkg.usd;
+          packageTONAmount = selectedPkg.ton;
           
           // Check if user has enough  balance for this package
-          if (currentUsdBalanceForBug < packageUsdAmount) {
-            throw new Error(`Insufficient balance. You need TON${packageUsdAmount.toFixed(2)} for this package.`);
+          if (currentUsdBalanceForBug < packageTONAmount) {
+            throw new Error(`Insufficient balance. You need ${packageTONAmount.toFixed(2)} TON for this package.`);
           }
         } else {
           // FULL withdrawal: dynamic BUG requirement based on full  balance
-          minimumBugForWithdrawal = Math.ceil(currentUsdBalanceForBug * bugPerUsd);
+          const bugPerTON = bugPerUsd * parseFloat(appSettings.tonPriceUsd || '5');
+          minimumBugForWithdrawal = Math.ceil(currentUsdBalanceForBug * bugPerTON);
         }
         
         const currentBugBalance = parseFloat(user.bugBalance || '0');
         if (withdrawalBugRequirementEnabled && currentBugBalance < minimumBugForWithdrawal) {
           const remaining = minimumBugForWithdrawal - currentBugBalance;
-          const amountStr = packageUsdAmount ? `TON${packageUsdAmount.toFixed(2)}` : `TON${currentUsdBalanceForBug.toFixed(2)}`;
+          const amountStr = packageTONAmount ? `${packageTONAmount.toFixed(2)} TON` : `${currentUsdBalanceForBug.toFixed(2)} TON`;
           throw new Error(`Earn ${remaining.toFixed(0)} more BUG to unlock your ${amountStr} withdrawal. Required: ${minimumBugForWithdrawal.toLocaleString()} BUG.`);
         }
 
@@ -6048,16 +6049,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           withdrawalDetails.stars = starPackage;
           withdrawalDetails.telegramUsername = walletAddress;
         } else {
-          //  or  withdrawal - package-based or FULL balance
-          if (currentUsdBalance <= 0) {
-            throw new Error('Insufficient balance for withdrawal');
-          }
-          
           // Determine the  amount to withdraw based on package selection
           let baseAmount: number;
-          if (packageUsdAmount !== null) {
+          if (packageTONAmount !== null) {
             // Package-based withdrawal: use exact package amount
-            baseAmount = packageUsdAmount;
+            baseAmount = packageTONAmount;
           } else {
             // FULL withdrawal: use full balance
             baseAmount = currentUsdBalance;
@@ -6090,7 +6086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        console.log(`📝 Creating withdrawal request for TON${withdrawalAmount.toFixed(2)}  via ${method} (balance will be deducted on approval)`);
+        console.log(`📝 Creating withdrawal request for ${withdrawalAmount.toFixed(2)} TON via ${method} (balance will be deducted on approval)`);
 
         // Store the fee percentage from admin settings for consistent display
         const feePercentForDetails = method === '' ? feePercent : (method === 'STARS' ? 0.05 : feePercent);
@@ -6114,7 +6110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // NOTE: Balance is NOT deducted here - it will be deducted ONLY when admin approves the withdrawal
         // This prevents "insufficient balance" errors during approval when balance was already deducted at request time
-        console.log(`📋 Withdrawal request created for TON${usdToDeduct.toFixed(2)}  (balance will be deducted on admin approval)`);
+        console.log(`📋 Withdrawal request created for ${usdToDeduct.toFixed(2)} TON (balance will be deducted on admin approval)`);
         
         return { 
           withdrawal, 
