@@ -92,6 +92,11 @@ export default function Withdraw() {
     return typeof selectedPackage === 'number' ? selectedPackage : 0;
   };
 
+  const getWithdrawalUsdAmount = () => {
+    const tonAmount = getWithdrawalTONAmount();
+    return tonAmount * tonPriceUsd;
+  };
+
   const { data: validReferralData, isLoading: isLoadingReferrals, isFetched: isReferralsFetched } = useQuery<{ validReferralCount: number }>({
     queryKey: ['/api/referrals/valid-count'],
     retry: false,
@@ -207,11 +212,6 @@ export default function Withdraw() {
 
   const getBugRequirementForAmount = (tonAmount: number) => {
     return Math.ceil(tonAmount * tonPriceUsd * bugPerUsd);
-  };
-
-  const getWithdrawalUsdAmount = () => {
-    const tonAmount = getWithdrawalTONAmount();
-    return tonAmount * tonPriceUsd;
   };
 
   const getPackageBugRequirement = () => {
@@ -476,10 +476,10 @@ export default function Withdraw() {
                 <div className="pt-3 border-t border-[#2a2a2a] space-y-2">
                   <div>
                     <div className="text-xs text-[#aaa]">You will receive</div>
-                    <div className="text-2xl font-bold text-white" >{calculateWithdrawalAmount().toFixed(2)} TON</div>
+                    <div className="text-2xl font-bold text-white" >{(getWithdrawalTONAmount() * (1 - (selectedPaymentSystem?.fee || 5) / 100)).toFixed(2)} TON</div>
                   </div>
                   <div className="text-xs text-[#aaa]">
-                    {selectedPackage === 'FULL' ? 'Full balance' : `${(selectedPackage as number).toFixed(2)} TON`} withdrawal ({selectedPaymentSystem?.fee}% fee deducted)
+                    {selectedPackage === 'FULL' ? 'Full balance' : `${(selectedPackage as number).toFixed(2)} TON`} withdrawal ({selectedPaymentSystem?.fee || 5}% fee deducted)
                   </div>
                   <div className="text-xs text-yellow-400/80">
                     Withdrawal method: {selectedMethod}
