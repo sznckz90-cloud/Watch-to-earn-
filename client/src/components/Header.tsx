@@ -30,10 +30,10 @@ export default function Header() {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-black border-b border-[#1A1A1A] pt-[max(env(safe-area-inset-top),20px)]">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-[#0E0F12] border-b border-[#2F3238]/50 pt-[max(env(safe-area-inset-top),20px)]">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-[#121212] px-3 h-8 rounded-lg border border-white/[0.03] min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#1F2229] px-3 h-8 rounded-lg border border-[#2F3238]/30 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {formatBalance(hrumBalance)}
             </span>
@@ -46,7 +46,7 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#121212] px-3 h-8 rounded-lg border border-white/[0.03] min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#1F2229] px-3 h-8 rounded-lg border border-[#2F3238]/30 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {tonBalance.toFixed(2)}
             </span>

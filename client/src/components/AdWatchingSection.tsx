@@ -169,10 +169,10 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="bg-zinc-900/50 border border-white/5 rounded-none px-4 h-[72px] flex items-center">
+    <div className="bg-[#1A1C20] border border-[#2F3238]/50 rounded-[16px] px-4 h-[80px] flex items-center shadow-lg mb-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5 shadow-lg">
+          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30">
             <img 
               src="/images/ads_icon.png" 
               alt="Ads" 
@@ -180,12 +180,11 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">Watch Daily Ads</h3>
-            <div className="flex items-center gap-3 mt-1">
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[13px] font-black ${adsWatchedToday >= dailyLimit ? 'text-green-400' : 'text-white'}`}>+{adsWatchedToday}</span>
-                <span className="text-[13px] font-black text-white/40">/ {dailyLimit}</span>
-              </div>
+            <h3 className="text-white font-bold text-sm tracking-tight truncate">Watch Daily Ads</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className={`text-[12px] font-medium ${adsWatchedToday >= dailyLimit ? 'text-[#26D07C]' : 'text-[#B0B3B8]'}`}>
+                {adsWatchedToday} / {dailyLimit} completed
+              </span>
             </div>
           </div>
         </div>
@@ -193,18 +192,16 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
           <Button
             onClick={handleStartEarning}
             disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-            className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
-              isShowingAds
-                ? "bg-white/5 text-white/40 border border-white/5"
-                : "bg-white text-black hover:bg-gray-200"
-            }`}
+            variant={isShowingAds ? "secondary" : "default"}
+            size="sm"
+            className="rounded-[12px] px-5 font-semibold"
           >
             {isShowingAds ? (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 {currentAdStep === 'verifying' ? (
-                  <Shield className="w-3.5 h-3.5 animate-pulse text-green-400" />
+                  <Shield className="w-3.5 h-3.5 animate-pulse text-[#26D07C]" />
                 ) : (
-                  <Clock className="w-3.5 h-3.5 animate-spin" />
+                  <Clock className="w-3.5 h-3.5 animate-spin text-[#0098EA]" />
                 )}
                 <span>
                   {currentAdStep === 'monetag' ? 'Wait...' : 
@@ -212,7 +209,10 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
                 </span>
               </div>
             ) : (
-              <span>Watch</span>
+              <span className="flex items-center gap-2">
+                <Play className="w-3.5 h-3.5 fill-current" />
+                Watch
+              </span>
             )}
           </Button>
         </div>

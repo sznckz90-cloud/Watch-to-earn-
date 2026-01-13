@@ -39,7 +39,7 @@ export default function Layout({ children }: LayoutProps) {
   const isHomeActive = location === "/";
 
   return (
-    <div className="h-screen w-full flex flex-col bg-black overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-[#0E0F12] overflow-hidden">
       <Header />
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingTop: '64px', paddingBottom: '85px' }}>
         <AnimatePresence mode="wait" initial={false}>
@@ -60,7 +60,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {!showSeasonEnd && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-black border-t border-[#1A1A1A] pb-[env(safe-area-inset-bottom,12px)]">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0E0F12] border-t border-[#2F3238]/50 pb-[env(safe-area-inset-bottom,12px)]">
           <div className="max-w-md mx-auto px-4">
             <div className="flex justify-around items-center py-2.5 pb-3">
               {navItems.map((item) => {
@@ -72,8 +72,8 @@ export default function Layout({ children }: LayoutProps) {
                     <button
                       className={`flex flex-col items-center justify-center min-w-[60px] min-h-[52px] transition-all ${
                         isActive 
-                          ? "text-[#007BFF]" 
-                          : "text-[#AAAAAA] hover:text-[#FFFFFF]"
+                          ? "text-[#0098EA]" 
+                          : "text-[#B0B3B8] hover:text-[#FFFFFF]"
                       }`}
                     >
                       <Icon 
