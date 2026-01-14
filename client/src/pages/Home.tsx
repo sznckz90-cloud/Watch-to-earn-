@@ -1032,11 +1032,11 @@ export default function Home() {
   }, [user?.lastMiningClaim, user?.miningRate]);
 
   const formatMiningBalance = (balance: number) => {
-    const parts = balance.toFixed(5).split('.');
+    const parts = balance.toFixed(6).split('.');
     return (
-      <span className="flex items-baseline">
-        <span className="text-[20px] font-black">{parts[0]}</span>
-        <span className="text-[14px] font-black">.{parts[1]}</span>
+      <span className="text-white font-bold tracking-tighter tabular-nums flex items-baseline">
+        <span className="text-3xl">{parts[0]}</span>
+        <span className="text-xl">.{parts[1]}</span>
       </span>
     );
   };
@@ -1084,69 +1084,26 @@ export default function Home() {
     <Layout>
       <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-none px-4 pt-4">
-          {/* Unified Profile & Balance Section */}
-          <div className="bg-[#1A1C20] rounded-[20px] p-4 border border-[#2F3238]/50 mb-6 relative shadow-xl">
-            <div className="flex justify-between items-center mb-4 relative">
-              <div className="flex items-center gap-3">
-                <div 
-                  className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border border-[#2F3238]/50 bg-[#1F2229] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-[#0098EA]/50' : ''}`}
-                  onClick={() => isAdmin && setLocation("/admin")}
-                >
-                  {photoUrl ? (
-                    <img 
-                      src={photoUrl} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <UserIcon className="w-6 h-6 text-[#7A7D85]" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span 
-                    className={`text-white font-bold text-base leading-none tracking-tight ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
-                    onClick={() => isAdmin && setLocation("/admin")}
-                  >
-                    {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
-                  </span>
-                  <span className="text-[#0098EA] text-[10px] font-bold uppercase tracking-widest mt-1">
-                    ID: {(user as User)?.id?.substring(0, 8) || "N/A"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#24262C] rounded-[16px] p-4 border border-[#2F3238]/30 shadow-lg mb-4 relative overflow-hidden">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-12 h-12 rounded-[12px] overflow-hidden flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30">
-                    <img 
-                      src="/images/hrum-logo.jpg" 
-                      alt="Hrum" 
-                      className="w-full h-full object-cover scale-150"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-white font-bold text-xl leading-none">
-                        {formatMiningBalance(miningBalance)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Unified Balance Section */}
+          <div className="bg-[#1A1C20] rounded-[20px] p-4 border border-[#2F3238]/50 mb-1 relative shadow-xl">
+            <div className="bg-[#24262C] rounded-[16px] p-4 border border-[#2F3238]/30 shadow-lg mb-2 relative overflow-hidden">
+              <div className="flex flex-col items-center gap-4">
+                {formatMiningBalance(miningBalance)}
+                
+                <div className="flex items-center justify-center gap-2 w-full">
                   <Button 
-                    className="h-10 px-6 text-xs font-bold rounded-[12px] bg-[#2D6CDF] hover:bg-[#2458b8] text-white"
+                    variant="outline"
+                    className="flex-1 h-9 px-4 text-xs font-bold rounded-[12px] border-[#2F3238]/50 text-white bg-[#1F2229]"
+                    onClick={() => setBoosterPopupOpen(true)}
+                  >
+                    Boost
+                  </Button>
+                  <Button 
+                    className="flex-1 h-9 px-6 text-xs font-bold rounded-[12px] bg-[#26D07C] hover:bg-[#1fa964] text-white"
                     onClick={() => claimMiningMutation.mutate()}
                     disabled={claimMiningMutation.isPending || miningBalance < 0.001}
                   >
-                    {claimMiningMutation.isPending ? (
-                      <Clock className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <span>Claim</span>
-                    )}
+                    Claim
                   </Button>
                 </div>
               </div>
@@ -1157,7 +1114,7 @@ export default function Home() {
               <Button
                 onClick={handleConvertClick}
                 variant="outline"
-                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-4 text-sm font-bold flex items-center justify-center gap-2 h-auto"
+                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
               >
                 <RefreshCw className="w-4 h-4 text-[#0098EA]" />
                 Convert
@@ -1165,7 +1122,7 @@ export default function Home() {
               <Button
                 onClick={() => setPromoPopupOpen(true)}
                 variant="outline"
-                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-4 text-sm font-bold flex items-center justify-center gap-2 h-auto"
+                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
               >
                 <Ticket className="w-4 h-4 text-[#F5C542]" />
                 Promo
@@ -1177,7 +1134,7 @@ export default function Home() {
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0">
             <div className="px-4 flex-none">
-              <TabsList className="grid w-full grid-cols-2 bg-[#1A1C20] border border-[#2F3238]/50 h-14 p-1 rounded-[16px] mb-6 shadow-inner">
+              <TabsList className="grid w-full grid-cols-2 bg-[#1A1C20] border border-[#2F3238]/50 h-12 p-1 rounded-[16px] mb-2 shadow-inner">
                 <TabsTrigger 
                   value="tasks" 
                   className="flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider rounded-[12px] data-[state=active]:bg-[#24262C] data-[state=active]:text-[#0098EA] data-[state=active]:shadow-lg transition-all h-full"
@@ -1197,8 +1154,8 @@ export default function Home() {
 
             <div className="flex-1 overflow-y-auto min-h-0 px-4 scrollbar-hide pb-0">
               <TabsContent value="tasks" className="mt-0 outline-none pb-0">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between px-1 mb-2">
+                <div className="space-y-2 pt-0">
+                  <div className="flex items-center justify-between px-1 mb-0">
                     <div className="flex items-center gap-3">
                       <div className="w-1.5 h-6 bg-[#0098EA] rounded-full"></div>
                       <h2 className="text-lg font-bold text-white uppercase tracking-tight">Active Tasks</h2>
@@ -1262,64 +1219,29 @@ export default function Home() {
                                       </div>
                                     </motion.div>
                                   ))
-                                ) : adsWatchedToday < dailyLimit ? (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="py-16 px-6 text-center bg-zinc-900/30 rounded-3xl border border-white/5"
-                        >
-                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
-                            <Film className="w-10 h-10 text-blue-400 animate-pulse" />
-                          </div>
-                          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">
-                            Ads Available!
-                          </h3>
-                          <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
-                            You've finished the one-time missions! Now watch your daily ads above to reach your goal.
-                          </p>
-                          <Button 
-                            variant="link" 
-                            className="mt-4 text-blue-400 font-black uppercase text-xs tracking-widest"
-                            onClick={() => document.querySelector('button')?.scrollIntoView({ behavior: 'smooth' })}
-                          >
-                            Go to Ads ↑
-                          </Button>
-                        </motion.div>
-                      ) : (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="py-16 px-6 text-center bg-zinc-900/30 rounded-3xl border border-white/5"
-                        >
-                          <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
-                            <Check className="w-10 h-10 text-green-400" />
-                          </div>
-                          <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
-                          <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
-                            You've completed all available opportunities. Check back later for more!
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                                ) : (
+                                  null
+                                )}
+                              </AnimatePresence>
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="referrals" className="mt-0 outline-none pb-0">
-                <div className="flex flex-col items-center text-center pt-4 pb-2">
-                  <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
-                  <p className="text-[13px] text-[#B0B3B8] mb-5 max-w-[280px] leading-snug">
+                <div className="flex flex-col items-center text-center pt-1 pb-1">
+                  <h2 className="text-xl font-bold text-white mb-0.5">Invite friends and earn</h2>
+                  <p className="text-[13px] text-[#B0B3B8] mb-2 max-w-[280px] leading-snug">
                     10% of their Hrum and When your friend buys a plan you get <span className="font-bold text-[#F5C542]">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
                   </p>
 
-                  <div className="w-full bg-[#24262C] border border-[#2F3238]/50 rounded-[24px] p-5 mb-5 flex justify-around shadow-inner">
-                    <div>
+                  <div className="w-full grid grid-cols-2 gap-3 mb-4">
+                    <div className="bg-[#24262C] border border-[#2F3238]/50 rounded-[16px] p-3 shadow-inner text-center">
                       <p className="text-[10px] text-[#7A7D85] mb-1 uppercase font-bold tracking-wider">User referred</p>
-                      <p className="text-2xl font-bold text-white">{stats?.totalInvites || 0}</p>
+                      <p className="text-lg font-bold text-white">{stats?.totalInvites || 0}</p>
                     </div>
-                    <div>
+                    <div className="bg-[#24262C] border border-[#2F3238]/50 rounded-[16px] p-3 shadow-inner text-center">
                       <p className="text-[10px] text-[#7A7D85] mb-1 uppercase font-bold tracking-wider">Successful</p>
-                      <p className="text-2xl font-bold text-white">{stats?.successfulInvites || 0}</p>
+                      <p className="text-lg font-bold text-white">{stats?.successfulInvites || 0}</p>
                     </div>
                   </div>
 
@@ -1602,11 +1524,11 @@ export default function Home() {
                       {(Number(convertAmount || 0) / 10000).toFixed(4)}
                     </div>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10 flex items-center justify-center bg-[#0088CC]">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
                         <img 
-                          src="/images/ton-logo.png" 
+                          src="/images/ton.png" 
                           alt="TON" 
-                          className="w-full h-full object-contain scale-125"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                     </div>
