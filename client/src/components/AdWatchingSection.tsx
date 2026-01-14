@@ -172,11 +172,11 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
     <div className="bg-[#1A1C20] border border-[#2F3238]/50 rounded-[16px] px-4 h-[80px] flex items-center shadow-lg mb-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30">
+          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30 overflow-hidden">
             <img 
               src="/images/ads_icon.png" 
               alt="Ads" 
-              className="w-8 h-8 object-contain"
+              className="w-full h-full object-cover"
             />
           </div>
           <div className="flex-1 min-w-0">
