@@ -28,7 +28,6 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   const navItems = [
-    { href: "/shop", icon: ShoppingCart, label: "SHOP" },
     { href: "/", icon: LayoutDashboard, label: "EARN" },
     { href: "/withdraw", icon: CircleDollarSign, label: "PAYOUT" },
   ];
@@ -39,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
   const isHomeActive = location === "/";
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#0E0F12] overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-[#1A0D00] overflow-hidden">
       <Header />
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingTop: '64px', paddingBottom: '85px' }}>
         <AnimatePresence mode="wait" initial={false}>
@@ -60,7 +59,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {!showSeasonEnd && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0E0F12] border-t border-[#2F3238]/50 pb-[env(safe-area-inset-bottom,12px)]">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#261400] border-t border-[#B34700]/30 pb-[env(safe-area-inset-bottom,12px)]">
           <div className="max-w-md mx-auto px-4">
             <div className="flex justify-around items-center py-2.5 pb-3">
               {navItems.map((item) => {
@@ -70,17 +69,17 @@ export default function Layout({ children }: LayoutProps) {
                 return (
                   <Link key={item.href} href={item.href}>
                     <button
-                      className={`flex flex-col items-center justify-center min-w-[60px] min-h-[52px] transition-all ${
+                      className={`flex flex-col items-center justify-center min-w-[60px] min-h-[52px] transition-all active:scale-90 ${
                         isActive 
-                          ? "text-[#0098EA]" 
-                          : "text-[#B0B3B8] hover:text-[#FFFFFF]"
+                          ? "text-[#F2B824]" 
+                          : "text-[#D1D5DB] hover:text-[#FFFFFF]"
                       }`}
                     >
                       <Icon 
                         className="w-7 h-7 transition-all mb-[8px]"
                         strokeWidth={isActive ? 2.5 : 2}
                       />
-                      <span className={`text-[11px] font-medium ${isActive ? 'font-semibold' : ''}`}>
+                      <span className={`text-[11px] font-bold ${isActive ? 'text-[#F2B824]' : ''}`}>
                         {item.label}
                       </span>
                     </button>
