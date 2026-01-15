@@ -1,10 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { DiamondIcon } from "@/components/DiamondIcon";
-import { Bug, Settings, User as UserIcon } from "lucide-react";
+import { Bug, Settings, User as UserIcon, Languages } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useState } from "react";
 import { SettingsPopup } from "./SettingsPopup";
+import { useLanguage } from "@/hooks/useLanguage";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   const { data: user } = useQuery<any>({
@@ -15,6 +23,7 @@ export default function Header() {
   const [, setLocation] = useLocation();
   const { isAdmin } = useAdmin();
   const [showSettings, setShowSettings] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const hrumBalance = parseFloat(user?.balance || "0");
@@ -33,12 +42,12 @@ export default function Header() {
   const photoUrl = telegramPhotoUrl || user?.profileImageUrl || user?.profileUrl || null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-[#0E0F12] border-b border-[#2F3238]/50 pt-[max(env(safe-area-inset-top),20px)]">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-[#1A0D00] border-b border-[#B34700]/30 pt-[max(env(safe-area-inset-top),20px)]">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Profile Photo */}
           <div 
-            className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#2F3238]/50 bg-[#1F2229] ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
+            className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#B34700]/30 bg-[#261400] ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
             onClick={() => isAdmin && setLocation("/admin")}
           >
             {photoUrl ? (
@@ -48,11 +57,11 @@ export default function Header() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <UserIcon className="w-4 h-4 text-[#7A7D85]" />
+              <UserIcon className="w-4 h-4 text-[#D1D5DB]" />
             )}
           </div>
 
-          <div className="flex items-center gap-2 bg-[#1F2229] px-3 h-8 rounded-lg border border-[#2F3238]/30 min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#261400] px-3 h-8 rounded-lg border border-[#B34700]/30 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {formatBalance(hrumBalance)}
             </span>
@@ -65,7 +74,7 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#1F2229] px-3 h-8 rounded-lg border border-[#2F3238]/30 min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#261400] px-3 h-8 rounded-lg border border-[#B34700]/30 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {tonBalance.toFixed(2)}
             </span>
@@ -78,6 +87,22 @@ export default function Header() {
             </div>
           </div>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-[#261400] border border-[#B34700]/30">
+              <Languages className="w-4 h-4 text-white" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-[#261400] border-[#B34700]/30 text-white">
+            <DropdownMenuItem onClick={() => setLanguage('en')} className="hover:bg-[#3D1F00]">
+              {t('english')}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLanguage('ru')} className="hover:bg-[#3D1F00]">
+              {t('russian')}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

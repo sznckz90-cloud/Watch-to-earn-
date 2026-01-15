@@ -169,10 +169,10 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="bg-[#1A1C20] border border-[#2F3238]/50 rounded-[16px] px-4 h-[80px] flex items-center shadow-lg mb-4">
+    <div className="bg-[#261400] border border-[#B34700]/30 rounded-[16px] px-4 h-[80px] flex items-center shadow-lg mb-4">
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30 overflow-hidden">
+          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#3D1F00] border border-[#B34700]/30 overflow-hidden">
             <img 
               src="/images/ads_icon.png" 
               alt="Ads" 
@@ -182,7 +182,7 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-bold text-sm tracking-tight truncate">Watch Daily Ads</h3>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[12px] font-medium ${adsWatchedToday >= dailyLimit ? 'text-[#26D07C]' : 'text-[#B0B3B8]'}`}>
+              <span className={`text-[12px] font-bold ${adsWatchedToday >= dailyLimit ? 'text-[#E88A1A]' : 'text-[#D1D5DB]'}`}>
                 {adsWatchedToday} / {dailyLimit} completed
               </span>
             </div>
@@ -194,14 +194,16 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
             disabled={isShowingAds || adsWatchedToday >= dailyLimit}
             variant={isShowingAds ? "secondary" : "default"}
             size="sm"
-            className="rounded-[12px] px-5 font-semibold"
+            className={`rounded-[12px] px-5 font-bold transition-all ${
+              isShowingAds ? "bg-[#3D1F00] text-white" : "bg-[#E88A1A] hover:bg-[#B34700] text-white"
+            }`}
           >
             {isShowingAds ? (
               <div className="flex items-center gap-2">
                 {currentAdStep === 'verifying' ? (
-                  <Shield className="w-3.5 h-3.5 animate-pulse text-[#26D07C]" />
+                  <Shield className="w-3.5 h-3.5 animate-pulse text-[#F2B824]" />
                 ) : (
-                  <Clock className="w-3.5 h-3.5 animate-spin text-[#0098EA]" />
+                  <Clock className="w-3.5 h-3.5 animate-spin text-[#F2B824]" />
                 )}
                 <span>
                   {currentAdStep === 'monetag' ? 'Wait...' : 
