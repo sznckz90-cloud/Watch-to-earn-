@@ -4,38 +4,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #0E0F12;
+  --background: #1A0D00;
   --foreground: #FFFFFF;
-  --card: #1A1C20;
+  --card: #261400;
   --card-foreground: #FFFFFF;
-  --popover: #1A1C20;
+  --popover: #1A0D00;
   --popover-foreground: #FFFFFF;
-  --primary: #2D6CDF;
+  --primary: #E88A1A;
   --primary-foreground: #FFFFFF;
-  --secondary: #3A3D44;
-  --secondary-foreground: #8A8D95;
-  --muted: #1A1C20;
-  --muted-foreground: #7A7D85;
-  --accent: #1F2229;
+  --secondary: #F2B824;
+  --secondary-foreground: #1A0D00;
+  --muted: #3D1F00;
+  --muted-foreground: #D1D5DB;
+  --accent: #B34700;
   --accent-foreground: #FFFFFF;
   --destructive: #ef4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(47, 50, 56, 0.5);
-  --input: #24262C;
-  --ring: #0098EA;
-  --chart-1: #0098EA;
-  --chart-2: #F5C542;
-  --chart-3: #26D07C;
-  --chart-4: #0098EA;
-  --chart-5: #F5C542;
-  --sidebar: #0E0F12;
+  --border: rgba(179, 71, 0, 0.3);
+  --input: #3D1F00;
+  --ring: #F2B824;
+  --chart-1: #E88A1A;
+  --chart-2: #F2B824;
+  --chart-3: #B34700;
+  --chart-4: #E88A1A;
+  --chart-5: #F2B824;
+  --sidebar: #1A0D00;
   --sidebar-foreground: #FFFFFF;
-  --sidebar-primary: #2D6CDF;
+  --sidebar-primary: #E88A1A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1F2229;
+  --sidebar-accent: #3D1F00;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(47, 50, 56, 0.5);
-  --sidebar-ring: #0098EA;
+  --sidebar-border: rgba(179, 71, 0, 0.3);
+  --sidebar-ring: #F2B824;
   --font-sans: "Inter", system-ui, sans-serif;
   --radius: 16px;
 }
@@ -48,12 +48,12 @@
   html {
     overflow: hidden;
     height: 100%;
-    background: #0E0F12;
+    background: #1A0D00;
   }
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: #0E0F12;
+    background: #1A0D00;
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
     overflow: hidden;
