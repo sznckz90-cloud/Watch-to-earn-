@@ -60,11 +60,14 @@ interface User {
   [key: string]: any;
 }
 
+import { useLanguage } from "@/hooks/useLanguage";
+
 export default function Home() {
   const { user, isLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const [isConverting, setIsConverting] = useState(false);
   const [isClaimingStreak, setIsClaimingStreak] = useState(false);
@@ -1085,69 +1088,78 @@ export default function Home() {
       <div className="flex flex-col h-full overflow-hidden">
         <div className="flex-none px-4 pt-4">
           {/* Unified Balance Section */}
-          <div className="bg-[#1A1C20] rounded-[20px] p-4 border border-[#2F3238]/50 mb-1 relative shadow-xl">
-            <div className="bg-[#24262C] rounded-[16px] p-4 border border-[#2F3238]/30 shadow-lg mb-2 relative overflow-hidden">
-              <div className="flex flex-col items-center gap-4">
-                {formatMiningBalance(miningBalance)}
-                
-                <div className="flex items-center justify-center gap-2 w-full">
-                  <Button 
-                    variant="outline"
-                    className="flex-1 h-9 px-4 text-xs font-bold rounded-[12px] border-[#2F3238]/50 text-white bg-[#1F2229]"
-                    onClick={() => setBoosterPopupOpen(true)}
-                  >
-                    Boost
-                  </Button>
-                  <Button 
-                    className="flex-1 h-9 px-6 text-xs font-bold rounded-[12px] bg-[#26D07C] hover:bg-[#1fa964] text-white"
-                    onClick={() => claimMiningMutation.mutate()}
-                    disabled={claimMiningMutation.isPending || miningBalance < 0.001}
-                  >
-                    Claim
-                  </Button>
+            <div className="bg-[#261400] rounded-[20px] p-4 border border-[#B34700]/30 mb-1 relative shadow-xl">
+              <div className="flex items-center justify-center gap-3 mb-3 px-1">
+                <div className="w-1.5 h-6 bg-[#E88A1A] rounded-full"></div>
+                <h2 className="text-lg font-bold text-white uppercase tracking-tight text-center">{t('mining')}</h2>
+                <div className="w-1.5 h-6 bg-[#E88A1A] rounded-full"></div>
+              </div>
+              <div className="bg-[#3D1F00] rounded-[16px] p-4 border border-[#B34700]/30 shadow-lg mb-2 relative overflow-hidden">
+                <div className="flex flex-col items-center gap-4">
+                  {formatMiningBalance(miningBalance)}
+                  
+                  <div className="flex items-center justify-center gap-2 w-full">
+                    <Button 
+                      variant="outline"
+                      className="flex-1 h-9 px-4 text-xs font-bold rounded-[12px] border-[#B34700]/30 text-white bg-[#261400] hover:bg-[#3D1F00]"
+                      onClick={() => setBoosterPopupOpen(true)}
+                    >
+                      {t('speed_boost')}
+                    </Button>
+                    <Button 
+                      className="flex-1 h-9 px-6 text-xs font-bold rounded-[12px] bg-[#E88A1A] hover:bg-[#B34700] text-white shadow-lg shadow-[#E88A1A]/20"
+                      onClick={() => claimMiningMutation.mutate()}
+                      disabled={claimMiningMutation.isPending || miningBalance < 0.001}
+                    >
+                      {t('collect_money')}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={handleConvertClick}
-                variant="outline"
-                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
-              >
-                <RefreshCw className="w-4 h-4 text-[#0098EA]" />
-                Convert
-              </Button>
-              <Button
-                onClick={() => setPromoPopupOpen(true)}
-                variant="outline"
-                className="bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
-              >
-                <Ticket className="w-4 h-4 text-[#F5C542]" />
-                Promo
-              </Button>
+              <div className="mt-2 mb-2">
+                <div className="text-white text-xs font-bold text-center">{t('daily_income')}</div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={handleConvertClick}
+                  variant="outline"
+                  className="bg-[#3D1F00] border-[#B34700]/30 hover:bg-[#261400] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
+                >
+                  <RefreshCw className="w-4 h-4 text-[#F2B824]" />
+                  {t('convert')}
+                </Button>
+                <Button
+                  onClick={() => setPromoPopupOpen(true)}
+                  variant="outline"
+                  className="bg-[#3D1F00] border-[#B34700]/30 hover:bg-[#261400] text-[#FFFFFF] rounded-[16px] py-3 text-sm font-bold flex items-center justify-center gap-2 h-auto"
+                >
+                  <Ticket className="w-4 h-4 text-[#F2B824]" />
+                  {t('promo')}
+                </Button>
+              </div>
             </div>
-          </div>
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col">
           <Tabs defaultValue="tasks" className="flex-1 flex flex-col min-h-0">
             <div className="px-4 flex-none">
-              <TabsList className="grid w-full grid-cols-2 bg-[#1A1C20] border border-[#2F3238]/50 h-12 p-1 rounded-[16px] mb-2 shadow-inner">
+              <TabsList className="grid w-full grid-cols-2 bg-[#261400] border border-[#B34700]/30 h-12 p-1 rounded-[16px] mb-2 shadow-inner">
                 <TabsTrigger 
                   value="tasks" 
-                  className="flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider rounded-[12px] data-[state=active]:bg-[#24262C] data-[state=active]:text-[#0098EA] data-[state=active]:shadow-lg transition-all h-full"
+                  className="flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider rounded-[12px] data-[state=active]:bg-[#3D1F00] data-[state=active]:text-[#F2B824] data-[state=active]:shadow-lg transition-all h-full"
                 >
                   <ClipboardList className="w-4 h-4" />
-                  Tasks
+                  {t('tasks')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="referrals" 
-                  className="flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider rounded-[12px] data-[state=active]:bg-[#24262C] data-[state=active]:text-[#0098EA] data-[state=active]:shadow-lg transition-all h-full"
+                  className="flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider rounded-[12px] data-[state=active]:bg-[#3D1F00] data-[state=active]:text-[#F2B824] data-[state=active]:shadow-lg transition-all h-full"
                 >
                   <HeartHandshake className="w-4 h-4" />
-                  Referrals
+                  {t('referrals')}
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -1157,11 +1169,11 @@ export default function Home() {
                 <div className="space-y-2 pt-0">
                   <div className="flex items-center justify-between px-1 mb-0">
                     <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-6 bg-[#0098EA] rounded-full"></div>
-                      <h2 className="text-lg font-bold text-white uppercase tracking-tight">Active Tasks</h2>
+                      <div className="w-1.5 h-6 bg-[#E88A1A] rounded-full"></div>
+                      <h2 className="text-lg font-bold text-white uppercase tracking-tight">{t('active_tasks')}</h2>
                     </div>
-                    <div className="text-[11px] font-bold text-[#7A7D85] uppercase tracking-wider tabular-nums">
-                      {(unifiedTasksData?.tasks?.length || 0) + (adsWatchedToday < dailyLimit ? 1 : 0)} Available
+                    <div className="text-[11px] font-bold text-[#D1D5DB] uppercase tracking-wider tabular-nums">
+                      {(unifiedTasksData?.tasks?.length || 0) + (adsWatchedToday < dailyLimit ? 1 : 0)} {t('available')}
                     </div>
                   </div>
                   
@@ -1170,7 +1182,7 @@ export default function Home() {
                               <AnimatePresence mode="popLayout">
                                 {isLoadingTasks ? (
                                   <div className="py-12 flex justify-center">
-                                    <Loader2 className="w-8 h-8 text-[#0098EA] animate-spin" />
+                                    <Loader2 className="w-8 h-8 text-[#E88A1A] animate-spin" />
                                   </div>
                                 ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
                                   unifiedTasksData.tasks.map((task) => (
@@ -1178,12 +1190,12 @@ export default function Home() {
                                       key={task.id}
                                       initial={{ opacity: 0, y: 10 }}
                                       animate={{ opacity: 1, y: 0 }}
-                                      className="bg-[#1A1C20] border border-[#2F3238]/50 rounded-[16px] p-4 shadow-lg"
+                                      className="bg-[#261400] border border-[#B34700]/30 rounded-[16px] p-4 shadow-lg"
                                     >
                                       <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                                          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30">
-                                            <span className="text-[#0098EA]">
+                                          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#3D1F00] border border-[#B34700]/30">
+                                            <span className="text-[#F2B824]">
                                               {getTaskIcon(task)}
                                             </span>
                                           </div>
@@ -1191,13 +1203,13 @@ export default function Home() {
                                             <h3 className="text-white font-bold text-sm tracking-tight truncate">{task.title}</h3>
                                             <div className="flex items-center gap-3 mt-1">
                                               <div className="flex items-center gap-1.5">
-                                                <DiamondIcon size={14} className="text-[#F5C542]" />
+                                                <DiamondIcon size={14} className="text-[#F2B824]" />
                                                 <span className="text-[13px] font-bold text-white">+{task.rewardHrum.toLocaleString()}</span>
                                               </div>
                                               {task.rewardBUG && task.rewardBUG > 0 && (
                                                 <div className="flex items-center gap-1.5">
-                                                  <Bug className="w-3.5 h-3.5 text-[#26D07C]" />
-                                                  <span className="text-[13px] font-bold text-[#26D07C]">+{task.rewardBUG}</span>
+                                                  <Bug className="w-3.5 h-3.5 text-[#E88A1A]" />
+                                                  <span className="text-[13px] font-bold text-[#E88A1A]">+{task.rewardBUG}</span>
                                                 </div>
                                               )}
                                             </div>
@@ -1210,11 +1222,13 @@ export default function Home() {
                                           size="sm"
                                           className={`rounded-[12px] px-5 font-semibold transition-all ${
                                             completedTasks.has(task.id)
-                                              ? "opacity-50"
-                                              : ""
+                                              ? "opacity-50 bg-[#3D1F00] text-[#D1D5DB]"
+                                              : clickedTasks.has(task.id)
+                                              ? "bg-[#E88A1A] text-white"
+                                              : "border-[#B34700]/30 text-white bg-[#261400]"
                                           }`}
                                         >
-                                          {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? "Claim" : "Start"}
+                                          {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? t('claim') : t('open')}
                                         </Button>
                                       </div>
                                     </motion.div>

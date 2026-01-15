@@ -120,25 +120,25 @@ export default function Withdraw() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full bg-black text-white p-4 space-y-4">
+      <div className="flex flex-col h-full bg-[#1A0D00] text-white p-4 space-y-4">
         {/* Balance Card */}
-        <div className="bg-[#151515] rounded-2xl p-4 space-y-4">
+        <div className="bg-[#261400] rounded-2xl p-4 space-y-4 border border-[#B34700]/30 shadow-xl">
           <div className="space-y-1">
-            <p className="text-[#666] text-[10px] font-bold tracking-wider uppercase">BALANCE</p>
+            <p className="text-[#D1D5DB] text-[10px] font-bold tracking-wider uppercase">BALANCE</p>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#0088CC] flex items-center justify-center overflow-hidden border border-white/10">
+              <div className="w-8 h-8 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30">
                 <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
               </div>
               <div className="flex items-center gap-1.5 pt-0.5">
                 <span className="text-3xl font-bold leading-none">{formatTon(tonBalance)}</span>
-                <span className="text-lg font-bold text-[#666] leading-none self-end pb-0.5">TON</span>
+                <span className="text-lg font-bold text-[#D1D5DB] leading-none self-end pb-0.5">TON</span>
               </div>
             </div>
           </div>
 
           <div className="flex gap-2">
             <Button 
-              className="flex-1 h-11 bg-[#217AFF] hover:bg-[#217AFF]/90 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 border-0 shadow-none transition-all active:scale-95"
+              className="flex-1 h-11 bg-[#E88A1A] hover:bg-[#B34700] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 border-0 shadow-lg shadow-[#E88A1A]/10 transition-all active:scale-95"
               onClick={() => setLocation('/top-up')}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
@@ -150,7 +150,7 @@ export default function Withdraw() {
             <Dialog open={withdrawDialogOpen} onOpenChange={setWithdrawDialogOpen}>
               <DialogTrigger asChild>
                 <Button 
-                  className="flex-1 h-11 bg-[#1A1A1A] hover:bg-[#252525] text-[#666] rounded-xl text-sm font-bold flex items-center justify-center gap-2 border-0 shadow-none transition-all active:scale-95"
+                  className="flex-1 h-11 bg-[#3D1F00] hover:bg-[#261400] text-white border border-[#B34700]/30 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-none transition-all active:scale-95"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
                     <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -158,40 +158,40 @@ export default function Withdraw() {
                   Withdraw
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#111] border-white/5 text-white w-[90%] rounded-3xl p-6 shadow-2xl">
+              <DialogContent className="bg-[#261400] border-[#B34700]/30 text-white w-[90%] rounded-3xl p-6 shadow-2xl">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold text-center">TON withdrawal</DialogTitle>
                 </DialogHeader>
                 
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-[#666] font-bold">Address (TON):</Label>
+                    <Label className="text-xs text-[#D1D5DB] font-bold">Address (TON):</Label>
                     <Input 
                       placeholder="Enter address" 
                       value={withdrawAddress}
                       onChange={(e) => setWithdrawAddress(e.target.value)}
-                      className="bg-black/50 border-white/5 h-12 rounded-xl text-sm placeholder:text-[#333] focus:border-[#217AFF]/50 transition-all"
+                      className="bg-[#3D1F00] border-[#B34700]/30 h-12 rounded-xl text-sm placeholder:text-[#555] focus:border-[#E88A1A]/50 transition-all"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-[#666] font-bold">Amount (TON):</Label>
+                    <Label className="text-xs text-[#D1D5DB] font-bold">Amount (TON):</Label>
                     <Input 
                       type="number"
                       placeholder="0.0000" 
                       value={withdrawAmount}
                       onChange={(e) => setWithdrawAmount(e.target.value)}
-                      className="bg-black/50 border-white/5 h-12 rounded-xl text-sm placeholder:text-[#333] focus:border-[#217AFF]/50 transition-all"
+                      className="bg-[#3D1F00] border-[#B34700]/30 h-12 rounded-xl text-sm placeholder:text-[#555] focus:border-[#E88A1A]/50 transition-all"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-[#666] font-bold">To receive (TON):</Label>
-                    <div className="bg-black/50 border-white/5 h-12 rounded-xl px-4 flex items-center justify-between">
+                    <Label className="text-xs text-[#D1D5DB] font-bold">To receive (TON):</Label>
+                    <div className="bg-[#3D1F00] border-[#B34700]/30 h-12 rounded-xl px-4 flex items-center justify-between">
                       <span className="text-sm font-bold text-white">
                         {withdrawAmount ? (parseFloat(withdrawAmount) - parseFloat(networkFee) > 0 ? (parseFloat(withdrawAmount) - parseFloat(networkFee)).toFixed(4) : "0.0000") : "0.0000"}
                       </span>
-                      <div className="w-6 h-6 rounded-full bg-[#0088CC] flex items-center justify-center overflow-hidden border border-white/10">
+                      <div className="w-6 h-6 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30">
                         <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
                       </div>
                     </div>
@@ -199,7 +199,7 @@ export default function Withdraw() {
 
                   <div className="pt-2">
                     <Button 
-                      className="w-full h-14 bg-[#217AFF] hover:bg-[#217AFF]/90 text-white rounded-2xl text-lg font-bold shadow-none border-0 transition-all active:scale-95 disabled:opacity-50"
+                      className="w-full h-14 bg-[#E88A1A] hover:bg-[#B34700] text-white rounded-2xl text-lg font-bold shadow-lg shadow-[#E88A1A]/20 border-0 transition-all active:scale-95 disabled:opacity-50"
                       onClick={handleWithdrawClick}
                       disabled={withdrawMutation.isPending}
                     >
@@ -212,8 +212,8 @@ export default function Withdraw() {
                   </div>
 
                   <div className="space-y-1 pt-2">
-                    <p className="text-[11px] text-[#666] font-medium">•Network fee: {networkFee} TON</p>
-                    <p className="text-[11px] text-[#666] font-medium">•Withdrawal time: 24 hours.</p>
+                    <p className="text-[11px] text-[#D1D5DB] font-bold">•Network fee: {networkFee} TON</p>
+                    <p className="text-[11px] text-[#D1D5DB] font-bold">•Withdrawal time: 24 hours.</p>
                   </div>
                 </div>
               </DialogContent>
@@ -230,8 +230,8 @@ export default function Withdraw() {
                 onClick={() => setFilter(t)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   filter === t 
-                    ? 'bg-white text-black' 
-                    : 'bg-[#151515] text-[#666]'
+                    ? 'bg-[#E88A1A] text-white shadow-lg shadow-[#E88A1A]/20' 
+                    : 'bg-[#261400] text-[#D1D5DB] border border-[#B34700]/30'
                 }`}
               >
                 {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -240,29 +240,29 @@ export default function Withdraw() {
           </div>
 
           {/* Transaction List */}
-          <div className="bg-[#151515] rounded-2xl min-h-[160px] flex flex-col items-center justify-center p-6">
+          <div className="bg-[#261400] border border-[#B34700]/30 rounded-2xl min-h-[160px] flex flex-col items-center justify-center p-6 shadow-xl">
             {withdrawalsLoading ? (
-              <Loader2 className="w-6 h-6 text-[#666] animate-spin" />
+              <Loader2 className="w-6 h-6 text-[#E88A1A] animate-spin" />
             ) : filteredWithdrawals.length === 0 ? (
-              <p className="text-[#666] font-medium">No transactions yet</p>
+              <p className="text-[#D1D5DB] font-bold text-sm">No transactions yet</p>
             ) : (
               <div className="w-full space-y-4">
                 {filteredWithdrawals.map((w) => (
-                  <div key={w.id} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                  <div key={w.id} className="flex items-center justify-between py-2 border-b border-[#B34700]/20 last:border-0">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                         <Clock className="w-4 h-4 text-[#666]" />
+                      <div className="w-8 h-8 rounded-full bg-[#3D1F00] flex items-center justify-center border border-[#B34700]/30">
+                         <Clock className="w-4 h-4 text-[#F2B824]" />
                       </div>
                       <div>
                         <p className="text-sm font-bold">Withdrawal</p>
-                        <p className="text-xs text-[#666]">{format(new Date(w.createdAt), 'MMM d, yyyy')}</p>
+                        <p className="text-xs text-[#D1D5DB]">{format(new Date(w.createdAt), 'MMM d, yyyy')}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold">-{formatTon(w.amount)} TON</p>
+                      <p className="text-sm font-bold text-[#E88A1A]">-{formatTon(w.amount)} TON</p>
                       <p className={`text-[10px] font-bold uppercase ${
-                        w.status === 'pending' ? 'text-yellow-500' : 
-                        w.status === 'approved' || w.status === 'paid' ? 'text-green-500' : 'text-red-500'
+                        w.status === 'pending' ? 'text-[#F2B824]' : 
+                        w.status === 'approved' || w.status === 'paid' ? 'text-[#26D07C]' : 'text-red-500'
                       }`}>
                         {w.status}
                       </p>
