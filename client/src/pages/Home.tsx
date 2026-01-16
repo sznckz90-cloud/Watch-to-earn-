@@ -8,7 +8,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -117,6 +117,8 @@ export default function Home() {
     queryKey: ['/api/missions/status'],
     retry: false,
   });
+
+  const [miningAmount, setMiningAmount] = useState(0);
 
   const { data: userData } = useQuery<{ referralCode?: string }>({
     queryKey: ['/api/auth/user'],
@@ -1027,6 +1029,34 @@ export default function Home() {
 
   const userRank = leaderboardData?.userEarnerRank?.rank;
 
+  const miningRatePerHour = 0.00015;
+  const miningRate = miningRatePerHour / 3600; // per second
+  const lastMiningClaim = user?.lastMiningClaim ? new Date(user.lastMiningClaim).getTime() : Date.now();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const elapsedSeconds = (now - lastMiningClaim) / 1000;
+      setMiningAmount(elapsedSeconds * miningRate);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lastMiningClaim, miningRate]);
+
+  const claimMiningMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/mining/claim");
+      if (!response.ok) throw new Error("Failed to claim mining");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      showNotification("Mining rewards claimed!", "success");
+    },
+    onError: (error: any) => {
+      showNotification(error.message, "error");
+    },
+  });
+
   return (
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
@@ -1064,43 +1094,95 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-[#141414] rounded-2xl px-4 py-4 flex justify-between items-center mb-4 border border-white/5">
+          <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total Points Earned</span>
-              <span className="text-white text-lg font-black tabular-nums">
-                {padBalance.toLocaleString()}
-              </span>
+              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total HRUM Mined</span>
+              <div className="flex items-center gap-1.5 leading-none">
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <img src="/images/hrum-logo.jpg" alt="Hrum" className="w-full h-full object-cover rounded-sm" />
+                </div>
+                <span className="text-white text-base font-black tabular-nums">
+                  {parseFloat(user?.balance || "0").toFixed(2)}
+                </span>
+              </div>
             </div>
             <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
             <div className="flex flex-col items-center flex-1">
-              <div className="flex items-center gap-1 mb-0.5">
-                <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">Total BUZZ Earned</span>
+              <div className="flex items-center gap-1 mb-0.5 leading-none">
+                <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">Total TON Earned</span>
                 <div className="bg-[#B9FF66] rounded-full p-0.5 flex-shrink-0">
                   <Info className="w-2 h-2 text-black" />
                 </div>
               </div>
-              <span className="text-white text-lg font-black tabular-nums">
-                {balanceBUG.toFixed(1)}
-              </span>
+              <div className="flex items-center gap-1.5 leading-none">
+                <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
+                  <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover rounded-full" />
+                </div>
+                <span className="text-white text-base font-black tabular-nums">
+                  {balanceBUG.toFixed(1)}
+                </span>
+              </div>
             </div>
           </div>
+          <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">MINING STATUS</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-[#B9FF66] rounded-full animate-pulse"></div>
+                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">ACTIVE</span>
+              </div>
+            </div>
+            
+            <div className="text-center mb-4">
+              <div className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-1">MINED HRUM</div>
+              <div className="text-3xl font-black text-white tabular-nums tracking-tight">
+                {miningAmount.toFixed(6)}
+              </div>
+              <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
+                <Zap className="w-3 h-3 fill-current" />
+                {miningRate.toFixed(5)} H/s
+              </div>
+            </div>
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={handleConvertClick}
-              className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Convert
-            </Button>
-            <Button
-              onClick={() => setPromoPopupOpen(true)}
-              className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-3.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95"
-            >
-              <Ticket className="w-4 h-4" />
-              Promo
-            </Button>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <Button 
+                onClick={() => setBoosterPopupOpen(true)}
+                className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
+              >
+                <ArrowUpCircle className="w-3.5 h-3.5" />
+                UPGRADE
+              </Button>
+              <Button 
+                onClick={() => claimMiningMutation.mutate()}
+                disabled={miningAmount <= 0 || claimMiningMutation.isPending}
+                className="bg-[#B9FF66] hover:bg-[#a8e655] text-black rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2"
+              >
+                {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
+                  <>
+                    <HandCoins className="w-3.5 h-3.5" />
+                    CLAIM
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Action Buttons inside profile section */}
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+              <Button
+                onClick={handleConvertClick}
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Convert
+              </Button>
+              <Button
+                onClick={() => setPromoPopupOpen(true)}
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+              >
+                <Ticket className="w-4 h-4" />
+                Promo
+              </Button>
+            </div>
           </div>
         </div>
 
