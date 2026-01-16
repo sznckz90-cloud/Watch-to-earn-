@@ -39,8 +39,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen w-full flex flex-col bg-[#1A0D00] overflow-hidden">
-      <Header />
-      <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingTop: '64px', paddingBottom: '85px' }}>
+      <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingBottom: '85px' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={location}
