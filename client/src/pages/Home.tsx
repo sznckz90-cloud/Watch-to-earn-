@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { showNotification } from "@/components/AppNotification";
 import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
@@ -732,9 +733,7 @@ export default function Home() {
 
     const minimumConvertHrum = selectedConvertType === '' 
       ? (appSettings?.minimumConvertHrum || 10000)
-      : selectedConvertType === ''
-        ? (appSettings?.minimumConvertPadToTon || 10000)
-        : (appSettings?.minimumConvertPadToBug || 1000);
+      : (selectedConvertType === 'BUG' ? (appSettings?.minimumConvertPadToBug || 1000) : (appSettings?.minimumConvertPadToTon || 10000));
     
     if (amount < minimumConvertHrum) {
       showNotification(`Minimum ${minimumConvertHrum.toLocaleString()} Hrum required.`, "error");
@@ -752,14 +751,11 @@ export default function Home() {
     console.log('💱 Convert started, showing AdsGram ad first...');
     
     try {
-      // Then show Monetag rewarded ad
-      console.log('🎬 Proceeding with Monetag rewarded...');
       const monetagResult = await showMonetagRewardedAd();
       
       if (monetagResult.unavailable) {
-        // If Monetag unavailable, proceed
         console.log('⚠️ Monetag unavailable, proceeding with convert');
-        convertMutation.mutate({ amount, convertTo: selectedConvertType });
+        convertMutation.mutate({ amount, convertTo: selectedConvertType || 'TON' });
         return;
       }
       
@@ -770,7 +766,7 @@ export default function Home() {
       }
       
       console.log('✅ Ad watched, converting');
-      convertMutation.mutate({ amount, convertTo: selectedConvertType });
+      convertMutation.mutate({ amount, convertTo: selectedConvertType || 'TON' });
       
     } catch (error) {
       console.error('Convert error:', error);
@@ -1127,16 +1123,13 @@ export default function Home() {
             <div className="flex flex-col items-center flex-1">
               <div className="flex items-center gap-1 mb-0.5 leading-none">
                 <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">Total TON Earned</span>
-                <div className="bg-[#B9FF66] rounded-full p-0.5 flex-shrink-0">
-                  <Info className="w-2 h-2 text-black" />
-                </div>
               </div>
               <div className="flex items-center gap-1.5 leading-none">
                 <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
                   <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover rounded-full" />
                 </div>
                 <span className="text-white text-base font-black tabular-nums">
-                  {balanceBUG.toFixed(1)}
+                  {balance.toFixed(3)}
                 </span>
               </div>
             </div>
@@ -1507,137 +1500,163 @@ export default function Home() {
       )}
 
       {promoPopupOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a]">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <Ticket className="w-5 h-5 text-purple-400" />
-              <h2 className="text-lg font-bold text-white">Promo Code</h2>
-            </div>
-            
-            <p className="text-xs text-gray-400 mb-4 text-center">
-              Enter your promo code below to claim special rewards!
-            </p>
+        <div className="fixed inset-0 bg-[#0E0F12]/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-[#1A1C20] rounded-[24px] p-6 w-full max-w-[320px] border border-[#2F3238]/50 relative shadow-2xl overflow-hidden"
+          >
+            <div className="relative z-10 pt-2">
+              <h2 className="text-xl font-bold text-white text-center mb-1 uppercase tracking-tight">Promo code</h2>
+              <p className="text-[11px] text-[#B0B3B8] text-center mb-4 font-bold leading-relaxed px-1">
+                Enter your promo code below to claim special rewards!
+              </p>
 
-            <div className="space-y-4">
-              <Input
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="ENTER CODE"
-                className="bg-[#1a1a1a] border-[#333] text-white font-bold text-center h-12 rounded-xl focus:border-purple-500 transition-all uppercase placeholder:text-gray-600"
-              />
-              
-              <div className="flex gap-3">
+              <div className="space-y-2">
+                <Input
+                  type="text"
+                  placeholder="Enter code"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
+                  className="bg-[#24262C] border-[#2F3238]/50 h-12 rounded-[16px] text-white text-center font-bold uppercase tracking-widest placeholder:text-[#7A7D85] text-sm shadow-inner"
+                />
+                
                 <Button
-                  onClick={() => setPromoPopupOpen(false)}
-                  variant="outline"
-                  className="flex-1 bg-transparent border-[#333] text-white rounded-xl h-12"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleApplyPromo}
+                  onClick={() => promoCode.trim() && redeemPromoMutation.mutate(promoCode.trim())}
                   disabled={isApplyingPromo || !promoCode.trim()}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl h-12 shadow-[0_0_15px_rgba(147,51,234,0.3)]"
+                  className="w-full h-12 bg-[#2D6CDF] hover:bg-[#2458b8] text-white rounded-[16px] font-bold text-sm transition-all active:scale-95 shadow-lg shadow-blue-500/20"
                 >
-                  {isApplyingPromo ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Claim'}
+                  {isApplyingPromo ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Applying...
+                    </div>
+                  ) : (
+                    "REDEEM"
+                  )}
                 </Button>
+
+                <div className="pt-3 border-t border-[#2F3238]/30 mt-2">
+                  <p className="text-[9px] text-[#7A7D85] text-center mb-2 font-bold uppercase tracking-wider opacity-60">
+                    Join our telegram channel for more gift codes!
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => window.open("https://t.me/PaidAdzGroup", "_blank")}
+                      className="flex-1 h-10 bg-[#0098EA]/10 border-[#0098EA]/20 hover:bg-[#0098EA]/20 text-[#0098EA] rounded-lg font-bold text-[10px] uppercase tracking-wider gap-1"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Join
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setPromoPopupOpen(false)}
+                      className="h-10 px-4 bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-white rounded-lg font-bold text-[10px] uppercase tracking-wider"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
       {convertPopupOpen && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 px-4">
-          <div className="bg-[#0d0d0d] rounded-2xl p-6 w-full max-w-sm border border-[#1a1a1a]">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <RefreshCw className="w-5 h-5 text-[#4cd3ff]" />
-              <h2 className="text-lg font-bold text-white">Convert Hrum</h2>
-            </div>
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-[#0d0d0d] rounded-[24px] p-6 w-full max-w-[320px] border border-white/5 relative shadow-2xl overflow-hidden"
+          >
+            <div className="relative z-10 pt-2">
+              <h2 className="text-xl font-black text-white text-center mb-1 uppercase tracking-tight">Exchange Hrum for TON</h2>
+              <p className="text-[11px] text-zinc-400 text-center mb-4 font-bold leading-relaxed px-1">
+                Convert your earned Hrum into TON cryptocurrency instantly.
+              </p>
 
-            <div className="flex bg-[#1a1a1a] p-1 rounded-xl mb-6">
-              <button
-                onClick={() => setSelectedConvertType('')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-[#4cd3ff] text-black shadow-lg' : 'text-gray-400'}`}
-              >
-                TO TON
-              </button>
-              <button
-                onClick={() => setSelectedConvertType('')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === '' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'}`}
-              >
-                TO TON
-              </button>
-              <button
-                onClick={() => setSelectedConvertType('BUG')}
-                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${selectedConvertType === 'BUG' ? 'bg-green-600 text-white shadow-lg' : 'text-gray-400'}`}
-              >
-                TO BUG
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs text-gray-500 mb-1.5 block ml-1 uppercase font-bold tracking-wider">Amount to Convert</label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={convertAmount}
-                    onChange={(e) => setConvertAmount(e.target.value)}
-                    placeholder="0"
-                    className="bg-[#1a1a1a] border-[#333] text-white font-bold h-14 rounded-xl pl-12 focus:border-[#4cd3ff] transition-all"
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                    <DiamondIcon size={18} />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Amount (Hrum):</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={convertAmount}
+                      onChange={(e) => setConvertAmount(e.target.value)}
+                      className="bg-white/5 border-white/10 h-11 rounded-xl text-white pl-4 pr-10 font-black text-sm focus:ring-blue-500/20 focus:border-blue-500/50 transition-all"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10">
+                        <img 
+                          src="/images/hrum-logo.jpg" 
+                          alt="Hrum" 
+                          className="w-full h-full object-cover scale-150"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <button 
-                    onClick={() => setConvertAmount(padBalance.toString())}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#4cd3ff] hover:text-white transition-colors"
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[9px] font-bold text-zinc-600 uppercase">Bal: {parseFloat((user as User)?.balance || '0').toLocaleString()}</span>
+                    <button 
+                      onClick={() => setConvertAmount((user as User)?.balance || '0')}
+                      className="text-[9px] font-black text-blue-500 uppercase hover:text-blue-400"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">To receive (TON):</Label>
+                  <div className="relative">
+                    <div className="bg-white/5 border border-white/10 text-white h-11 rounded-xl pl-4 pr-10 font-black text-sm flex items-center">
+                      {(Number(convertAmount || 0) / 10000).toFixed(4)}
+                    </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
+                        <img 
+                          src="/images/ton.png" 
+                          alt="TON" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    onClick={() => convertMutation.mutate({ amount: Number(convertAmount), convertTo: 'TON' })}
+                    disabled={convertMutation.isPending || !convertAmount || Number(convertAmount) <= 0}
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5"
                   >
-                    MAX
-                  </button>
+                    {convertMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Swap Now"
+                    )}
+                  </Button>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-2 ml-1">
-                  Balance: <span className="text-white">{padBalance.toLocaleString()} Hrum</span>
-                </p>
-              </div>
 
-              <div className="bg-[#1a1a1a]/50 border border-white/5 rounded-xl p-4 space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Estimated Value</span>
-                  <span className="text-white font-bold">
-                    {selectedConvertType === '' 
-                      ? ` ${((parseFloat(convertAmount || "0") / (appSettings?.padToUsdRate || 1000000))).toFixed(4)}`
-                      : selectedConvertType === ''
-                        ? `${(parseFloat(convertAmount || "0") / (appSettings?.padToTonRate || 1000000)).toFixed(4)} TON`
-                        : `${(parseFloat(convertAmount || "0") / (appSettings?.padToBugRate || 1000)).toFixed(2)} BUG`
-                    }
-                  </span>
+                <div className="pt-3 border-t border-white/5 mt-1">
+                  <p className="text-[9px] text-zinc-500 text-center mb-2 font-black uppercase tracking-wider opacity-60">
+                    Rate: 10,000 Hrum = 1 TON
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => setConvertPopupOpen(false)}
+                    className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
+                  >
+                    Close
+                  </Button>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">Fee</span>
-                  <span className="text-white font-bold">0.00%</span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setConvertPopupOpen(false)}
-                  variant="outline"
-                  className="flex-1 bg-transparent border-[#333] text-white rounded-xl h-14"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleConvertConfirm}
-                  disabled={isConverting || convertMutation.isPending || !convertAmount}
-                  className="flex-1 bg-[#4cd3ff] hover:bg-[#3db8e0] text-black font-bold rounded-xl h-14 shadow-[0_0_20px_rgba(76,211,255,0.3)]"
-                >
-                  {isConverting || convertMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Convert'}
-                </Button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
