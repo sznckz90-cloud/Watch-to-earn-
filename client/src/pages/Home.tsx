@@ -8,7 +8,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WithdrawalPopup from "@/components/WithdrawalPopup";
 
 // Unified Task Interface
 interface UnifiedTask {
@@ -72,6 +73,7 @@ export default function Home() {
   const [timeUntilNextClaim, setTimeUntilNextClaim] = useState<string>("");
   
   const [promoPopupOpen, setPromoPopupOpen] = useState(false);
+  const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
   const [convertPopupOpen, setConvertPopupOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1029,8 +1031,8 @@ export default function Home() {
 
   const userRank = leaderboardData?.userEarnerRank?.rank;
 
-  const miningRatePerHour = 0.00015;
-  const miningRate = miningRatePerHour / 3600; // per second
+  const miningRatePerHour = 0.0105;
+  const miningRate = miningRatePerHour / 3600; // per second rate
   const lastMiningClaim = user?.lastMiningClaim ? new Date(user.lastMiningClaim).getTime() : Date.now();
 
   useEffect(() => {
@@ -1057,11 +1059,19 @@ export default function Home() {
     },
   });
 
+  const handleClaimClick = () => {
+    if (miningAmount < 0.01) {
+      showNotification("Minimum claim is 0.01 HRUM", "error");
+      return;
+    }
+    claimMiningMutation.mutate();
+  };
+
   return (
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
         {/* Unified Profile & Balance Section */}
-        <div className="bg-[#0d0d0d] rounded-none p-4 border border-white/5 mb-4">
+        <div className="bg-[#0d0d0d] rounded-2xl p-4 border border-white/5 mb-4 relative">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div 
@@ -1092,6 +1102,13 @@ export default function Home() {
                 </span>
               </div>
             </div>
+            
+            <Button
+              onClick={() => setWithdrawPopupOpen(true)}
+              className="bg-[#1a1a1a] hover:bg-[#222] text-[#4cd3ff] border border-[#4cd3ff]/20 rounded-xl px-4 py-1.5 h-auto text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+            >
+              WITHDRAW
+            </Button>
           </div>
 
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
@@ -1140,7 +1157,7 @@ export default function Home() {
               </div>
               <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
                 <Zap className="w-3 h-3 fill-current" />
-                {miningRate.toFixed(5)} H/s
+                {miningRatePerHour.toFixed(4)} H/h
               </div>
             </div>
 
@@ -1153,9 +1170,13 @@ export default function Home() {
                 UPGRADE
               </Button>
               <Button 
-                onClick={() => claimMiningMutation.mutate()}
-                disabled={miningAmount <= 0 || claimMiningMutation.isPending}
-                className="bg-[#B9FF66] hover:bg-[#a8e655] text-black rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2"
+                onClick={handleClaimClick}
+                disabled={claimMiningMutation.isPending}
+                className={`${
+                  miningAmount >= 0.01 
+                    ? "bg-[#B9FF66] hover:bg-[#a8e655] text-black" 
+                    : "bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/5"
+                } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all`}
               >
                 {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
                   <>
@@ -1186,7 +1207,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-2">
+        <div className="mt-[-32px]">
           <Tabs defaultValue="earn" className="w-full">
             <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
               <TabsTrigger 
@@ -1623,6 +1644,12 @@ export default function Home() {
           onClose={() => setSettingsOpen(false)} 
         />
       )}
+
+      <WithdrawalPopup 
+        open={withdrawPopupOpen}
+        onOpenChange={setWithdrawPopupOpen}
+        tonBalance={balanceBUG}
+      />
     </Layout>
   );
 }
