@@ -388,7 +388,7 @@ export class DatabaseStorage implements IStorage {
     if (!user) throw new Error("User not found");
 
     const lastClaim = user.lastMiningClaim || new Date();
-    const miningRate = parseFloat(user.miningRate || "0.00001");
+    const miningRate = parseFloat(user.miningRate || "0.00000291666666666667"); // 0.0105 / 3600 per second
     const now = new Date();
     const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
     
@@ -411,8 +411,8 @@ export class DatabaseStorage implements IStorage {
     const state = await this.getMiningState(userId);
     const amount = state.currentMining;
 
-    if (parseFloat(amount) <= 0) {
-      return { success: false, amount: "0", message: "Nothing to claim yet" };
+    if (parseFloat(amount) < 0.01) {
+      return { success: false, amount: "0", message: "Minimum claim is 0.01 Hrum" };
     }
 
     await db.transaction(async (tx) => {

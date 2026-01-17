@@ -5749,8 +5749,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('📝 Withdrawal request received:', { userId, method, starPackage, withdrawalPackage });
 
       // Validate withdrawal method
-      const validMethods = ['', 'TONT', 'STARS'];
+      const validMethods = ['', 'TONT', 'STARS', 'TON'];
       if (!method || !validMethods.includes(method)) {
+        console.log("❌ Invalid withdrawal method:", method);
         return res.status(400).json({
           success: false,
           message: 'Invalid withdrawal method'
@@ -5974,23 +5975,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Check if user has appropriate wallet address based on method
         let walletAddress: string;
-        if (method === '') {
-          if (!user.cwalletId) {
-            throw new Error(' address not set');
+        if (method === 'TON') {
+          // Check for TON wallet first
+          walletAddress = user.usdtWalletAddress || user.cwalletId || '';
+          if (!walletAddress) {
+            throw new Error('TON wallet address not set');
           }
-          walletAddress = user.cwalletId;
-        } else if (method === '' || method === 'TONT') {
-          if (!user.usdtWalletAddress) {
-            throw new Error(' address not set');
-          }
-          walletAddress = user.usdtWalletAddress;
         } else if (method === 'STARS') {
           if (!user.telegramStarsUsername) {
             throw new Error('Telegram username not set');
           }
           walletAddress = user.telegramStarsUsername;
         } else {
-          throw new Error('Invalid withdrawal method');
+          // Default to USDT/CWallet for legacy methods
+          walletAddress = user.usdtWalletAddress || user.cwalletId || '';
+          if (!walletAddress) {
+            throw new Error('Wallet address not set');
+          }
         }
 
         const currentUsdBalance = parseFloat(user.tonBalance || '0');
@@ -6066,22 +6067,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Use admin-configured fees
-          const feePercent = feePercentTON;
           fee = baseAmount * feePercent;
-          withdrawalAmount = baseAmount - fee; //  amount after fee
+          withdrawalAmount = baseAmount - fee; // TON amount after fee
           usdToDeduct = baseAmount;
           
           // Store package info if applicable
-          if (packageUsdAmount !== null) {
-            withdrawalDetails.withdrawalPackage = packageUsdAmount;
+          if (packageTONAmount !== null) {
+            withdrawalDetails.withdrawalPackage = packageTONAmount;
           }
           // Always store BUG deduction amount for approval processing (both package and FULL withdrawals)
           withdrawalDetails.bugDeducted = minimumBugForWithdrawal;
           
           // Store wallet address based on method
-          if (method === '') {
+          if (method === 'TON') {
             withdrawalDetails.tonWalletAddress = walletAddress;
-          } else if (method === '' || method === 'TONT') {
+          } else {
             withdrawalDetails.usdtWalletAddress = walletAddress;
           }
         }
@@ -6089,7 +6089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`📝 Creating withdrawal request for ${withdrawalAmount.toFixed(2)} TON via ${method} (balance will be deducted on approval)`);
 
         // Store the fee percentage from admin settings for consistent display
-        const feePercentForDetails = method === '' ? feePercent : (method === 'STARS' ? 0.05 : feePercent);
+        const feePercentForDetails = method === 'TON' ? feePercent : (method === 'STARS' ? 0.05 : feePercent);
         withdrawalDetails.totalDeducted = usdToDeduct.toFixed(10);
         withdrawalDetails.fee = fee.toFixed(10);
         withdrawalDetails.feePercent = (feePercentForDetails * 100).toString(); // Store exact percentage (e.g., "5" or "2.5")
