@@ -493,24 +493,34 @@ function BanUserButton({ user, onSuccess }: { user: any; onSuccess: () => void }
 
 type UserProfileTab = 'overview' | 'tasks' | 'ads' | 'referrals' | 'withdrawals' | 'bans';
 
-function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) {
+function UserProfileTabs({ user: initialUser, onClose }: { user: any; onClose: () => void }) {
   const [activeTab, setActiveTab] = useState<UserProfileTab>('overview');
-  const { data: userTasks } = useQuery({
+  
+  // Fetch fresh user data including stats
+  const { data: userData, refetch: refetchUser } = useQuery({
+    queryKey: ["/api/admin/users", initialUser.id],
+    queryFn: () => apiRequest("GET", "/api/admin/users").then(res => res.json()).then(users => users.find((u: any) => u.id === initialUser.id)),
+    refetchInterval: 5000,
+  });
+
+  const user = userData || initialUser;
+
+  const { data: userTasks, isLoading: tasksLoading } = useQuery({
     queryKey: ["/api/admin/user-tasks", user.id],
     queryFn: () => apiRequest("GET", `/api/admin/user-tasks/${user.id}`).then(res => res.json()),
     enabled: activeTab === 'tasks',
   });
-  const { data: userAds } = useQuery({
+  const { data: userAds, isLoading: adsLoading } = useQuery({
     queryKey: ["/api/admin/user-ads", user.id],
     queryFn: () => apiRequest("GET", `/api/admin/user-ads/${user.id}`).then(res => res.json()),
     enabled: activeTab === 'ads',
   });
-  const { data: userReferrals } = useQuery({
+  const { data: userReferrals, isLoading: referralsLoading } = useQuery({
     queryKey: ["/api/admin/user-referrals", user.id],
     queryFn: () => apiRequest("GET", `/api/admin/user-referrals/${user.id}`).then(res => res.json()),
     enabled: activeTab === 'referrals',
   });
-  const { data: userWithdrawals } = useQuery({
+  const { data: userWithdrawals, isLoading: withdrawalsLoading } = useQuery({
     queryKey: ["/api/admin/user-withdrawals", user.id],
     queryFn: () => apiRequest("GET", `/api/admin/user-withdrawals/${user.id}`).then(res => res.json()),
     enabled: activeTab === 'withdrawals',
@@ -592,10 +602,9 @@ function UserProfileTabs({ user, onClose }: { user: any; onClose: () => void }) 
 
           <div className="bg-white/5 border border-white/10 p-3 rounded">
             <p className="text-xs text-muted-foreground mb-2">Activity</p>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div><p className="text-xs text-muted-foreground">Friends</p><p className="font-bold">{user.friendsInvited || 0}</p></div>
-              <div><p className="text-xs text-muted-foreground">Ads Watched</p><p className="font-bold">{user.adsWatched || 0}</p></div>
-              <div><p className="text-xs text-muted-foreground">Tasks Done</p><p className="font-bold">{user.tasksCompleted || 0}</p></div>
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div><p className="text-xs text-muted-foreground">Total Ads</p><p className="font-bold text-purple-400">{user.totalAds || user.adsWatched || 0}</p></div>
+              <div><p className="text-xs text-muted-foreground">Today Ads</p><p className="font-bold text-amber-400" >{user.todayAds || user.adsWatchedToday || 0}</p></div>
             </div>
           </div>
 
@@ -821,6 +830,7 @@ function UserManagementSection({ usersData }: { usersData: any }) {
                 <TableRow>
                   <TableHead className="text-xs">UID</TableHead>
                   <TableHead className="text-xs">Name</TableHead>
+                  <TableHead className="text-xs">Source</TableHead>
                   <TableHead className="text-xs">Friends</TableHead>
                   <TableHead className="text-xs text-right">Earned</TableHead>
                   <TableHead className="text-xs">Action</TableHead>
@@ -829,7 +839,7 @@ function UserManagementSection({ usersData }: { usersData: any }) {
               <TableBody>
                 {paginatedUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-4 text-sm">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-4 text-sm">
                       No users
                     </TableCell>
                   </TableRow>
@@ -838,8 +848,15 @@ function UserManagementSection({ usersData }: { usersData: any }) {
                     <TableRow key={user.id} className="hover:bg-muted/50">
                       <TableCell className="font-mono text-xs text-[#4cd3ff] py-2">{user.referralCode || user.personalCode || 'N/A'}{user.banned && <Badge className="ml-1 bg-red-600 text-[10px] px-1">Ban</Badge>}</TableCell>
                       <TableCell className="text-xs py-2">{user.firstName || 'User'}</TableCell>
-                      <TableCell className="py-2"><Badge variant="outline" className="text-[10px]">{user.friendsInvited || 0}</Badge></TableCell>
-                      <TableCell className="text-right text-xs font-semibold py-2">{formatCurrency(user.totalEarned || '0')}</TableCell>
+                      <TableCell className="text-xs py-2 text-muted-foreground">{user.referredBy ? `UID: ${user.referredBy.slice(0, 8)}` : 'Direct'}</TableCell>
+                      <TableCell className="py-2">
+                        <Badge variant="outline" className="text-[10px]">
+                          {user.referralCount ?? user.friendsInvited ?? 0}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right text-xs font-semibold py-2">
+                        {formatCurrency(user.balance || user.withdrawBalance || '0')}
+                      </TableCell>
                       <TableCell className="py-2"><Button size="sm" variant="ghost" onClick={() => setSelectedUser(user)} className="h-6 text-xs px-2"><i className="fas fa-eye"></i></Button></TableCell>
                     </TableRow>
                   ))
@@ -1146,8 +1163,8 @@ function BanLogsSection() {
     refetchInterval: 30000,
   });
 
-  const logs = banLogsData?.logs || [];
-  const bannedUsers = bannedUsersData?.bannedUsers || [];
+  const logs = banLogsData || [];
+  const bannedUsers = bannedUsersData || [];
 
   const filteredLogs = logs.filter((log: any) => {
     if (filterType !== 'all' && log.banType !== filterType) return false;
