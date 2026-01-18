@@ -4,37 +4,37 @@
 @tailwind utilities;
 
 :root {
-  --background: #1A0D00;
+  --background: #000000;
   --foreground: #FFFFFF;
-  --card: #261400;
+  --card: #000000;
   --card-foreground: #FFFFFF;
-  --popover: #1A0D00;
+  --popover: #000000;
   --popover-foreground: #FFFFFF;
   --primary: #E88A1A;
   --primary-foreground: #FFFFFF;
   --secondary: #F2B824;
-  --secondary-foreground: #1A0D00;
-  --muted: #3D1F00;
+  --secondary-foreground: #000000;
+  --muted: #1a1a1a;
   --muted-foreground: #D1D5DB;
   --accent: #B34700;
   --accent-foreground: #FFFFFF;
   --destructive: #ef4444;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(179, 71, 0, 0.3);
-  --input: #3D1F00;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #1a1a1a;
   --ring: #F2B824;
   --chart-1: #E88A1A;
   --chart-2: #F2B824;
   --chart-3: #B34700;
   --chart-4: #E88A1A;
   --chart-5: #F2B824;
-  --sidebar: #1A0D00;
+  --sidebar: #000000;
   --sidebar-foreground: #FFFFFF;
   --sidebar-primary: #E88A1A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #3D1F00;
+  --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(179, 71, 0, 0.3);
+  --sidebar-border: rgba(255, 255, 255, 0.1);
   --sidebar-ring: #F2B824;
   --font-sans: "Inter", system-ui, sans-serif;
   --radius: 16px;
@@ -48,12 +48,12 @@
   html {
     overflow: hidden;
     height: 100%;
-    background: #1A0D00;
+    background: #000000;
   }
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: #1A0D00;
+    background: #000000;
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
     overflow: hidden;
@@ -118,25 +118,25 @@
 
 /* Minimal Dark Theme Card Styling */
 .minimal-card {
-  background: #1A1C20;
-  border: 1px solid rgba(47, 50, 56, 0.5);
-  border-radius: 16px;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .minimal-card-inner {
-  background: #24262C;
+  background: #111111;
   border-radius: 12px;
-  border: 1px solid rgba(47, 50, 56, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Task Box Styling (like reference image) */
 .task-box {
-  background: #1A1C20;
+  background: #111111;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 12px;
-  border: 1px solid rgba(47, 50, 56, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Primary Button Styling */

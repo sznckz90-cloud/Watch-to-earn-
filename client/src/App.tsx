@@ -28,20 +28,12 @@ const CountryControls = lazy(() => import("@/pages/CountryControls"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PageLoader = memo(function PageLoader() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-[#1A0D00]">
-      <div className="flex gap-1">
-        <div className="w-2 h-2 rounded-full bg-[#E88A1A] animate-bounce" style={{ animationDelay: '0ms' }}></div>
-        <div className="w-2 h-2 rounded-full bg-[#E88A1A] animate-bounce" style={{ animationDelay: '150ms' }}></div>
-        <div className="w-2 h-2 rounded-full bg-[#E88A1A] animate-bounce" style={{ animationDelay: '300ms' }}></div>
-      </div>
-    </div>
-  );
+  return null;
 });
 
 function Router() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={null}>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/task/create" component={CreateTask} />
@@ -365,10 +357,13 @@ function App() {
   if (isCheckingCountry || isAuthenticating || isCheckingMembership) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 rounded-full bg-white animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        <div className="relative w-24 h-24">
+          <div className="absolute inset-0 rounded-full border-2 border-white/10 animate-pulse"></div>
+          <img 
+            src="/images/hrum-logo.jpg" 
+            alt="Hrum" 
+            className="w-full h-full object-cover rounded-full border-2 border-white/20"
+          />
         </div>
       </div>
     );
