@@ -38,7 +38,7 @@ export default function Layout({ children }: LayoutProps) {
   const isHomeActive = location === "/";
 
   return (
-    <div className="h-screen w-full flex flex-col bg-[#1A0D00] overflow-hidden">
+    <div className="h-screen w-full flex flex-col bg-black overflow-hidden">
       <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingBottom: '85px' }}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -58,7 +58,7 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {!showSeasonEnd && (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#261400] border-t border-[#B34700]/30 pb-[env(safe-area-inset-bottom,12px)]">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0d0d0d] border-t border-white/5 pb-[env(safe-area-inset-bottom,12px)]">
           <div className="max-w-md mx-auto px-4">
             <div className="flex justify-around items-center py-2.5 pb-3">
               {navItems.map((item) => {

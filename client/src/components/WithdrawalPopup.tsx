@@ -81,53 +81,56 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0d0d0d] border-white/10 text-white w-[95%] max-w-md rounded-[32px] p-6 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">TON withdrawal</DialogTitle>
+      <DialogContent hideCloseButton className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
+        <DialogHeader className="pt-2">
+          <DialogTitle className="text-xl font-black text-center uppercase tracking-tight">TON withdrawal</DialogTitle>
+          <p className="text-[11px] text-zinc-400 text-center font-bold leading-relaxed px-1 mt-1">
+            Withdraw your earned TON to your personal wallet instantly.
+          </p>
         </DialogHeader>
         
-        <div className="space-y-5 mt-4">
-          <div className="space-y-2">
-            <Label className="text-sm text-gray-400 font-medium">Address (TON):</Label>
+        <div className="space-y-4 mt-4">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Address (TON):</Label>
             <Input 
               placeholder="EQDxZjSx4D9gFDL..." 
               value={withdrawAddress}
               onChange={(e) => setWithdrawAddress(e.target.value)}
-              className="bg-[#1a1a1a] border-white/5 h-14 rounded-2xl text-base placeholder:text-gray-600 focus:border-blue-500/50 transition-all"
+              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm text-gray-400 font-medium">Amount (TON):</Label>
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Amount (TON):</Label>
             <Input 
               type="number"
               placeholder="0.0000" 
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="bg-[#1a1a1a] border-white/5 h-14 rounded-2xl text-base placeholder:text-gray-600 focus:border-blue-500/50 transition-all"
+              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm text-gray-400 font-medium text-blue-400 flex justify-between items-center">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex justify-between items-center px-1">
               Memo (Optional)
-              <span className="text-[10px] text-gray-500 font-normal">(Required for some exchanges)</span>
+              <span className="text-[9px] text-zinc-600 font-black tracking-tighter uppercase">(Required for exchanges)</span>
             </Label>
             <Input 
               placeholder="Memo" 
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
-              className="bg-[#1a1a1a] border-white/5 h-14 rounded-2xl text-base placeholder:text-gray-600 focus:border-blue-500/50 transition-all"
+              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm text-gray-400 font-medium">To receive (TON):</Label>
-            <div className="bg-[#1a1a1a] border-white/5 h-14 rounded-2xl px-4 flex items-center justify-between">
-              <span className="text-lg font-bold text-white">
+          <div className="space-y-1.5">
+            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">To receive (TON):</Label>
+            <div className="bg-white/5 border-white/10 h-11 rounded-xl px-4 flex items-center justify-between">
+              <span className="text-sm font-black text-white tabular-nums">
                 {toReceive}
               </span>
-              <div className="w-6 h-6 rounded-full overflow-hidden">
+              <div className="w-5 h-5 rounded-full overflow-hidden border border-white/10">
                 <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -135,27 +138,30 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
           <div className="pt-2">
             <Button 
-              className="w-full h-16 bg-[#4c75ff] hover:bg-[#3d64e0] text-white rounded-[24px] text-lg font-bold shadow-lg shadow-blue-500/10 border-0 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5 border-0 active:scale-[0.98] disabled:opacity-50"
               onClick={handleWithdrawClick}
               disabled={withdrawMutation.isPending}
             >
               {withdrawMutation.isPending ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                `Minimum ${minWithdraw} TON`
+                "Withdraw Now"
               )}
             </Button>
           </div>
 
-          <div className="space-y-1.5 pt-2 text-gray-400">
-            <p className="text-xs font-medium flex items-center gap-1.5">
-              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              Network fee: {networkFee} TON.
+          <div className="pt-3 border-t border-white/5 mt-1 space-y-1.5">
+            <p className="text-[9px] font-black flex items-center gap-1.5 uppercase tracking-wider text-zinc-500">
+              <span className="w-1 h-1 bg-zinc-600 rounded-full"></span>
+              Network fee: {networkFee} TON
             </p>
-            <p className="text-xs font-medium flex items-center gap-1.5">
-              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              Withdrawal time: ~24 hours.
-            </p>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
+            >
+              Close
+            </Button>
           </div>
         </div>
       </DialogContent>
