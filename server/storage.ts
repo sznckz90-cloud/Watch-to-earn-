@@ -12,6 +12,7 @@ import {
   advertiserTasks,
   taskClicks,
   adminSettings,
+  banLogs,
   type User,
   type UpsertUser,
   type InsertEarning,
@@ -1478,6 +1479,11 @@ export class DatabaseStorage implements IStorage {
     totalReferralEarnings: string;
     totalPayouts: string;
     newUsersLast24h: number;
+    totalAdsWatched: number;
+    adsWatchedToday: number;
+    pendingWithdrawals: number;
+    approvedWithdrawals: number;
+    rejectedWithdrawals: number;
   }> {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1511,17 +1517,30 @@ export class DatabaseStorage implements IStorage {
       .from(earnings)
       .where(sql`${earnings.source} IN ('referral_commission', 'referral')`);
 
-    // Total payouts (negative amounts)
+    // Total payouts (approved withdrawals sum)
     const [totalPayoutsResult] = await db
-      .select({ total: sql<string>`COALESCE(ABS(SUM(${earnings.amount})), '0')` })
-      .from(earnings)
-      .where(eq(earnings.source, 'payout'));
+      .select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}::numeric), '0')` })
+      .from(withdrawals)
+      .where(eq(withdrawals.status, 'approved'));
 
     // New users in last 24h
     const [newUsersResult] = await db
       .select({ count: sql<number>`count(*)` })
       .from(users)
       .where(gte(users.createdAt, yesterday));
+
+    // Ads stats
+    const [adsRes] = await db.select({ 
+      total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)`,
+      today: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)`
+    }).from(users);
+
+    // Withdrawal counts
+    const [withdrawStatusRes] = await db.select({
+      pending: sql<number>`COUNT(*) FILTER (WHERE status = 'pending')`,
+      approved: sql<number>`COUNT(*) FILTER (WHERE status = 'approved')`,
+      rejected: sql<number>`COUNT(*) FILTER (WHERE status = 'rejected')`
+    }).from(withdrawals);
 
     return {
       totalUsers: totalUsersResult.count || 0,
@@ -1531,7 +1550,52 @@ export class DatabaseStorage implements IStorage {
       totalReferralEarnings: totalReferralEarningsResult.total || '0',
       totalPayouts: totalPayoutsResult.total || '0',
       newUsersLast24h: newUsersResult.count || 0,
+      totalAdsWatched: adsRes.total || 0,
+      adsWatchedToday: adsRes.today || 0,
+      pendingWithdrawals: withdrawStatusRes.pending || 0,
+      approvedWithdrawals: withdrawStatusRes.approved || 0,
+      rejectedWithdrawals: withdrawStatusRes.rejected || 0
     };
+  }
+
+  async getAllUsersWithStats(): Promise<any[]> {
+    try {
+      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+      console.log(`📊 Found ${allUsers.length} users in database`);
+      return allUsers.map(user => {
+        // Extract plain values from potential Drizzle proxies or objects
+        const safeString = (val: any) => (val !== null && val !== undefined) ? val.toString() : '0';
+        
+        return {
+          id: user.id,
+          telegramId: user.telegram_id,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          balance: safeString(user.balance),
+          totalEarnings: safeString(user.totalEarnings),
+          tonBalance: safeString(user.tonBalance),
+          bugBalance: safeString(user.bugBalance),
+          adsWatched: user.adsWatched || 0,
+          adsWatchedToday: user.adsWatchedToday || 0,
+          referredBy: user.referredBy,
+          personalCode: user.personalCode,
+          referralCode: user.referralCode,
+          banned: user.banned,
+          bannedReason: user.bannedReason,
+          createdAt: user.createdAt,
+          totalWithdrawn: safeString(user.totalClaimedReferralBonus),
+          totalEarned: safeString(user.totalEarnings)
+        };
+      });
+    } catch (error) {
+      console.error('❌ Error in getAllUsersWithStats:', error);
+      return [];
+    }
+  }
+
+  async getBanLogs(): Promise<BanLog[]> {
+    return db.select().from(banLogs).orderBy(desc(banLogs.createdAt));
   }
 
   // Withdrawal operations (missing implementations)
@@ -1558,6 +1622,19 @@ export class DatabaseStorage implements IStorage {
     if (adminNotes) updateData.adminNotes = adminNotes;
     
     const [result] = await db.update(withdrawals).set(updateData).where(eq(withdrawals.id, withdrawalId)).returning();
+    
+    // Log transaction if approved
+    if (status === 'approved' || status === 'completed' || status === 'success') {
+      await this.logTransaction({
+        userId: result.userId,
+        amount: result.amount,
+        type: 'deduction',
+        source: 'withdrawal',
+        description: `Withdrawal ${status}`,
+        metadata: { withdrawalId: result.id }
+      });
+    }
+    
     return result;
   }
 

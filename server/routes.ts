@@ -2755,94 +2755,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin stats endpoint
   app.get('/api/admin/stats', authenticateAdmin, async (req: any, res) => {
     try {
-      // Get various statistics for admin dashboard using drizzle
-      const totalUsersCount = await db.select({ count: sql<number>`count(*)` }).from(users);
-      
-      // Fix casting for PostgreSQL sum functions
-      const totalEarningsSum = await db.select({ 
-        total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), 0)` 
-      }).from(users);
-      
-      const totalWithdrawalsSum = await db.select({ 
-        total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), 0)` 
-      }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
-      
-      const pendingWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, 'pending'));
-      const successfulWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
-      const rejectedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, 'rejected'));
-      const activePromosCount = await db.select({ count: sql<number>`count(*)` }).from(promoCodes).where(eq(promoCodes.isActive, true));
-      
-      // Daily active users (users who earned today)
-      const dailyActiveCount = await db.select({ 
-        count: sql<number>`count(distinct ${earnings.userId})` 
-      }).from(earnings).where(sql`DATE(${earnings.createdAt}) = CURRENT_DATE`);
-      
-      const totalAdsSum = await db.select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${users.adsWatched} AS INTEGER)), 0)` 
-      }).from(users);
-      
-      const todayAdsSum = await db.select({ 
-        total: sql<number>`COALESCE(SUM(CAST(${users.adsWatchedToday} AS INTEGER)), 0)` 
-      }).from(users);
-      
-      const tonWithdrawnSum = await db.select({ 
-        total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), 0)` 
-      }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
-
+      const stats = await storage.getAppStats();
       res.json({
-        totalUsers: totalUsersCount[0]?.count || 0,
-        totalEarnings: totalEarningsSum[0]?.total || '0',
-        totalWithdrawals: totalWithdrawalsSum[0]?.total || '0',
-        tonWithdrawn: tonWithdrawnSum[0]?.total || '0',
-        pendingWithdrawals: pendingWithdrawalsCount[0]?.count || 0,
-        successfulWithdrawals: successfulWithdrawalsCount[0]?.count || 0,
-        rejectedWithdrawals: rejectedWithdrawalsCount[0]?.count || 0,
-        activePromos: activePromosCount[0]?.count || 0,
-        dailyActiveUsers: dailyActiveCount[0]?.count || 0,
-        totalAdsWatched: totalAdsSum[0]?.total || 0,
-        todayAdsWatched: todayAdsSum[0]?.total || 0,
+        totalUsers: stats.totalUsers,
+        totalEarnings: stats.totalEarnings,
+        totalWithdrawals: stats.totalPayouts,
+        tonWithdrawn: stats.totalPayouts, // Adjusted mapping
+        pendingWithdrawals: stats.pendingWithdrawals,
+        successfulWithdrawals: stats.approvedWithdrawals,
+        rejectedWithdrawals: stats.rejectedWithdrawals,
+        dailyActiveUsers: stats.activeUsersToday,
+        totalAdsWatched: stats.totalAdsWatched,
+        todayAdsWatched: stats.adsWatchedToday,
+        activePromos: 0 // Placeholder or fetch if needed
       });
     } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch admin stats" });
+      console.error('Error fetching admin stats:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
-  // Admin ban logs endpoint
+  app.get('/api/admin/users', authenticateAdmin, async (req: any, res) => {
+    try {
+      console.log('🔍 Admin requesting user list...');
+      const usersList = await storage.getAllUsersWithStats();
+      console.log(`✅ Sending ${usersList.length} users to admin panel`);
+      res.json(usersList);
+    } catch (error) {
+      console.error('❌ Error fetching admin users:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.get('/api/admin/ban-logs', authenticateAdmin, async (req: any, res) => {
     try {
-      const { pool } = await import('./db');
-      const result = await pool.query(`
-        SELECT bl.*, u.username as target_username, a.username as admin_username
-        FROM ban_logs bl
-        LEFT JOIN users u ON bl.user_id = u.id
-        LEFT JOIN users a ON bl.admin_id = a.id
-        ORDER BY bl.created_at DESC
-        LIMIT 100
-      `);
-      res.json(result.rows);
+      const logs = await storage.getBanLogs();
+      res.json(logs);
     } catch (error) {
-      console.error("Error fetching ban logs:", error);
-      res.status(500).json({ message: "Failed to fetch ban logs" });
+      console.error('Error fetching ban logs:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
-  // User ban history endpoint
+  app.get('/api/admin/user-ads/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const earningsList = await storage.getUserEarnings(userId, 100);
+      const adEarnings = earningsList.filter(e => e.source === 'ad' || e.source === 'monetag' || e.source === 'adgram');
+      res.json(adEarnings);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/admin/user-tasks/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const earningsList = await storage.getUserEarnings(userId, 100);
+      const taskEarnings = earningsList.filter(e => e.source === 'task' || e.source === 'channel' || e.source === 'bot' || e.source === 'community' || e.source === 'advertiser');
+      res.json(taskEarnings);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/admin/user-withdrawals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const withdrawalsList = await storage.getUserWithdrawals(userId);
+      res.json(withdrawalsList);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.get('/api/admin/user-referrals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const referralsList = await storage.getUserReferrals(userId);
+      res.json(referralsList);
+    } catch (error) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   app.get('/api/admin/user-ban-history/:userId', authenticateAdmin, async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const { pool } = await import('./db');
-      const result = await pool.query(`
-        SELECT bl.*, a.username as admin_username
-        FROM ban_logs bl
-        LEFT JOIN users a ON bl.admin_id = a.id
-        WHERE bl.user_id = $1
-        ORDER BY bl.created_at DESC
-      `, [userId]);
-      res.json(result.rows);
+      const logs = await storage.getBanLogs();
+      const userLogs = logs.filter(l => l.userId === userId);
+      res.json(userLogs);
     } catch (error) {
-      console.error("Error fetching user ban history:", error);
-      res.status(500).json({ message: "Failed to fetch user ban history" });
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
@@ -3273,22 +3277,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin users endpoint
   app.get('/api/admin/users', authenticateAdmin, async (req: any, res) => {
     try {
-      const allUsers = await storage.getAllUsers();
-      res.json(allUsers);
+      const users = await storage.getAllUsersWithStats();
+      res.json(users);
     } catch (error) {
       console.error("Error fetching admin users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
-  // Admin banned users endpoint
-  app.get('/api/admin/banned-users', authenticateAdmin, async (req: any, res) => {
+  app.get('/api/admin/banned-users-details', authenticateAdmin, async (req: any, res) => {
     try {
-      const allUsers = await storage.getAllUsers();
+      const allUsers = await storage.getAllUsersWithStats();
       const bannedUsers = allUsers.filter(user => user.banned);
       res.json(bannedUsers);
     } catch (error) {
-      console.error("Error fetching banned users:", error);
+      console.error("Error fetching banned users details:", error);
       res.status(500).json({ message: "Failed to fetch banned users" });
     }
   });
