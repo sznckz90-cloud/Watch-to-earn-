@@ -1067,7 +1067,7 @@ export default function Home() {
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-4 pb-8">
         {/* Unified Profile & Balance Section */}
-        <div className="bg-[#0d0d0d] rounded-2xl p-4 border border-white/5 mb-4 relative">
+        <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div 
@@ -1500,15 +1500,15 @@ export default function Home() {
       )}
 
       {promoPopupOpen && (
-        <div className="fixed inset-0 bg-[#0E0F12]/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] px-4 backdrop-blur-sm">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-[#1A1C20] rounded-[24px] p-6 w-full max-w-[320px] border border-[#2F3238]/50 relative shadow-2xl overflow-hidden"
+            className="bg-[#0d0d0d] rounded-[24px] p-6 w-full max-w-[320px] border border-white/5 relative shadow-2xl overflow-hidden"
           >
             <div className="relative z-10 pt-2">
-              <h2 className="text-xl font-bold text-white text-center mb-1 uppercase tracking-tight">Promo code</h2>
-              <p className="text-[11px] text-[#B0B3B8] text-center mb-4 font-bold leading-relaxed px-1">
+              <h2 className="text-xl font-black text-white text-center mb-1 uppercase tracking-tight">Promo code</h2>
+              <p className="text-[11px] text-zinc-400 text-center mb-4 font-bold leading-relaxed px-1">
                 Enter your promo code below to claim special rewards!
               </p>
 
@@ -1518,13 +1518,13 @@ export default function Home() {
                   placeholder="Enter code"
                   value={promoCode}
                   onChange={(e) => setPromoCode(e.target.value)}
-                  className="bg-[#24262C] border-[#2F3238]/50 h-12 rounded-[16px] text-white text-center font-bold uppercase tracking-widest placeholder:text-[#7A7D85] text-sm shadow-inner"
+                  className="bg-white/5 border-white/10 h-12 rounded-[16px] text-white text-center font-black uppercase tracking-widest placeholder:text-zinc-600 text-sm"
                 />
                 
                 <Button
                   onClick={() => promoCode.trim() && redeemPromoMutation.mutate(promoCode.trim())}
                   disabled={isApplyingPromo || !promoCode.trim()}
-                  className="w-full h-12 bg-[#2D6CDF] hover:bg-[#2458b8] text-white rounded-[16px] font-bold text-sm transition-all active:scale-95 shadow-lg shadow-blue-500/20"
+                  className="w-full h-12 bg-white hover:bg-zinc-200 text-black rounded-[16px] font-black text-sm transition-all active:scale-95 shadow-lg shadow-white/5"
                 >
                   {isApplyingPromo ? (
                     <div className="flex items-center gap-2">
@@ -1536,8 +1536,8 @@ export default function Home() {
                   )}
                 </Button>
 
-                <div className="pt-3 border-t border-[#2F3238]/30 mt-2">
-                  <p className="text-[9px] text-[#7A7D85] text-center mb-2 font-bold uppercase tracking-wider opacity-60">
+                <div className="pt-3 border-t border-white/5 mt-2">
+                  <p className="text-[9px] text-zinc-500 text-center mb-2 font-black uppercase tracking-wider opacity-60">
                     Join our telegram channel for more gift codes!
                   </p>
                   
@@ -1545,7 +1545,7 @@ export default function Home() {
                     <Button
                       variant="outline"
                       onClick={() => window.open("https://t.me/PaidAdzGroup", "_blank")}
-                      className="flex-1 h-10 bg-[#0098EA]/10 border-[#0098EA]/20 hover:bg-[#0098EA]/20 text-[#0098EA] rounded-lg font-bold text-[10px] uppercase tracking-wider gap-1"
+                      className="flex-1 h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider gap-1"
                     >
                       <Send className="w-3.5 h-3.5" />
                       Join
@@ -1553,7 +1553,7 @@ export default function Home() {
                     <Button
                       variant="outline"
                       onClick={() => setPromoPopupOpen(false)}
-                      className="h-10 px-4 bg-[#24262C] border-[#2F3238]/50 hover:bg-[#1F2229] text-white rounded-lg font-bold text-[10px] uppercase tracking-wider"
+                      className="h-10 px-4 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
                     >
                       Close
                     </Button>
