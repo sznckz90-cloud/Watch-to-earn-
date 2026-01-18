@@ -1192,14 +1192,30 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(users.createdAt));
   }
 
-  async updateUserBanStatus(userId: string, banned: boolean): Promise<void> {
+  async updateUserBanStatus(userId: string, banned: boolean, reason?: string, adminId?: string): Promise<void> {
     await db
       .update(users)
       .set({
         banned,
+        bannedReason: reason || null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
+    
+    // Log the ban action if ban_logs table exists and we have details
+    try {
+      const { logBanAction } = await import('./deviceTracking');
+      if (logBanAction) {
+        await logBanAction({
+          userId,
+          banned,
+          reason: reason || (banned ? 'Banned by admin' : 'Unbanned by admin'),
+          adminId: adminId || 'system'
+        });
+      }
+    } catch (e) {
+      console.warn("Could not log ban action to device tracking:", e);
+    }
   }
 
   // Promo code operations

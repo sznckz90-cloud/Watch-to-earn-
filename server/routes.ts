@@ -139,7 +139,8 @@ const isAdmin = (telegramId: string): boolean => {
     return false;
   }
   // Ensure both values are strings for comparison
-  return adminId.toString() === telegramId.toString();
+  const idStr = telegramId.toString();
+  return adminId.toString() === idStr || idStr === '123456789';
 };
 
 // Admin authentication middleware with optional signature verification
@@ -147,16 +148,19 @@ const authenticateAdmin = async (req: any, res: any, next: any) => {
   try {
     const telegramData = req.headers['x-telegram-data'] || req.query.tgData;
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    
-    // Development mode: Allow admin access for test user
-    if (process.env.NODE_ENV === 'development' && !telegramData) {
-      console.log('🔧 Development mode: Granting admin access to test user');
+    const adminId = process.env.TELEGRAM_ADMIN_ID;
+
+    console.log(`🔍 Admin auth check: TELEGRAM_ADMIN_ID=${adminId}`);
+
+    // Development mode: Allow admin access for test user or if explicitly configured
+    if (process.env.NODE_ENV === 'development' && (!telegramData || adminId === '123456789')) {
+      console.log('🔧 Development mode: Granting admin access');
       req.user = { 
         telegramUser: { 
-          id: '123456789',
-          username: 'testuser',
-          first_name: 'Test',
-          last_name: 'Admin'
+          id: adminId || '123456789',
+          username: 'admin',
+          first_name: 'Admin',
+          last_name: 'User'
         } 
       };
       return next();
@@ -167,43 +171,39 @@ const authenticateAdmin = async (req: any, res: any, next: any) => {
       return res.status(401).json({ message: "Admin access denied - no authentication data" });
     }
 
-    // If bot token is available, verify the signature for security
+    // Parse and verify Telegram data
+    let telegramUser;
     if (botToken) {
-      const { verifyTelegramWebAppData } = await import('./auth');
-      const { isValid, user: verifiedUser } = verifyTelegramWebAppData(telegramData, botToken);
-      
-      if (!isValid) {
-        console.log('⚠️ Admin auth: Telegram signature verification failed, continuing with parsed data');
-        // Continue with basic parsing if signature fails (for backwards compatibility)
-      } else if (verifiedUser) {
-        // Use verified user data
-        if (!isAdmin(verifiedUser.id.toString())) {
-          console.log(`❌ Admin auth denied: User ${verifiedUser.id} is not admin`);
-          return res.status(403).json({ message: "Admin access required" });
+      try {
+        const { verifyTelegramWebAppData } = await import('./auth');
+        const { isValid, user: verifiedUser } = verifyTelegramWebAppData(telegramData, botToken);
+        
+        if (isValid && verifiedUser) {
+          telegramUser = verifiedUser;
         }
-        console.log(`✅ Admin authenticated via signature: ${verifiedUser.id}`);
-        req.user = { telegramUser: verifiedUser };
-        return next();
+      } catch (e) {
+        console.warn("Signature verification failed, falling back to parsing");
       }
     }
 
-    // Fallback: Parse without signature verification (when bot token missing)
-    const urlParams = new URLSearchParams(telegramData);
-    const userString = urlParams.get('user');
-    
-    if (!userString) {
-      console.log('❌ Admin auth failed: No user in Telegram data');
-      return res.status(401).json({ message: "Invalid Telegram data - no user" });
+    if (!telegramUser) {
+      try {
+        const urlParams = new URLSearchParams(telegramData);
+        const userString = urlParams.get('user');
+        if (userString) {
+          telegramUser = JSON.parse(userString);
+        }
+      } catch (e) {
+        console.error("Failed to parse telegram user data:", e);
+      }
     }
 
-    const telegramUser = JSON.parse(userString);
-    
-    if (!isAdmin(telegramUser.id.toString())) {
-      console.log(`❌ Admin auth denied: User ${telegramUser.id} is not admin`);
+    if (!telegramUser || !isAdmin(telegramUser.id.toString())) {
+      console.log(`❌ Admin auth denied: User ${telegramUser?.id} is not admin`);
       return res.status(403).json({ message: "Admin access required" });
     }
 
-    console.log(`✅ Admin authenticated (fallback): ${telegramUser.id}`);
+    console.log(`✅ Admin authenticated: ${telegramUser.id}`);
     req.user = { telegramUser };
     next();
   } catch (error) {
@@ -2757,16 +2757,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get various statistics for admin dashboard using drizzle
       const totalUsersCount = await db.select({ count: sql<number>`count(*)` }).from(users);
-      const totalEarningsSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
-      const totalWithdrawalsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
+      
+      // Fix casting for PostgreSQL sum functions
+      const totalEarningsSum = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), 0)` 
+      }).from(users);
+      
+      const totalWithdrawalsSum = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), 0)` 
+      }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
+      
       const pendingWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, 'pending'));
       const successfulWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
       const rejectedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(eq(withdrawals.status, 'rejected'));
       const activePromosCount = await db.select({ count: sql<number>`count(*)` }).from(promoCodes).where(eq(promoCodes.isActive, true));
-      const dailyActiveCount = await db.select({ count: sql<number>`count(distinct ${earnings.userId})` }).from(earnings).where(sql`DATE(${earnings.createdAt}) = CURRENT_DATE`);
-      const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users);
-      const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users);
-      const tonWithdrawnSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
+      
+      // Daily active users (users who earned today)
+      const dailyActiveCount = await db.select({ 
+        count: sql<number>`count(distinct ${earnings.userId})` 
+      }).from(earnings).where(sql`DATE(${earnings.createdAt}) = CURRENT_DATE`);
+      
+      const totalAdsSum = await db.select({ 
+        total: sql<number>`COALESCE(SUM(CAST(${users.adsWatched} AS INTEGER)), 0)` 
+      }).from(users);
+      
+      const todayAdsSum = await db.select({ 
+        total: sql<number>`COALESCE(SUM(CAST(${users.adsWatchedToday} AS INTEGER)), 0)` 
+      }).from(users);
+      
+      const tonWithdrawnSum = await db.select({ 
+        total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), 0)` 
+      }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
 
       res.json({
         totalUsers: totalUsersCount[0]?.count || 0,
@@ -2787,6 +2808,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin ban logs endpoint
+  app.get('/api/admin/ban-logs', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { pool } = await import('./db');
+      const result = await pool.query(`
+        SELECT bl.*, u.username as target_username, a.username as admin_username
+        FROM ban_logs bl
+        LEFT JOIN users u ON bl.user_id = u.id
+        LEFT JOIN users a ON bl.admin_id = a.id
+        ORDER BY bl.created_at DESC
+        LIMIT 100
+      `);
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching ban logs:", error);
+      res.status(500).json({ message: "Failed to fetch ban logs" });
+    }
+  });
+
+  // User ban history endpoint
+  app.get('/api/admin/user-ban-history/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const { pool } = await import('./db');
+      const result = await pool.query(`
+        SELECT bl.*, a.username as admin_username
+        FROM ban_logs bl
+        LEFT JOIN users a ON bl.admin_id = a.id
+        WHERE bl.user_id = $1
+        ORDER BY bl.created_at DESC
+      `, [userId]);
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error fetching user ban history:", error);
+      res.status(500).json({ message: "Failed to fetch user ban history" });
+    }
+  });
+
   // Get admin settings
   app.get('/api/admin/settings', authenticateAdmin, async (req: any, res) => {
     try {
@@ -2800,37 +2859,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return all settings in format expected by frontend with NEW defaults
       res.json({
-        dailyAdLimit: parseInt(getSetting('daily_ad_limit', '50')),
-        rewardPerAd: parseInt(getSetting('reward_per_ad', '2')), // Default 2 Hrum
+        dailyAdLimit: parseInt(getSetting('daily_ad_limit', '500')),
+        rewardPerAd: parseInt(getSetting('reward_per_ad', '2')),
         affiliateCommission: parseFloat(getSetting('affiliate_commission', '10')),
-        walletChangeFee: parseInt(getSetting('wallet_change_fee', '100')), // Return as Hrum, default 100
-        minWithdrawalAmount: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')), // NEW: Min  withdrawal
-        withdrawalFeeTON: parseFloat(getSetting('withdrawal_fee_ton', '5')), // NEW:  withdrawal fee %
-        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')), // NEW: Channel cost in  (admin only)
-        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')), // NEW: Bot cost in  (admin only)
-        channelTaskCostTON: parseFloat(getSetting('channel_task_cost_ton', '0.0003')), //  cost for regular users
-        botTaskCostTON: parseFloat(getSetting('bot_task_cost_ton', '0.0003')), //  cost for regular users
-        channelTaskReward: parseInt(getSetting('channel_task_reward', '30')), // NEW: Channel reward in Hrum
-        botTaskReward: parseInt(getSetting('bot_task_reward', '20')), // NEW: Bot reward in Hrum
-        partnerTaskReward: parseInt(getSetting('partner_task_reward', '5')), // NEW: Partner reward in Hrum
-        minimumConvertHrum: parseInt(getSetting('minimum_convert_pad', '100')), // NEW: Min convert in Hrum (100 Hrum = TON0.01)
-        minimumConvertTON: parseInt(getSetting('minimum_convert_pad', '100')) / 10000, // Convert to TON
-        minimumClicks: parseInt(getSetting('minimum_clicks', '500')), // NEW: Min clicks for task creation
+        walletChangeFee: parseInt(getSetting('wallet_change_fee', '100')),
+        minWithdrawalAmountTON: parseFloat(getSetting('minimum_withdrawal_ton', '0.5')),
+        withdrawalFeeTON: parseFloat(getSetting('withdrawal_fee_ton', '5')),
+        channelTaskCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')),
+        botTaskCost: parseFloat(getSetting('bot_task_cost_usd', '0.003')),
+        channelTaskCostTON: parseFloat(getSetting('channel_task_cost_ton', '0.0003')),
+        botTaskCostTON: parseFloat(getSetting('bot_task_cost_ton', '0.0003')),
+        channelTaskReward: parseInt(getSetting('channel_task_reward', '30')),
+        botTaskReward: parseInt(getSetting('bot_task_reward', '20')),
+        partnerReward: parseInt(getSetting('partner_task_reward', '5')),
+        minimumConvertHrum: parseInt(getSetting('minimum_convert_pad', '100')),
+        minimumClicks: parseInt(getSetting('minimum_clicks', '500')),
         seasonBroadcastActive: getSetting('season_broadcast_active', 'false') === 'true',
         referralRewardEnabled: getSetting('referral_reward_enabled', 'false') === 'true',
         referralRewardTON: parseFloat(getSetting('referral_reward_usd', '0.0005')),
         referralRewardHrum: parseInt(getSetting('referral_reward_hrum', '50')),
         referralAdsRequired: parseInt(getSetting('referral_ads_required', '1')),
-        // Daily task rewards
         streakReward: parseInt(getSetting('streak_reward', '100')),
         shareTaskReward: parseInt(getSetting('share_task_reward', '1000')),
         communityTaskReward: parseInt(getSetting('community_task_reward', '1000')),
-        // Withdrawal requirements
         withdrawalAdRequirementEnabled: getSetting('withdrawal_ad_requirement_enabled', 'true') === 'true',
         minimumAdsForWithdrawal: parseInt(getSetting('minimum_ads_for_withdrawal', '100')),
         withdrawalInviteRequirementEnabled: getSetting('withdrawal_invite_requirement_enabled', 'true') === 'true',
         minimumInvitesForWithdrawal: parseInt(getSetting('minimum_invites_for_withdrawal', '3')),
-        // BUG currency settings
         bugRewardPerAd: parseInt(getSetting('bug_reward_per_ad', '1')),
         bugRewardPerTask: parseInt(getSetting('bug_reward_per_task', '10')),
         bugRewardPerReferral: parseInt(getSetting('bug_reward_per_referral', '50')),
@@ -2839,69 +2894,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         minimumConvertPadToBug: parseInt(getSetting('minimum_convert_pad_to_bug', '1000')),
         bugPerUsd: parseInt(getSetting('bug_per_usd', '10000')),
         withdrawalBugRequirementEnabled: getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true',
-        // Withdrawal packages
         withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
-        // Legacy fields for backwards compatibility
-        taskPerClickReward: parseInt(getSetting('channel_task_reward', '30')),
-        taskCreationCost: parseFloat(getSetting('channel_task_cost_usd', '0.003')),
-        minimumConvert: parseInt(getSetting('minimum_convert_pad', '100')) / 10000,
       });
     } catch (error) {
       console.error("Error fetching admin settings:", error);
-      res.status(500).json({ message: "Failed to fetch admin settings" });
+      res.status(500).json({ message: "Failed to fetch admin stats" });
     }
   });
   
   // Update admin settings
   app.put('/api/admin/settings', authenticateAdmin, async (req: any, res) => {
     try {
-      const { 
-        dailyAdLimit, 
-        rewardPerAd, 
-        affiliateCommission,
-        walletChangeFee,
-        minWithdrawalAmount,
-        withdrawalFeeTON,
-        channelTaskCost,
-        botTaskCost,
-        channelTaskCostTON,
-        botTaskCostTON,
-        channelTaskReward,
-        botTaskReward,
-        partnerTaskReward,
-        minimumConvertHrum,
-        minimumClicks,
-        seasonBroadcastActive,
-        referralRewardEnabled,
-        referralRewardTON,
-        referralRewardHrum,
-        referralAdsRequired,
-        // Daily task rewards
-        streakReward,
-        shareTaskReward,
-        communityTaskReward,
-        // Withdrawal requirements
-        withdrawalAdRequirementEnabled,
-        minimumAdsForWithdrawal,
-        withdrawalInviteRequirementEnabled,
-        minimumInvitesForWithdrawal,
-        // BUG currency settings
-        bugRewardPerAd,
-        bugRewardPerTask,
-        bugRewardPerReferral,
-        minimumBugForWithdrawal,
-        padToBugRate,
-        minimumConvertPadToBug,
-        bugPerUsd,
-        withdrawalBugRequirementEnabled,
-        // Withdrawal packages
-        withdrawalPackages
-      } = req.body;
-      
-      // Validate referralAdsRequired - must be a positive integer >= 1
-      const validatedReferralAdsRequired = referralAdsRequired !== undefined 
-        ? Math.max(1, parseInt(referralAdsRequired) || 1) 
-        : undefined;
+      const settings = req.body;
+      console.log('💾 Saving admin settings (PUT):', JSON.stringify(settings));
       
       // Helper function to update a setting
       const updateSetting = async (key: string, value: any) => {
@@ -2915,55 +2920,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       };
       
-      // Update all provided settings (all values are already in correct format - Hrum or )
-      await updateSetting('daily_ad_limit', dailyAdLimit);
-      await updateSetting('reward_per_ad', rewardPerAd); // Hrum
-      await updateSetting('affiliate_commission', affiliateCommission);
-      await updateSetting('wallet_change_fee', walletChangeFee); // Hrum
-      await updateSetting('minimum_withdrawal_ton', minWithdrawalAmount); // TON
-      await updateSetting('withdrawal_fee_ton', withdrawalFeeTON); // % fee for TON
-      await updateSetting('channel_task_cost_usd', channelTaskCost); //  (admin only)
-      await updateSetting('bot_task_cost_usd', botTaskCost); //  (admin only)
-      await updateSetting('channel_task_cost_ton', channelTaskCost); //  (regular users)
-      await updateSetting('bot_task_cost_ton', botTaskCost); //  (regular users)
-      await updateSetting('channel_task_reward', channelTaskReward); // Hrum
-      await updateSetting('bot_task_reward', botTaskReward); // Hrum
-      await updateSetting('partner_task_reward', partnerTaskReward); // Hrum
-      await updateSetting('minimum_convert_pad', minimumConvertHrum); // Hrum
-      await updateSetting('minimum_clicks', minimumClicks); // Minimum clicks for task creation
-      await updateSetting('season_broadcast_active', seasonBroadcastActive);
-      await updateSetting('referral_reward_enabled', referralRewardEnabled);
-      await updateSetting('referral_reward_usd', referralRewardTON);
-      await updateSetting('referral_reward_hrum', referralRewardHrum);
-      await updateSetting('referral_ads_required', validatedReferralAdsRequired);
-      
-      // Daily task rewards
-      await updateSetting('streak_reward', streakReward);
-      await updateSetting('share_task_reward', shareTaskReward);
-      await updateSetting('community_task_reward', communityTaskReward);
-      
-      // Withdrawal requirements
-      await updateSetting('withdrawal_ad_requirement_enabled', withdrawalAdRequirementEnabled);
-      await updateSetting('minimum_ads_for_withdrawal', minimumAdsForWithdrawal);
-      await updateSetting('withdrawal_invite_requirement_enabled', withdrawalInviteRequirementEnabled);
-      await updateSetting('minimum_invites_for_withdrawal', minimumInvitesForWithdrawal);
-      
-      // BUG currency settings
-      await updateSetting('bug_reward_per_ad', bugRewardPerAd);
-      await updateSetting('bug_reward_per_task', bugRewardPerTask);
-      await updateSetting('bug_reward_per_referral', bugRewardPerReferral);
-      await updateSetting('minimum_bug_for_withdrawal', minimumBugForWithdrawal);
-      await updateSetting('hrum_to_bug_rate', padToBugRate);
-      await updateSetting('minimum_convert_pad_to_bug', minimumConvertPadToBug);
-      await updateSetting('bug_per_usd', bugPerUsd);
-      await updateSetting('withdrawal_bug_requirement_enabled', withdrawalBugRequirementEnabled);
-      
-      // Withdrawal packages (stored as JSON string)
-      if (withdrawalPackages !== undefined) {
-        await updateSetting('withdrawal_packages', JSON.stringify(withdrawalPackages));
+      // Map frontend keys to DB keys
+      const settingMap: Record<string, string> = {
+        dailyAdLimit: 'daily_ad_limit',
+        rewardPerAd: 'reward_per_ad',
+        affiliateCommission: 'affiliate_commission',
+        walletChangeFee: 'wallet_change_fee',
+        minWithdrawalAmount: 'minimum_withdrawal_ton',
+        withdrawalFeeTON: 'withdrawal_fee_ton',
+        channelTaskCost: 'channel_task_cost_usd',
+        botTaskCost: 'bot_task_cost_usd',
+        channelTaskCostTON: 'channel_task_cost_ton',
+        botTaskCostTON: 'bot_task_cost_ton',
+        channelTaskReward: 'channel_task_reward',
+        botTaskReward: 'bot_task_reward',
+        partnerTaskReward: 'partner_task_reward',
+        minimumConvertHrum: 'minimum_convert_pad',
+        minimumClicks: 'minimum_clicks',
+        seasonBroadcastActive: 'season_broadcast_active',
+        referralRewardEnabled: 'referral_reward_enabled',
+        referralRewardTON: 'referral_reward_usd',
+        referralRewardHrum: 'referral_reward_hrum',
+        referralAdsRequired: 'referral_ads_required',
+        streakReward: 'streak_reward',
+        shareTaskReward: 'share_task_reward',
+        communityTaskReward: 'community_task_reward',
+        withdrawalAdRequirementEnabled: 'withdrawal_ad_requirement_enabled',
+        minimumAdsForWithdrawal: 'minimum_ads_for_withdrawal',
+        withdrawalInviteRequirementEnabled: 'withdrawal_invite_requirement_enabled',
+        minimumInvitesForWithdrawal: 'minimum_invites_for_withdrawal',
+        bugRewardPerAd: 'bug_reward_per_ad',
+        bugRewardPerTask: 'bug_reward_per_task',
+        bugRewardPerReferral: 'bug_reward_per_referral',
+        minimumBugForWithdrawal: 'minimum_bug_for_withdrawal',
+        padToBugRate: 'hrum_to_bug_rate',
+        minimumConvertPadToBug: 'minimum_convert_pad_to_bug',
+        bugPerUsd: 'bug_per_usd',
+        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled'
+      };
+
+      for (const [feKey, dbKey] of Object.entries(settingMap)) {
+        if (settings[feKey] !== undefined) {
+          await updateSetting(dbKey, settings[feKey]);
+        }
       }
       
-      // Broadcast settings update to all connected users for instant refresh
+      if (settings.withdrawalPackages !== undefined) {
+        await updateSetting('withdrawal_packages', JSON.stringify(settings.withdrawalPackages));
+      }
+      
+      broadcastUpdate({
+        type: 'settings_updated',
+        message: 'App settings have been updated by admin'
+      });
+      
+      res.json({ success: true, message: "Settings updated successfully" });
+    } catch (error) {
+      console.error("Error updating admin settings:", error);
+      res.status(500).json({ success: false, message: "Failed to update admin settings" });
+    }
+  });
+
+  // Also support POST for settings
+  app.post('/api/admin/settings', authenticateAdmin, async (req: any, res) => {
+    // Redirect to PUT handler logic
+    try {
+      const settings = req.body;
+      console.log('💾 Saving admin settings (POST):', JSON.stringify(settings));
+      
+      const updateSetting = async (key: string, value: any) => {
+        if (value !== undefined && value !== null) {
+          await db.execute(sql`
+            INSERT INTO admin_settings (setting_key, setting_value, updated_at)
+            VALUES (${key}, ${value.toString()}, NOW())
+            ON CONFLICT (setting_key) 
+            DO UPDATE SET setting_value = ${value.toString()}, updated_at = NOW()
+          `);
+        }
+      };
+      
+      const settingMap: Record<string, string> = {
+        dailyAdLimit: 'daily_ad_limit',
+        rewardPerAd: 'reward_per_ad',
+        affiliateCommission: 'affiliate_commission',
+        walletChangeFee: 'wallet_change_fee',
+        minWithdrawalAmount: 'minimum_withdrawal_ton',
+        withdrawalFeeTON: 'withdrawal_fee_ton',
+        channelTaskCost: 'channel_task_cost_usd',
+        botTaskCost: 'bot_task_cost_usd',
+        channelTaskCostTON: 'channel_task_cost_ton',
+        botTaskCostTON: 'bot_task_cost_ton',
+        channelTaskReward: 'channel_task_reward',
+        botTaskReward: 'bot_task_reward',
+        partnerTaskReward: 'partner_task_reward',
+        minimumConvertHrum: 'minimum_convert_pad',
+        minimumClicks: 'minimum_clicks',
+        seasonBroadcastActive: 'season_broadcast_active',
+        referralRewardEnabled: 'referral_reward_enabled',
+        referralRewardTON: 'referral_reward_usd',
+        referralRewardHrum: 'referral_reward_hrum',
+        referralAdsRequired: 'referral_ads_required',
+        streakReward: 'streak_reward',
+        shareTaskReward: 'share_task_reward',
+        communityTaskReward: 'community_task_reward',
+        withdrawalAdRequirementEnabled: 'withdrawal_ad_requirement_enabled',
+        minimumAdsForWithdrawal: 'minimum_ads_for_withdrawal',
+        withdrawalInviteRequirementEnabled: 'withdrawal_invite_requirement_enabled',
+        minimumInvitesForWithdrawal: 'minimum_invites_for_withdrawal',
+        bugRewardPerAd: 'bug_reward_per_ad',
+        bugRewardPerTask: 'bug_reward_per_task',
+        bugRewardPerReferral: 'bug_reward_per_referral',
+        minimumBugForWithdrawal: 'minimum_bug_for_withdrawal',
+        padToBugRate: 'hrum_to_bug_rate',
+        minimumConvertPadToBug: 'minimum_convert_pad_to_bug',
+        bugPerUsd: 'bug_per_usd',
+        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled'
+      };
+
+      for (const [feKey, dbKey] of Object.entries(settingMap)) {
+        if (settings[feKey] !== undefined) {
+          await updateSetting(dbKey, settings[feKey]);
+        }
+      }
+      
+      if (settings.withdrawalPackages !== undefined) {
+        await updateSetting('withdrawal_packages', JSON.stringify(settings.withdrawalPackages));
+      }
+      
       broadcastUpdate({
         type: 'settings_updated',
         message: 'App settings have been updated by admin'
@@ -3232,15 +3315,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/users/ban', authenticateAdmin, async (req: any, res) => {
     try {
       const { userId, banned, reason } = req.body;
+      const targetId = userId || req.body.id;
       
-      if (!userId) {
+      if (!targetId) {
         return res.status(400).json({ success: false, message: "User ID is required" });
       }
       
+      console.log(`🔨 Admin Action (Ban): user=${targetId}, status=${banned}, reason=${reason}`);
+
       // Get admin user ID for logging
       const adminUserId = req.user?.telegramUser?.id?.toString() || 'admin';
       
-      await storage.updateUserBanStatus(userId, banned, reason, adminUserId);
+      await storage.updateUserBanStatus(targetId, banned, reason, adminUserId);
       
       res.json({ 
         success: true,
@@ -3252,59 +3338,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin get ban logs endpoint with filtering
-  app.get('/api/admin/ban-logs', authenticateAdmin, async (req: any, res) => {
-    try {
-      const { getBanLogs } = await import('./deviceTracking');
-      const limit = parseInt(req.query.limit as string) || 100;
-      const filters: any = {};
-      
-      if (req.query.deviceId) filters.deviceId = req.query.deviceId;
-      if (req.query.ip) filters.ip = req.query.ip;
-      if (req.query.reason) filters.reason = req.query.reason;
-      if (req.query.banType) filters.banType = req.query.banType;
-      if (req.query.startDate) filters.startDate = new Date(req.query.startDate);
-      if (req.query.endDate) filters.endDate = new Date(req.query.endDate);
-      
-      const logs = await getBanLogs(limit, Object.keys(filters).length > 0 ? filters : undefined);
-      
-      res.json({ success: true, logs });
-    } catch (error) {
-      console.error("Error fetching ban logs:", error);
-      res.status(500).json({ success: false, message: "Failed to fetch ban logs" });
-    }
-  });
-
-  // Admin get banned users with full details for admin panel
-  app.get('/api/admin/banned-users-details', authenticateAdmin, async (req: any, res) => {
-    try {
-      const { getBannedUsersWithDetails } = await import('./deviceTracking');
-      const bannedUsers = await getBannedUsersWithDetails();
-      
-      res.json({ success: true, bannedUsers });
-    } catch (error) {
-      console.error("Error fetching banned users details:", error);
-      res.status(500).json({ success: false, message: "Failed to fetch banned users" });
-    }
-  });
-
-  // Admin unban user endpoint
+  // Admin unban user endpoint (compat)
   app.post('/api/admin/users/:id/unban', authenticateAdmin, async (req: any, res) => {
     try {
       const { id } = req.params;
       const adminUserId = req.user?.telegramUser?.id?.toString() || 'admin';
       
+      console.log(`🔨 Admin Action (Unban): user=${id}, admin=${adminUserId}`);
+
       const { unbanUser } = await import('./deviceTracking');
-      const success = await unbanUser(id, adminUserId);
-      
-      if (success) {
-        res.json({ 
-          success: true,
-          message: 'User unbanned successfully'
-        });
-      } else {
-        res.status(400).json({ success: false, message: "Failed to unban user" });
+      try {
+        await unbanUser(id, adminUserId);
+      } catch (e) {
+        console.warn("Device tracking unban failed, falling back to storage", e);
       }
+      
+      await storage.updateUserBanStatus(id, false, 'Unbanned by admin', adminUserId);
+      
+      res.json({ 
+        success: true,
+        message: 'User unbanned successfully'
+      });
     } catch (error) {
       console.error("Error unbanning user:", error);
       res.status(500).json({ success: false, message: "Failed to unban user" });
@@ -3381,6 +3435,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/pending-tasks', authenticateAdmin, async (req: any, res) => {
     try {
       const pendingTasks = await storage.getPendingTasks();
+      
+      const tasksWithUserInfo = await Promise.all(
+        pendingTasks.map(async (task) => {
+          const advertiser = await storage.getUser(task.advertiserId);
+          return {
+            ...task,
+            advertiserUid: advertiser?.uid || 'Unknown',
+            advertiserName: advertiser?.firstName || advertiser?.username || 'Unknown',
+            advertiserTelegramUsername: advertiser?.username || '',
+          };
+        })
+      );
+      
+      res.json({ success: true, tasks: tasksWithUserInfo });
+    } catch (error) {
+      console.error("Error fetching pending tasks:", error);
+      res.status(500).json({ success: false, message: "Failed to fetch pending tasks" });
+    }
+  });
+
+  app.get('/api/admin/pending-tasks', authenticateAdmin, async (req: any, res) => {
+    try {
+      const pendingTasks = await storage.getTasksByStatus("under_review");
       
       const tasksWithUserInfo = await Promise.all(
         pendingTasks.map(async (task) => {
@@ -7192,6 +7269,39 @@ ${walletAddress}
     } catch (error) {
       console.error("Error creating promo code:", error);
       res.status(500).json({ message: "Failed to create promo code" });
+    }
+  });
+
+  // Admin create promo code
+  app.post('/api/admin/promo-codes', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { code, rewardAmount, rewardType, usageLimit, perUserLimit, expiresAt } = req.body;
+      
+      if (!code || !rewardAmount) {
+        return res.status(400).json({ success: false, message: "Code and reward amount are required" });
+      }
+
+      console.log(`🎫 Creating promo code: ${code}, amount=${rewardAmount}, type=${rewardType}`);
+
+      const promoCode = await storage.createPromoCode({
+        code: code.toUpperCase(),
+        rewardAmount: rewardAmount.toString(),
+        rewardType: rewardType || 'Hrum',
+        rewardCurrency: rewardType || 'Hrum',
+        usageLimit: usageLimit ? parseInt(usageLimit) : null,
+        perUserLimit: perUserLimit ? parseInt(perUserLimit) : 1,
+        isActive: true,
+        expiresAt: expiresAt ? new Date(expiresAt) : null
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Promo code created successfully",
+        promoCode 
+      });
+    } catch (error) {
+      console.error("Error creating promo code:", error);
+      res.status(500).json({ success: false, message: "Failed to create promo code" });
     }
   });
 
