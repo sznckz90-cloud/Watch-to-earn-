@@ -85,6 +85,13 @@ export const users = pgTable("users", {
   walletUpdatedAt: timestamp("wallet_updated_at"),
   pendingReferralBonus: decimal("pending_referral_bonus", { precision: 30, scale: 10 }).default("0"),
   totalClaimedReferralBonus: decimal("total_claimed_referral_bonus", { precision: 30, scale: 10 }).default("0"),
+  // Keep legacy columns to prevent data loss during migration
+  usdBalance: decimal("usd_balance", { precision: 30, scale: 10 }).default("0"),
+  pdzBalance: decimal("pdz_balance", { precision: 30, scale: 10 }).default("0"),
+  bugBalance: decimal("bug_balance", { precision: 30, scale: 10 }).default("0"),
+  withdraw_balance: decimal("withdraw_balance", { precision: 30, scale: 10 }).default("0"),
+  total_earnings: decimal("total_earnings", { precision: 30, scale: 10 }).default("0"),
+  total_earned: decimal("total_earned", { precision: 30, scale: 10 }).default("0"),
   // Enhanced tracking for auto-ban system
   appVersion: text("app_version"),
   browserFingerprint: text("browser_fingerprint"), // Full fingerprint hash for WebApp detection
@@ -146,6 +153,7 @@ export const referrals = pgTable("referrals", {
   referrerId: varchar("referrer_id").references(() => users.id).notNull(),
   refereeId: varchar("referee_id").references(() => users.id).notNull(),
   rewardAmount: decimal("reward_amount", { precision: 30, scale: 10 }).default("1000"),
+  usd_reward_amount: decimal("usd_reward_amount", { precision: 30, scale: 10 }).default("0"),
   tonRewardAmount: decimal("ton_reward_amount", { precision: 30, scale: 10 }).default("0"),
   bugRewardAmount: decimal("bug_reward_amount", { precision: 30, scale: 10 }).default("0"),
   status: varchar("status").default('pending'),
