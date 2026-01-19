@@ -768,7 +768,7 @@ export default function Home() {
   const tonBalance = parseFloat((user as User)?.tonBalance || "0");
   const balance = parseFloat((user as User)?.balance || "0");
   const balanceBUG = parseFloat((user as User)?.bugBalance || "0");
-  const withdrawBalance = parseFloat((user as User)?.withdrawBalance || "0");
+  const withdrawBalance = parseFloat((user as User)?.tonBalance || "0");
   
   const displayName = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || (user as User)?.firstName || (user as User)?.username || "User";
   const photoUrl = typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url;
