@@ -384,56 +384,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Mining operations
-  async claimMining(userId: string): Promise<{ success: boolean; message: string; reward?: string; balances?: any }> {
+  async claimMining(userId: string): Promise<{ success: boolean; amount: string; message: string }> {
     try {
-      const user = await this.getUser(userId);
-      if (!user) return { success: false, message: "User not found" };
+      const state = await this.getMiningState(userId);
+      const amount = state.currentMining;
 
-      const now = new Date();
-      const lastClaim = user.lastMiningClaim ? new Date(user.lastMiningClaim) : new Date(0);
-      const diffMs = now.getTime() - lastClaim.getTime();
-      const diffHours = diffMs / (1000 * 60 * 60);
-
-      // Simple 24h check for mining (adjust as per app logic)
-      if (diffHours < 24 && user.lastMiningClaim) {
-        return { success: false, message: "Mining still in progress" };
+      if (parseFloat(amount) < 1) {
+        return { success: false, amount: "0", message: "Minimum claim is 1 HRUM" };
       }
 
-      // Default reward if not specified
-      const reward = "10.0"; 
-      const amountNum = parseFloat(reward);
+      await db.transaction(async (tx) => {
+        await tx.update(users)
+          .set({
+            balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
+            withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${amount}`,
+            totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${amount}`,
+            lastMiningClaim: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
 
-      const currentBalance = parseFloat(user.balance || '0');
-      const currentTonBalance = parseFloat(user.tonBalance || '0');
-      const currentTotalEarnings = parseFloat(user.totalEarnings || '0');
+        await tx.insert(earnings).values({
+          userId,
+          amount,
+          source: "mining",
+          description: "Mining claim",
+        });
+      });
 
-      const newBalance = (currentBalance + amountNum).toFixed(2);
-      const newTonBalance = (currentTonBalance + amountNum).toFixed(2);
-      const newTotalEarnings = (currentTotalEarnings + amountNum).toFixed(2);
-
-      await db.update(users)
-        .set({
-          balance: newBalance,
-          tonBalance: newTonBalance,
-          totalEarnings: newTotalEarnings,
-          lastMiningClaim: now,
-          updatedAt: now
-        })
-        .where(eq(users.id, userId));
-
-      return { 
-        success: true, 
-        message: "Mining claim successful", 
-        reward,
-        balances: {
-          balance: newBalance,
-          tonBalance: newTonBalance,
-          totalEarnings: newTotalEarnings
-        }
-      };
+      return { success: true, amount, message: `Successfully claimed ${amount} Hrum` };
     } catch (error) {
       console.error("Error claiming mining:", error);
-      return { success: false, message: "Failed to claim mining" };
+      return { success: false, amount: "0", message: "Failed to claim mining" };
     }
   }
 
@@ -459,36 +441,6 @@ export class DatabaseStorage implements IStorage {
       lastClaim,
       maxMining
     };
-  }
-
-  async claimMining(userId: string) {
-    const state = await this.getMiningState(userId);
-    const amount = state.currentMining;
-
-    if (parseFloat(amount) < 1) {
-      return { success: false, amount: "0", message: "Minimum claim is 1 HRUM" };
-    }
-
-    await db.transaction(async (tx) => {
-      await tx.update(users)
-        .set({
-          balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
-          withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${amount}`,
-          totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${amount}`,
-          lastMiningClaim: new Date(),
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, userId));
-
-      await tx.insert(earnings).values({
-        userId,
-        amount,
-        source: "mining",
-        description: "Mining claim",
-      });
-    });
-
-    return { success: true, amount, message: `Successfully claimed ${amount} Hrum` };
   }
 
   // Transaction operations
