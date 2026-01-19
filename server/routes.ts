@@ -366,40 +366,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/withdraw/request", authenticateTelegram, async (req: any, res) => {
-    try {
-      const user = req.user?.user;
-      if (!user) return res.status(401).json({ message: "Not authenticated" });
-
-      const { amount, paymentSystemId, paymentDetails } = req.body;
-      if (!amount || isNaN(amount) || amount <= 0) {
-        return res.status(400).json({ message: "Invalid amount" });
-      }
-
-      const result = await storage.createPayoutRequest(user.id, amount.toString(), paymentSystemId, paymentDetails);
-      if (!result.success) {
-        return res.status(400).json({ message: result.message });
-      }
-
-      res.json(result);
-    } catch (error) {
-      console.error("Withdrawal request error:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post("/api/withdrawals", authenticateTelegram, async (req: any, res) => {
-    // For backwards compatibility or direct calls
-    try {
-      const user = req.user?.user;
-      if (!user) return res.status(401).json({ message: "Not authenticated" });
-      const { amount, address, method } = req.body;
-      const result = await storage.createPayoutRequest(user.id, amount.toString(), method === 'TON' ? 'ton_coin' : method, address);
-      if (!result.success) return res.status(400).json({ message: result.message });
-      res.json(result);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
+  // Simple test route to verify routing works
+  app.get('/api/test', (req: any, res) => {
+    console.log('✅ Test route called!');
+    res.json({ status: 'API routes working!', timestamp: new Date().toISOString() });
   });
 
   // Production health check endpoint - checks database connectivity and user count
@@ -999,51 +969,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/app-settings', async (req: any, res) => {
     try {
       // Fetch all admin settings at once
-      const settings = await db.select().from(adminSettings);
+      const allSettings = await db.select().from(adminSettings);
       
       // Helper function to get setting value with default
       const getSetting = (key: string, defaultValue: string): string => {
-        const setting = settings.find(s => s.key === key);
-        return setting ? setting.value : defaultValue;
+        const setting = allSettings.find(s => s.settingKey === key);
+        return setting?.settingValue || defaultValue;
       };
-
-      const minWithdrawalAmount = parseFloat(getSetting('minimum_withdrawal_ton', '0.1')); // Minimum withdrawal
-      const withdrawalFeeTON = parseFloat(getSetting('withdrawal_fee_ton', '0.01')); // withdrawal fee TON
       
-      // Separate channel and bot task costs (in TON for admin, TON for users)
-      const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_ton_admin', '0.003')); // Default TON 0.003 per click
-      const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_ton_admin', '0.003')); // Default TON 0.003 per click
+      // Parse all settings with NEW defaults
+      const dailyAdLimit = parseInt(getSetting('daily_ad_limit', '50'));
+      const rewardPerAd = parseInt(getSetting('reward_per_ad', '2')); // Default 2 Hrum per ad
+      const seasonBroadcastActive = getSetting('season_broadcast_active', 'false') === 'true';
+      const affiliateCommission = parseFloat(getSetting('affiliate_commission', '10'));
+      const walletChangeFeeHrum = parseInt(getSetting('wallet_change_fee', '100')); // Default 100 Hrum
+      const minWithdrawalAmount = parseFloat(getSetting('minimum_withdrawal_ton', '0.5')); // Minimum  withdrawal
+      const withdrawalFee$= parseFloat(getSetting('withdrawal_fee_ton', '5')); //  withdrawal fee %
       
-      // TON costs for regular users
-      const channelTaskCostTON = parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003 per click
-      const botTaskCostTON = parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003 per click
+      // Separate channel and bot task costs (in  for admin,  for users)
+      const channelTaskCostTONAdmin = parseFloat(getSetting('channel_task_cost_usd', '0.003')); // Default TON0.003 per click
+      const botTaskCostTONAdmin = parseFloat(getSetting('bot_task_cost_usd', '0.003')); // Default TON0.003 per click
       
-      // Separate channel and bot task rewards (in HRUM)
-      const channelTaskRewardHRUM = parseInt(getSetting('channel_task_reward', '30')); // Default 30 HRUM per click
-      const botTaskRewardHRUM = parseInt(getSetting('bot_task_reward', '20')); // Default 20 HRUM per click
+      //  costs for regular users
+      const channelTaskCost$= parseFloat(getSetting('channel_task_cost_ton', '0.0003')); // Default 0.0003  per click
+      const botTaskCost$= parseFloat(getSetting('bot_task_cost_ton', '0.0003')); // Default 0.0003  per click
       
-      // Minimum convert amount in HRUM (10,000 HRUM = 1 TON)
-      const minimumConvertHRUM = parseInt(getSetting('minimum_convert_hrum', '100')); // Default 100 HRUM
-      const minimumConvertTON = minimumConvertHRUM / 10000; 
+      // Separate channel and bot task rewards (in Hrum)
+      const channelTaskRewardHrum = parseInt(getSetting('channel_task_reward', '30')); // Default 30 Hrum per click
+      const botTaskRewardHrum = parseInt(getSetting('bot_task_reward', '20')); // Default 20 Hrum per click
+      
+      // Minimum convert amount in Hrum (10,000 Hrum = 1 )
+      const minimumConvertHrum = parseInt(getSetting('minimum_convert_pad', '100')); // Default 100 Hrum
+      const minimumConvert$= minimumConvertHrum / 10000; 
       
       // Minimum clicks for task creation
       const minimumClicks = parseInt(getSetting('minimum_clicks', '500')); // Default 500 clicks
       
-      const withdrawalCurrency = getSetting('withdrawal_currency', 'TON');
+      const withdrawalCurrency = getSetting('withdrawal_currency', '');
       
       // Referral reward settings
       const referralRewardEnabled = getSetting('referral_reward_enabled', 'false') === 'true';
-      const referralRewardTON = parseFloat(getSetting('referral_reward_ton', '0.0005'));
-      const referralRewardHRUM = parseInt(getSetting('referral_reward_hrum', '50'));
+      const referralReward = parseFloat(getSetting('referral_reward_usd', '0.0005'));
+      const referralReward$= referralReward;
+      const referralRewardHrum = parseInt(getSetting('referral_reward_hrum', '50'));
       const referralAdsRequired = parseInt(getSetting('referral_ads_required', '1')); // Ads needed for affiliate bonus
       
       // Daily task rewards (for TaskSection.tsx)
-      const streakReward = parseInt(getSetting('streak_reward', '100')); // Daily streak claim reward in HRUM
-      const shareTaskReward = parseInt(getSetting('share_task_reward', '1000')); // Share with friends reward in HRUM
-      const communityTaskReward = parseInt(getSetting('community_task_reward', '1000')); // Join community reward in HRUM
+      const streakReward = parseInt(getSetting('streak_reward', '100')); // Daily streak claim reward in Hrum
+      const shareTaskReward = parseInt(getSetting('share_task_reward', '1000')); // Share with friends reward in Hrum
+      const communityTaskReward = parseInt(getSetting('community_task_reward', '1000')); // Join community reward in Hrum
       
       // Partner task reward
-      const partnerTaskReward = parseInt(getSetting('partner_task_reward', '5')); // Partner task reward in HRUM
+      const partnerTaskReward = parseInt(getSetting('partner_task_reward', '5')); // Partner task reward in Hrum
       
       // Withdrawal requirement settings
       const withdrawalAdRequirementEnabled = getSetting('withdrawal_ad_requirement_enabled', 'true') === 'true';
@@ -1052,88 +1029,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const minimumInvitesForWithdrawal = parseInt(getSetting('minimum_invites_for_withdrawal', '3'));
       
       // BUG currency settings
-      const minimumConvertHRUMToTON = parseInt(getSetting('minimum_convert_hrum_to_ton', '10000'));
-      const minimumConvertHRUMToBug = parseInt(getSetting('minimum_convert_hrum_to_bug', '1000'));
-      // 10,000 HRUM = 1 TON
-      const hrumToTonRate = parseInt(getSetting('hrum_to_ton_rate', '10000')); 
-      const hrumToBugRate = parseInt(getSetting('hrum_to_bug_rate', '1')); // 1 HRUM = 1 BUG
+      const minimumConvertPadToTon = parseInt(getSetting('minimum_convert_hrum_to_ton', '10000'));
+      const minimumConvertPadToBug = parseInt(getSetting('minimum_convert_pad_to_bug', '1000'));
+      // 10,000 Hrum = 1 TON
+      const padToTonRate = parseInt(getSetting('hrum_to_ton_rate', '10000')); 
+      const padToBugRate = parseInt(getSetting('hrum_to_bug_rate', '1')); // 1 Hrum = 1 BUG
       const bugRewardPerAd = parseInt(getSetting('bug_reward_per_ad', '1')); // BUG per ad watched
       const bugRewardPerTask = parseInt(getSetting('bug_reward_per_task', '10')); // BUG per task completed
       const bugRewardPerReferral = parseInt(getSetting('bug_reward_per_referral', '50')); // BUG per referral
-      const minimumBugForWithdrawal = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: TON 0.1 = 1000 BUG
-      const bugPerTON = parseInt(getSetting('bug_per_ton', '10000')); // Default: 1 TON = 10000 BUG
+      const minimumBugForWithdrawal = parseInt(getSetting('minimum_bug_for_withdrawal', '1000')); // Default: TON0.1 = 1000 BUG
+      const bugPerUsd = parseInt(getSetting('bug_per_usd', '10000')); // Default: 1  = 10000 BUG
       const withdrawalBugRequirementEnabled = getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true';
       const activePromoCode = getSetting('active_promo_code', ''); // Current active promo code
       
       // Legacy compatibility - keep old values for backwards compatibility
       const channelTaskCostTON_val = parseFloat(getSetting('channel_task_cost', '0.0003'));
-      const channelTaskRewardHRUM_val = parseInt(getSetting('channel_task_reward', '30'));
-      const minWithdrawalAmount_val = minWithdrawalAmount;
-      const withdrawalFeeTON_val = withdrawalFeeTON;
+      const channelTaskRewardHrum_val = parseInt(getSetting('channel_task_reward', '30'));
+      const minWithdrawalAmount_val = parseFloat(getSetting('min_withdrawal_amount', '0.01'));
+      const withdrawalFeeTON_val = parseFloat(getSetting('withdrawal_fee', '0.005'));
       const botTaskCostTON_val = parseFloat(getSetting('bot_task_cost', '0.0003'));
-      const botTaskRewardHRUM_val = parseInt(getSetting('bot_task_reward', '20'));
-      const minimumConvertTON_val = minimumConvertTON;
-      const referralRewardTON_val = referralRewardTON;
+      const botTaskRewardHrum_val = parseInt(getSetting('bot_task_reward', '20'));
+      const minimumConvertTON_val = parseFloat(getSetting('minimum_convert_ton', '0.1'));
+      const referralRewardTON_val = parseFloat(getSetting('referral_reward_ton', '0.0005'));
 
       const taskCostPerClick = channelTaskCostTON_val; // Use channel cost as default
-      const taskRewardPerClick = channelTaskRewardHRUM_val / 10000; // Legacy format for compatibility
-      
-      const dailyAdLimit = parseInt(getSetting('daily_ad_limit', '50'));
-      const rewardPerAd = parseInt(getSetting('reward_per_ad', '1000'));
-      const seasonBroadcastActive = getSetting('season_broadcast_active', 'false') === 'true';
-      const affiliateCommission = parseInt(getSetting('affiliate_commission', '10'));
-      const walletChangeFeeHrum = parseInt(getSetting('wallet_change_fee_hrum', '5000'));
+      const taskRewardPerClick = channelTaskRewardHrum_val / 10000; // Legacy $format for compatibility
       
       res.json({
         dailyAdLimit,
         rewardPerAd,
-        rewardPerAdHRUM: rewardPerAd,
+        rewardPerAdHrum: rewardPerAd,
         seasonBroadcastActive,
         affiliateCommission,
         affiliateCommissionPercent: affiliateCommission,
         walletChangeFee: walletChangeFeeHrum,
-        walletChangeFeeHRUM: walletChangeFeeHrum,
+        walletChangeFeeHrum,
         minWithdrawalAmount: minWithdrawalAmount_val,
         minWithdrawalAmountTON: minWithdrawalAmount_val,
         withdrawalFeeTON: withdrawalFeeTON_val,
         channelTaskCostTON: channelTaskCostTON_val,
         botTaskCostTON: botTaskCostTON_val,
-        channelTaskRewardHRUM: channelTaskRewardHRUM_val,
-        botTaskRewardHRUM: botTaskRewardHRUM_val,
+        channelTaskRewardHrum: channelTaskRewardHrum_val,
+        botTaskRewardHrum: botTaskRewardHrum_val,
         taskCostPerClick,
         taskRewardPerClick,
-        taskRewardHRUM: channelTaskRewardHRUM_val, // Use channel reward as default
+        taskRewardHrum: channelTaskRewardHrum_val, // Use channel reward as default
         minimumConvert: minimumConvertTON_val,
-        minimumConvertHRUM,
+        minimumConvertHrum,
         minimumConvertTON: minimumConvertTON_val,
         minimumClicks,
         withdrawalCurrency,
         referralRewardEnabled,
         referralRewardTON: referralRewardTON_val,
-        referralRewardHRUM,
+        referralRewardHrum,
         referralAdsRequired,
         // Daily task rewards
         streakReward,
         shareTaskReward,
         communityTaskReward,
         partnerTaskReward,
-        channelTaskReward: channelTaskRewardHRUM_val,
-        botTaskReward: botTaskRewardHRUM_val,
+        channelTaskReward: channelTaskRewardHrum_val,
+        botTaskReward: botTaskRewardHrum_val,
         // Withdrawal requirement settings
         withdrawalAdRequirementEnabled,
         minimumAdsForWithdrawal,
         withdrawalInviteRequirementEnabled,
         minimumInvitesForWithdrawal,
         // BUG currency settings
-        minimumConvertHRUMToTON,
-        minimumConvertHRUMToBug,
-        hrumToTonRate,
-        hrumToBugRate,
+        minimumConvertPadToTon,
+        minimumConvertPadToBug,
+        padToTonRate,
+        padToBugRate,
         bugRewardPerAd,
         bugRewardPerTask,
         bugRewardPerReferral,
         minimumBugForWithdrawal,
-        bugPerTON,
+        bugPerUsd,
         withdrawalBugRequirementEnabled,
         activePromoCode,
         // Withdrawal packages (JSON array of {ton, bug} objects)
