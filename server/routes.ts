@@ -622,10 +622,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
       
-      const result = await storage.claimMining(user.id);
+      const miningState = await storage.getMiningState(user.id);
+      const minClaimAmount = 1;
       
-      // CRITICAL FIX: Ensure the user's balances in the session/response are updated
-      // The claimMining function should be updated to return the new balances
+      if (parseFloat(miningState.minedAmount) < minClaimAmount) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Minimum claim amount is ${minClaimAmount} HRUM` 
+        });
+      }
+
+      const result = await storage.claimMining(user.id);
       res.json(result);
     } catch (error) {
       console.error("Mining claim error:", error);

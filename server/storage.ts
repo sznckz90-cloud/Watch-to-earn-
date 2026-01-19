@@ -424,7 +424,7 @@ export class DatabaseStorage implements IStorage {
     if (!user) throw new Error("User not found");
 
     const lastClaim = user.lastMiningClaim || new Date();
-    const miningRate = parseFloat(user.miningRate || "0.00000291666666666667"); // 0.0105 / 3600 per second
+    const miningRate = parseFloat(user.miningRate || "0.0000004166666666666667"); // 0.0015 / 3600 per second (0.0015 HRUM per hour)
     const now = new Date();
     const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
     
@@ -437,7 +437,7 @@ export class DatabaseStorage implements IStorage {
 
     return {
       currentMining,
-      miningRate: (miningRate * 3600).toFixed(2), // rate per hour
+      miningRate: (miningRate * 3600).toFixed(4), // Increased precision for low rates
       lastClaim,
       maxMining
     };
@@ -663,7 +663,7 @@ export class DatabaseStorage implements IStorage {
       // Add TON
       await tx.update(users)
         .set({
-          tonBalance: sql`${users.tonBalance} + ${tonAmount.toString()}`,
+          tonBalance: sql`COALESCE(${users.tonBalance}, 0) + ${tonAmount.toString()}`,
           updatedAt: new Date(),
         })
         .where(eq(users.id, userId));
@@ -672,13 +672,14 @@ export class DatabaseStorage implements IStorage {
       await tx.insert(transactions).values({
         userId,
         amount: hrumAmount.toString(),
-        type: 'deduction',
+        type: 'subtraction',
         source: 'conversion',
         description: `Converted ${hrumAmount} HRUM to ${tonAmount} TON`,
       });
     });
 
-    return { success: true, message: "Conversion successful", tonAmount };
+    const updatedUser = await this.getUser(userId);
+    return { success: true, message: "Conversion successful", tonAmount: parseFloat(updatedUser?.tonBalance || "0") };
   }
 
   // Helper function to get the correct day bucket start (12:00 PM UTC)
