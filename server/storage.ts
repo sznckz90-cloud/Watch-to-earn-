@@ -465,8 +465,8 @@ export class DatabaseStorage implements IStorage {
     const state = await this.getMiningState(userId);
     const amount = state.currentMining;
 
-    if (parseFloat(amount) < 0.01) {
-      return { success: false, amount: "0", message: "Minimum claim is 0.01 Hrum" };
+    if (parseFloat(amount) < 1) {
+      return { success: false, amount: "0", message: "Minimum claim is 1 HRUM" };
     }
 
     await db.transaction(async (tx) => {
@@ -693,13 +693,14 @@ export class DatabaseStorage implements IStorage {
 
     const currentBalance = parseFloat(user.balance || "0");
     if (currentBalance < hrumAmount) {
-      return { success: false, message: "Insufficient Hrum balance" };
+      return { success: false, message: "Insufficient HRUM balance" };
     }
 
+    // 10,000 HRUM = 1 TON
     const tonAmount = hrumAmount / 10000;
 
     await db.transaction(async (tx) => {
-      // Deduct Hrum
+      // Deduct HRUM
       await tx.update(users)
         .set({
           balance: sql`${users.balance} - ${hrumAmount.toString()}`,
@@ -721,7 +722,7 @@ export class DatabaseStorage implements IStorage {
         amount: hrumAmount.toString(),
         type: 'deduction',
         source: 'conversion',
-        description: `Converted ${hrumAmount} Hrum to ${tonAmount} TON`,
+        description: `Converted ${hrumAmount} HRUM to ${tonAmount} TON`,
       });
     });
 
@@ -1493,7 +1494,7 @@ export class DatabaseStorage implements IStorage {
       const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
       
       // CRITICAL FIX: Determine which balance to check based on payment system
-      // TON and STARS withdrawals use tonBalance, while others might use HRUM balance
+      // TON and STARS withdrawals use tonBalance, while others might use balance (HRUM)
       const isTonWithdrawal = paymentSystemId === 'ton_coin' || paymentSystemId === 'telegram_stars' || paymentSystemId === 'tether_polygon';
       const userBalance = isTonWithdrawal ? parseFloat(user.tonBalance || '0') : parseFloat(user.balance || '0');
       
