@@ -14,7 +14,7 @@ export default function BalanceCard({ user, stats }: BalanceCardProps) {
         <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
           <img src="/images/hrum-logo.jpg" alt="Hrum" className="w-full h-full object-cover rounded-sm" />
         </div>
-        {parseFloat(user?.balance || "0").toFixed(2).toLocaleString()} <span className="text-[#F5C542]">Hrum</span>
+        {Math.floor(parseFloat(user?.balance || "0")).toLocaleString()} <span className="text-[#F5C542]">Hrum</span>
       </div>
       <div className="text-sm text-[#B0B3B8] flex items-center justify-center gap-1">
         ≈ 

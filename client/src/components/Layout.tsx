@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAdmin } from "@/hooks/useAdmin";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, CheckSquare, Users, Wallet } from "lucide-react";
+import { LayoutDashboard, Target, Users, Wallet, Trophy } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,7 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const { isAdmin } = useAdmin();
 
   const navItems = [
-    { href: "/", icon: Home, label: "Home" },
+    { href: "/", icon: LayoutDashboard, label: "Home" },
     { href: "/profile", icon: Users, label: "More" },
   ];
 
@@ -29,39 +29,42 @@ export default function Layout({ children }: LayoutProps) {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ 
-            duration: 0.3,
-            ease: [0.4, 0, 0.2, 1]
+            duration: 0.2,
+            ease: "easeOut"
           }}
         >
           {children}
         </motion.div>
       </AnimatePresence>
 
-      {/* Traditional Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0d0d0d] border-t border-white/5 pb-safe">
-        <div className="max-w-md mx-auto grid grid-cols-2 h-16">
-          {navItems.map((item) => {
-            const isActive = location === item.href;
-            const Icon = item.icon;
-            
-            return (
-              <Link key={item.href} href={item.href}>
-                <button
-                  className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-colors TON{
-                    isActive ? "text-[#B9FF66]" : "text-[#8E8E93]"
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 TON{isActive ? "fill-current/10" : ""}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
-                  {isActive && (
-                    <div className="absolute top-0 w-8 h-0.5 bg-[#B9FF66] rounded-full shadow-[0_0_10px_rgba(185,255,102,0.5)]" />
-                  )}
-                </button>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      {/* Modern Floating Bottom Navigation */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-sm">
+        <nav className="bg-[#0d0d0d]/80 backdrop-blur-xl border border-white/10 rounded-3xl px-6 py-2 shadow-2xl">
+          <div className="flex items-center justify-around h-14">
+            {navItems.map((item) => {
+              const isActive = location === item.href;
+              const Icon = item.icon;
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <button
+                    className={`relative flex flex-col items-center justify-center transition-all duration-300 ${
+                      isActive ? "text-[#B9FF66] scale-110" : "text-[#8E8E93] hover:text-white"
+                    }`}
+                  >
+                    <div className={`p-2 rounded-2xl transition-all duration-300 flex items-center gap-2 ${
+                      isActive ? "bg-[#B9FF66]/10 shadow-[0_0_20px_rgba(185,255,102,0.15)] px-4" : ""
+                    }`}>
+                      <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                      {isActive && <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>}
+                    </div>
+                  </button>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }
