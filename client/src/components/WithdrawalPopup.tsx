@@ -18,7 +18,6 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
   const queryClient = useQueryClient();
   const [withdrawAddress, setWithdrawAddress] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [memo, setMemo] = useState("");
 
   const { data: appSettings } = useQuery<any>({
     queryKey: ['/api/app-settings'],
@@ -35,8 +34,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
         address: withdrawAddress,
         amount: parseFloat(withdrawAmount).toString(),
         method: "TON",
-        withdrawalPackage: "FULL",
-        memo: memo.trim() || undefined
+        withdrawalPackage: "FULL"
       });
       return res.json();
     },
@@ -45,7 +43,6 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       onOpenChange(false);
       setWithdrawAddress("");
       setWithdrawAmount("");
-      setMemo("");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/withdrawals"] });
     },
@@ -61,7 +58,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       return;
     }
     if (amount > tonBalance) {
-      showNotification("Insufficient balance", "error");
+      showNotification(`Insufficient balance. Available: ${tonBalance} TON`, "error");
       return;
     }
     if (!withdrawAddress.trim()) {
@@ -71,8 +68,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     console.log("Submitting withdrawal:", {
       address: withdrawAddress,
       amount: amount.toString(),
-      method: "TON",
-      memo: memo.trim() || undefined
+      method: "TON"
     });
     withdrawMutation.mutate();
   };
@@ -107,19 +103,6 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
               placeholder="0.0000" 
               value={withdrawAmount}
               onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1 flex justify-between items-center px-1">
-              Memo (Optional)
-              <span className="text-[9px] text-zinc-600 font-black tracking-tighter uppercase">(Required for exchanges)</span>
-            </Label>
-            <Input 
-              placeholder="Memo" 
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
               className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
             />
           </div>

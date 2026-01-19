@@ -169,44 +169,42 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="bg-[#1A1C20] border border-[#2F3238]/50 rounded-[16px] px-4 h-[80px] flex items-center shadow-lg mb-4">
-      <div className="flex items-center justify-between w-full">
+    <div className="bg-[#1a1a1a] border border-[#B9FF66]/20 rounded-2xl px-4 h-20 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
+      {/* Background Glow Effect */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-[#B9FF66]/0 via-[#B9FF66]/5 to-[#B9FF66]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="flex items-center justify-between w-full relative z-10">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0 bg-[#1F2229] border border-[#2F3238]/30 overflow-hidden">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#0d0d0d] border border-white/5 overflow-hidden shadow-inner">
             <img 
               src="/images/ads_icon.png" 
               alt="Ads" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-bold text-sm tracking-tight truncate">Watch Daily Ads</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-[12px] font-medium ${adsWatchedToday >= dailyLimit ? 'text-[#26D07C]' : 'text-[#B0B3B8]'}`}>
-                {adsWatchedToday} / {dailyLimit} completed
-              </span>
+            <h3 className="text-white font-black text-[13px] tracking-tight truncate uppercase italic">Daily Rewards</h3>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#B9FF66] shadow-[0_0_8px_#B9FF66]" />
+                <span className="text-[11px] font-black text-[#B9FF66] uppercase tracking-widest">
+                  {adsWatchedToday}/{dailyLimit} ads
+                </span>
+              </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
+        
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             onClick={handleStartEarning}
             disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-            variant={isShowingAds ? "secondary" : "default"}
-            size="sm"
-            className="rounded-[12px] px-5 font-semibold"
+            className="rounded-xl px-6 h-10 font-black text-[11px] uppercase tracking-widest bg-[#B9FF66] text-black hover:bg-[#B9FF66]/90 border-none transition-all active:scale-95 shadow-[0_0_20px_rgba(185,255,102,0.15)]"
           >
             {isShowingAds ? (
               <div className="flex items-center gap-2">
-                {currentAdStep === 'verifying' ? (
-                  <Shield className="w-3.5 h-3.5 animate-pulse text-[#26D07C]" />
-                ) : (
-                  <Clock className="w-3.5 h-3.5 animate-spin text-[#0098EA]" />
-                )}
-                <span>
-                  {currentAdStep === 'monetag' ? 'Wait...' : 
-                   currentAdStep === 'verifying' ? 'Verifying' : 'Loading'}
-                </span>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>{currentAdStep === 'monetag' ? 'Wait' : 'Check'}</span>
               </div>
             ) : (
               <span className="flex items-center gap-2">
