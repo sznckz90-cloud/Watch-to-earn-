@@ -521,7 +521,7 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
       
-      showNotification(`You received ${data.rewardHrum || 1000} Hrum on your balance`, "success");
+      showNotification(`You received ${Math.round(data.rewardHrum || 1000)} Hrum on your balance`, "success");
       setLoadingProvider(null);
     },
     onError: (error: any) => {
@@ -1071,8 +1071,8 @@ export default function Home() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div 
-                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80 transition-opacity ring-2 ring-blue-500/50' : ''}`}
-                onClick={() => isAdmin && setLocation("/admin")}
+                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] cursor-pointer hover:opacity-80 transition-opacity`}
+                onClick={() => setLocation("/profile")}
               >
                 {photoUrl ? (
                   <img 
@@ -1088,8 +1088,8 @@ export default function Home() {
               </div>
               <div className="flex flex-col">
                 <span 
-                  className={`text-white font-black text-base leading-none tracking-tight ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
-                  onClick={() => isAdmin && setLocation("/admin")}
+                  className={`text-white font-black text-base leading-none tracking-tight cursor-pointer hover:opacity-80`}
+                  onClick={() => setLocation("/profile")}
                 >
                   {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
                 </span>
@@ -1115,7 +1115,7 @@ export default function Home() {
                   <img src="/images/hrum-logo.jpg" alt="Hrum" className="w-full h-full object-cover rounded-sm" />
                 </div>
                 <span className="text-white text-base font-black tabular-nums">
-                  {parseFloat(user?.balance || "0").toFixed(2)}
+                  {Math.floor(parseFloat(user?.balance || "0")).toLocaleString()}
                 </span>
               </div>
             </div>
