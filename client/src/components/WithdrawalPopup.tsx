@@ -33,8 +33,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       const res = await apiRequest("POST", "/api/withdrawals", {
         address: withdrawAddress,
         amount: parseFloat(withdrawAmount).toString(),
-        method: "TON",
-        withdrawalPackage: "FULL"
+        method: "TON"
       });
       return res.json();
     },
@@ -75,9 +74,13 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   const toReceive = withdrawAmount ? Math.max(0, parseFloat(withdrawAmount) - networkFee).toFixed(4) : "0.0000";
 
+  const handleMaxClick = () => {
+    setWithdrawAmount(tonBalance.toString());
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
+      <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
         <DialogHeader className="pt-2">
           <DialogTitle className="text-xl font-black text-center uppercase tracking-tight">TON withdrawal</DialogTitle>
           <p className="text-[11px] text-zinc-400 text-center font-bold leading-relaxed px-1 mt-1">
@@ -98,13 +101,24 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Amount (TON):</Label>
-            <Input 
-              type="number"
-              placeholder="0.0000" 
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
-            />
+            <div className="relative">
+              <Input 
+                type="number"
+                placeholder="0.0000" 
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black pr-16"
+              />
+              <button 
+                onClick={handleMaxClick}
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-[10px] font-black rounded-md transition-all uppercase"
+              >
+                Max
+              </button>
+            </div>
+            <p className="text-[10px] text-zinc-500 font-bold ml-1">
+              Available: <span className="text-zinc-300">{tonBalance.toFixed(4)} TON</span>
+            </p>
           </div>
 
           <div className="space-y-1.5">
