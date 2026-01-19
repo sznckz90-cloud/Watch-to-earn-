@@ -1496,7 +1496,7 @@ export class DatabaseStorage implements IStorage {
       // CRITICAL FIX: Determine which balance to check based on payment system
       // TON and STARS withdrawals use tonBalance, while others might use balance (HRUM)
       const isTonWithdrawal = paymentSystemId === 'ton_coin' || paymentSystemId === 'telegram_stars' || paymentSystemId === 'tether_polygon';
-      const userBalance = isTonWithdrawal ? parseFloat(user.tonBalance || '0') : parseFloat(user.balance || '0');
+      const userBalance = isTonWithdrawal ? parseFloat(user.withdrawBalance || '0') : parseFloat(user.balance || '0');
       
       console.log('Balance check details:', { isAdmin, isTonWithdrawal, userBalance, requestedAmount, paymentSystemId });
 
