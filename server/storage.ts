@@ -1449,7 +1449,7 @@ export class DatabaseStorage implements IStorage {
       // CRITICAL FIX: Determine which balance to check based on payment system
       // TON and STARS withdrawals use tonBalance, while others might use balance (HRUM)
       const isTonWithdrawal = paymentSystemId === 'ton_coin' || paymentSystemId === 'telegram_stars' || paymentSystemId === 'tether_polygon';
-      const userBalance = isTonWithdrawal ? parseFloat(user.withdrawBalance || '0') : parseFloat(user.balance || '0');
+      const userBalance = isTonWithdrawal ? parseFloat(user.tonBalance || '0') : parseFloat(user.balance || '0');
       
       console.log('Balance check details:', { isAdmin, isTonWithdrawal, userBalance, requestedAmount, paymentSystemId });
 
@@ -1468,7 +1468,8 @@ export class DatabaseStorage implements IStorage {
         paymentSystemId: paymentSystemId,
         requestedAmount: requestedAmount.toString(),
         fee: fee.toString(),
-        netAmount: netAmount.toString()
+        netAmount: netAmount.toString(),
+        totalDeducted: requestedAmount.toString() // Track total amount to deduct later
       };
 
       const [withdrawal] = await db.insert(withdrawals).values({
@@ -1698,25 +1699,20 @@ export class DatabaseStorage implements IStorage {
       if (userBalance >= totalToDeduct) {
         // User has sufficient balance - this is a NEW withdrawal (or user earned more since request)
         // Deduct balance now on approval
-        console.log(`💰 Deducting  balance now for approved withdrawal`);
+        console.log(`💰 Deducting TON balance now for approved withdrawal`);
         console.log(`💰 Net amount: TON${withdrawalAmount}, Total to deduct (with fee): TON${totalToDeduct}`);
-        console.log(`💰 Previous  balance: ${userBalance}, New balance: ${(userBalance - totalToDeduct).toFixed(10)}`);
+        console.log(`💰 Previous TON balance: ${userBalance}, New balance: ${(userBalance - totalToDeduct).toFixed(10)}`);
 
         const newUsdBalance = (userBalance - totalToDeduct).toFixed(10);
-        const newBugBalance = Math.max(0, currentBugBalance - bugDeducted).toFixed(10);
         
         await db
           .update(users)
           .set({
             tonBalance: newUsdBalance,
-            bugBalance: newBugBalance,
             updatedAt: new Date()
           })
           .where(eq(users.id, withdrawal.userId));
-        console.log(`✅  balance deducted: ${userBalance} → ${newUsdBalance}`);
-        if (bugDeducted > 0) {
-          console.log(`✅ BUG balance deducted: ${currentBugBalance} → ${newBugBalance}`);
-        }
+        console.log(`✅ TON balance deducted: ${userBalance} → ${newUsdBalance}`);
       } else {
         // User doesn't have sufficient balance - this is a LEGACY withdrawal
         // Balance was already deducted at request time (old flow), so just approve without deducting again
@@ -3753,7 +3749,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Deduct balance for withdrawal approval (direct deduction method)
   async deductBalanceForWithdrawal(userId: string, amount: string, currency: string = ''): Promise<boolean> {
     try {
       const amountNum = parseFloat(amount);
@@ -3762,95 +3757,37 @@ export class DatabaseStorage implements IStorage {
         return false;
       }
 
-      if (currency === '') {
-        // Deduct from  balance
-        const [user] = await db
-          .select({ tonBalance: users.tonBalance })
-          .from(users)
-          .where(eq(users.id, userId));
+      // All withdrawals (TON, Stars, etc.) use tonBalance column
+      const [user] = await db
+        .select({ tonBalance: users.tonBalance, balance: users.balance })
+        .from(users)
+        .where(eq(users.id, userId));
 
-        if (!user) {
-          console.error('User not found for balance deduction');
-          return false;
-        }
+      if (!user) {
+        console.error('User not found for balance deduction');
+        return false;
+      }
 
-        const currentBalance = parseFloat(user.tonBalance || '0');
-        if (currentBalance < amountNum) {
-          console.error(`Insufficient  balance: ${currentBalance} < ${amountNum}`);
-          return false;
-        }
-
-        const newBalance = (currentBalance - amountNum).toFixed(8);
-
-        await db
-          .update(users)
-          .set({
-            tonBalance: newBalance,
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, userId));
-
-        console.log(`💰 Deducted ${amountNum}  from user ${userId}. New balance: ${newBalance}`);
-      } else if (currency === '') {
-        // Deduct from  balance
-        const [user] = await db
-          .select({ tonBalance: users.tonBalance })
-          .from(users)
-          .where(eq(users.id, userId));
-
-        if (!user) {
-          console.error('User not found for  balance deduction');
-          return false;
-        }
-
-        const currentBalance = parseFloat(user.tonBalance || '0');
-        if (currentBalance < amountNum) {
-          console.error(`Insufficient  balance: ${currentBalance} < ${amountNum}`);
-          return false;
-        }
-
-        const newBalance = (currentBalance - amountNum).toFixed(10);
-
-        await db
-          .update(users)
-          .set({
-            tonBalance: newBalance,
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, userId));
-
-        console.log(`💰 Deducted TON${amountNum}  from user ${userId}. New balance: TON${newBalance}`);
-      } else {
-        // Deduct from Hrum balance (default)
-        const [user] = await db
-          .select({ balance: users.balance })
-          .from(users)
-          .where(eq(users.id, userId));
-
-        if (!user) {
-          console.error('User not found for Hrum balance deduction');
-          return false;
-        }
-
-        const currentBalance = parseInt(user.balance || '0');
+      if (currency === 'HRUM') {
+        const currentBalance = parseFloat(user.balance || '0');
         if (currentBalance < amountNum) {
           console.error(`Insufficient Hrum balance: ${currentBalance} < ${amountNum}`);
           return false;
         }
-
-        const newBalance = Math.round(currentBalance - amountNum);
-
-        await db
-          .update(users)
-          .set({
-            balance: newBalance.toString(),
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, userId));
-
-        console.log(`💰 Deducted ${amountNum} Hrum from user ${userId}. New balance: ${newBalance}`);
+        const newBalance = Math.round(currentBalance - amountNum).toString();
+        await db.update(users).set({ balance: newBalance, updatedAt: new Date() }).where(eq(users.id, userId));
+        return true;
       }
 
+      const currentBalance = parseFloat(user.tonBalance || '0');
+      if (currentBalance < amountNum) {
+        console.error(`Insufficient TON balance: ${currentBalance} < ${amountNum}`);
+        return false;
+      }
+
+      const newBalance = (currentBalance - amountNum).toFixed(10);
+      await db.update(users).set({ tonBalance: newBalance, updatedAt: new Date() }).where(eq(users.id, userId));
+      console.log(`💰 Deducted ${amountNum} TON from user ${userId}. New balance: ${newBalance}`);
       return true;
     } catch (error) {
       console.error('Error deducting balance for withdrawal:', error);

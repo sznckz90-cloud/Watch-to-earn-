@@ -1527,18 +1527,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           eq(referrals.status, 'completed')
         ));
       
-      // Sum all historical  rewards stored at time of earning
+      // Sum all historical rewards stored at time of earning
       let totalUsdEarned = 0;
       let totalBugEarned = 0;
       for (const ref of completedReferrals) {
-        totalUsdEarned += parseFloat(ref.usdRewardAmount || '0');
+        totalUsdEarned += parseFloat(ref.tonRewardAmount || '0');
         totalBugEarned += parseFloat(ref.bugRewardAmount || '0');
       }
       
       // Fallback to admin settings for pending referrals (not yet earned)
       // This ensures consistency but doesn't affect already-completed earnings
-      const pendingCount = completedReferrals.length < successfulInvitesCount ? 
-        successfulInvitesCount - completedReferrals.length : 0;
+      const pendingCount = Math.max(0, successfulInvitesCount - completedReferrals.length);
       
       res.json({
         totalInvites: totalInvitesCount,
