@@ -109,7 +109,7 @@ export default function Layout({ children }: LayoutProps) {
                   <button
                     className="relative flex items-center justify-center transition-all duration-500"
                   >
-                    <div className={`flex items-center gap-2.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                    <div className={`flex items-center gap-2.5 transition-all duration-500 ease-\[cubic-bezier(0.23,1,0.32,1)\] ${
                       isActive 
                         ? "bg-[#B9FF66] text-black px-5 py-2.5 rounded-[20px] shadow-[0_0_20px_rgba(185,255,102,0.3)]" 
                         : "text-[#555] hover:text-[#888] p-2.5"
