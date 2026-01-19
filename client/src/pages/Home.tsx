@@ -1065,7 +1065,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-4 pb-8">
+      <main className="max-w-md mx-auto px-4 pt-4 pb-12 overflow-y-auto">
         {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
@@ -1201,21 +1201,13 @@ export default function Home() {
             {/* Tab section inside Profile section */}
             <div className="mt-4">
               <Tabs defaultValue="earn" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
+                <TabsList className="grid w-full grid-cols-2 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
                   <TabsTrigger 
                     value="earn" 
                     className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
                   >
                     <LayoutDashboard className="w-4 h-4" />
                     Earn
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="tasks" 
-                    className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-                  >
-                    <ClipboardList className="w-4 h-4" />
-                    Tasks
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -1231,91 +1223,6 @@ export default function Home() {
                 <TabsContent value="earn" className="mt-0 outline-none">
                   <div className="space-y-4">
                     <AdWatchingSection user={user as User} />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="tasks" className="mt-0 outline-none">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                        <h2 className="text-lg font-black text-white uppercase tracking-tight">Active Tasks</h2>
-                      </div>
-                      <div className="text-[11px] font-black text-[#8E8E93] uppercase tracking-wider tabular-nums">
-                        {unifiedTasksData?.tasks?.length || 0} Available
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-3">
-                      <AnimatePresence mode="popLayout">
-                        {isLoadingTasks ? (
-                          <div className="py-12 flex justify-center">
-                            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-                          </div>
-                        ) : (unifiedTasksData?.tasks && unifiedTasksData.tasks.length > 0) ? (
-                          unifiedTasksData.tasks.map((task) => (
-                            <motion.div
-                              key={task.id}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 bg-white/5 border border-white/5">
-                                    <span className="text-white/80">
-                                      {getTaskIcon(task)}
-                                    </span>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-white font-black text-sm uppercase tracking-tight truncate">{task.title}</h3>
-                                    <div className="flex items-center gap-3 mt-1">
-                                      <div className="flex items-center gap-1.5">
-                                        <DiamondIcon size={14} />
-                                        <span className="text-[13px] font-black text-white">+{task.rewardHrum.toLocaleString()}</span>
-                                      </div>
-                                      {task.rewardBUG && task.rewardBUG > 0 && (
-                                        <div className="flex items-center gap-1.5">
-                                          <Bug className="w-3.5 h-3.5 text-blue-400" />
-                                          <span className="text-[13px] font-black text-blue-400">+{task.rewardBUG}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                <Button
-                                  onClick={() => handleUnifiedTask(task)}
-                                  disabled={isTaskPending || claimAdvertiserTaskMutation.isPending || completedTasks.has(task.id)}
-                                  className={`h-10 px-6 text-xs font-black rounded-xl uppercase tracking-widest transition-all ${
-                                    completedTasks.has(task.id)
-                                      ? "bg-white/5 text-white/40 border border-white/5"
-                                      : clickedTasks.has(task.id)
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-white text-black hover:bg-gray-200"
-                                  }`}
-                                >
-                                  {completedTasks.has(task.id) ? "Done" : clickedTasks.has(task.id) ? "Claim" : "Start"}
-                                </Button>
-                              </div>
-                            </motion.div>
-                          ))
-                        ) : (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="py-16 px-6 text-center"
-                          >
-                            <div className="w-20 h-20 bg-zinc-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
-                              <Check className="w-10 h-10 text-white/20" />
-                            </div>
-                            <h3 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">All Caught Up!</h3>
-                            <p className="text-sm text-zinc-500 max-w-[240px] mx-auto leading-relaxed font-bold">
-                              You've completed all available missions. Check back soon for new opportunities to earn!
-                            </p>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
                   </div>
                 </TabsContent>
 
