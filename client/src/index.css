@@ -46,7 +46,7 @@
   }
 
   html {
-    overflow: hidden;
+    overflow-y: auto;
     height: 100%;
     background: #000000;
   }
@@ -56,8 +56,8 @@
     background: #000000;
     font-family: 'Inter', system-ui, sans-serif;
     font-weight: 400;
-    overflow: hidden;
-    height: 100%;
+    overflow-y: auto;
+    min-height: 100%;
     margin: 0;
     padding: 0;
     -webkit-user-select: none;
@@ -98,12 +98,8 @@
   }
 
   #root {
-    overflow: hidden;
-    height: 100vh;
+    min-height: 100vh;
     width: 100%;
-    position: fixed;
-    top: 0;
-    left: 0;
   }
 
   .scrollbar-hide {
