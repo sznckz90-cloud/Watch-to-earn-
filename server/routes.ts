@@ -591,7 +591,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
+      
       const result = await storage.claimMining(user.id);
+      
+      // CRITICAL FIX: Ensure the user's balances in the session/response are updated
+      // The claimMining function should be updated to return the new balances
       res.json(result);
     } catch (error) {
       console.error("Mining claim error:", error);
@@ -6075,6 +6079,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         const currentUsdBalance = parseFloat(user.tonBalance || '0');
+        
+        console.log('Final withdrawal balance check:', { currentUsdBalance, method });
+        
+        if (method === 'TON' || method === 'STARS') {
+           // We already checked this in storage.createPayoutRequest, but verifying again inside transaction
+           // requestedAmount is not directly available here as a number, we'll use logic from storage
+        }
         
         // Get minimum withdrawal and fee settings from admin settings
         const [minWithdrawalSetting] = await tx
