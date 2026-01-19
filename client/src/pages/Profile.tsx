@@ -17,7 +17,8 @@ import {
   Bell,
   HelpCircle,
   Shield,
-  Languages
+  Languages,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -99,10 +100,26 @@ export default function Profile() {
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-xs">
-              {(user as any)?.firstName?.[0] || 'U'}
+            <div className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-white/5 flex items-center justify-center overflow-hidden">
+              {typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url ? (
+                <img 
+                  src={(window as any).Telegram.WebApp.initDataUnsafe.user.photo_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    if (e.target instanceof HTMLElement && e.target.parentElement) {
+                      e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-xs">{(user as any)?.firstName?.[0] || "U"}</div>';
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-xs">
+                  {(user as any)?.firstName?.[0] || 'U'}
+                </div>
+              )}
             </div>
-            <span className="font-black italic uppercase tracking-tighter text-sm">@{(user as any)?.telegramUsername || 'user'}</span>
+            <span className="font-black italic uppercase tracking-tighter text-sm">{(user as any)?.firstName || (user as any)?.username || 'User'}</span>
           </div>
         </div>
 
@@ -178,15 +195,6 @@ export default function Profile() {
           </section>
         </div>
 
-        {/* Logout */}
-        <Button 
-          variant="ghost" 
-          className="w-full h-12 rounded-xl border border-white/5 bg-[#141414] text-rose-500 text-xs font-black uppercase tracking-wider gap-3 mt-2"
-          onClick={() => logout()}
-        >
-          <LogOut className="w-4 h-4" />
-          Logout Account
-        </Button>
 
         {/* Legal Overlay */}
         <AnimatePresence>
