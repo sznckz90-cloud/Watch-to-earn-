@@ -121,7 +121,54 @@ export default function Home() {
     retry: false,
   });
 
+  const { data: miningState, isLoading: isLoadingMining } = useQuery<any>({
+    queryKey: ['/api/mining/state'],
+    retry: false,
+    staleTime: 10000,
+  });
+
+  const miningStateData = miningState || {};
   const [miningAmount, setMiningAmount] = useState(0);
+  const miningRatePerHour = parseFloat(miningStateData.miningRate || "0.0015");
+  const lastMiningClaim = miningStateData.lastClaim ? new Date(miningStateData.lastClaim).getTime() : Date.now();
+  const miningRate = miningRatePerHour / 3600;
+
+  useEffect(() => {
+    if (miningStateData.currentMining) {
+      setMiningAmount(parseFloat(miningStateData.currentMining));
+    }
+  }, [miningStateData.currentMining]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMiningAmount(prev => prev + miningRate);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [miningRate]);
+
+  const claimMiningMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/mining/claim");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to claim mining');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
+      showNotification(`+${parseFloat(data.amount).toFixed(2)} Hrum claimed from mining!`, "success");
+    },
+    onError: (error: any) => {
+      showNotification(error.message, "error");
+    },
+  });
+
+  const minMiningClaim = 1;
+  const canClaimMining = miningState && parseFloat(miningState.minedAmount) >= minMiningClaim;
+
+  // Render mining section (need to find where it is in the file)
 
   const { data: userData } = useQuery<{ referralCode?: string }>({
     queryKey: ['/api/auth/user'],
@@ -1029,37 +1076,11 @@ export default function Home() {
 
   const userRank = leaderboardData?.userEarnerRank?.rank;
 
-  const miningRatePerHour = 0.0105;
-  const miningRate = miningRatePerHour / 3600; // per second rate
-  const lastMiningClaim = user?.lastMiningClaim ? new Date(user.lastMiningClaim).getTime() : Date.now();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const elapsedSeconds = (now - lastMiningClaim) / 1000;
-      setMiningAmount(elapsedSeconds * miningRate);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [lastMiningClaim, miningRate]);
-
-  const claimMiningMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/mining/claim");
-      if (!response.ok) throw new Error("Failed to claim mining");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      showNotification("Mining rewards claimed!", "success");
-    },
-    onError: (error: any) => {
-      showNotification(error.message, "error");
-    },
-  });
+  // Values are now derived from miningState above
 
   const handleClaimClick = () => {
-    if (miningAmount < 0.01) {
-      showNotification("Minimum claim is 0.01 HRUM", "error");
+    if (miningAmount < 1) {
+      showNotification("Minimum claim is 1 HRUM", "error");
       return;
     }
     claimMiningMutation.mutate();
@@ -1131,7 +1152,7 @@ export default function Home() {
                   <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover rounded-full" />
                 </div>
                 <span className="text-white text-base font-black tabular-nums">
-                  {balance.toFixed(3)}
+                  {user?.tonBalance ? parseFloat(user.tonBalance).toFixed(3) : "0.000"}
                 </span>
               </div>
             </div>
@@ -1152,7 +1173,7 @@ export default function Home() {
               </div>
               <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
                 <Zap className="w-3 h-3 fill-current" />
-                {miningRatePerHour.toFixed(4)} H/h
+                {(miningRatePerHour || 0.0015).toFixed(4)} H/h
               </div>
             </div>
 
@@ -1168,7 +1189,7 @@ export default function Home() {
                 onClick={handleClaimClick}
                 disabled={claimMiningMutation.isPending}
                 className={`${
-                  miningAmount >= 0.01 
+                  miningAmount >= 1 
                     ? "bg-[#B9FF66] hover:bg-[#a8e655] text-black" 
                     : "bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/5"
                 } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all`}
