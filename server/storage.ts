@@ -384,6 +384,59 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Mining operations
+  async claimMining(userId: string): Promise<{ success: boolean; message: string; reward?: string; balances?: any }> {
+    try {
+      const user = await this.getUser(userId);
+      if (!user) return { success: false, message: "User not found" };
+
+      const now = new Date();
+      const lastClaim = user.lastMiningClaim ? new Date(user.lastMiningClaim) : new Date(0);
+      const diffMs = now.getTime() - lastClaim.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      // Simple 24h check for mining (adjust as per app logic)
+      if (diffHours < 24 && user.lastMiningClaim) {
+        return { success: false, message: "Mining still in progress" };
+      }
+
+      // Default reward if not specified
+      const reward = "10.0"; 
+      const amountNum = parseFloat(reward);
+
+      const currentBalance = parseFloat(user.balance || '0');
+      const currentTonBalance = parseFloat(user.tonBalance || '0');
+      const currentTotalEarnings = parseFloat(user.totalEarnings || '0');
+
+      const newBalance = (currentBalance + amountNum).toFixed(2);
+      const newTonBalance = (currentTonBalance + amountNum).toFixed(2);
+      const newTotalEarnings = (currentTotalEarnings + amountNum).toFixed(2);
+
+      await db.update(users)
+        .set({
+          balance: newBalance,
+          tonBalance: newTonBalance,
+          totalEarnings: newTotalEarnings,
+          lastMiningClaim: now,
+          updatedAt: now
+        })
+        .where(eq(users.id, userId));
+
+      return { 
+        success: true, 
+        message: "Mining claim successful", 
+        reward,
+        balances: {
+          balance: newBalance,
+          tonBalance: newTonBalance,
+          totalEarnings: newTotalEarnings
+        }
+      };
+    } catch (error) {
+      console.error("Error claiming mining:", error);
+      return { success: false, message: "Failed to claim mining" };
+    }
+  }
+
   async getMiningState(userId: string) {
     const user = await this.getUser(userId);
     if (!user) throw new Error("User not found");
@@ -412,14 +465,16 @@ export class DatabaseStorage implements IStorage {
     const state = await this.getMiningState(userId);
     const amount = state.currentMining;
 
-    if (parseFloat(amount) < 0.01) {
-      return { success: false, amount: "0", message: "Minimum claim is 0.01 Hrum" };
+    if (parseFloat(amount) < 1) {
+      return { success: false, amount: "0", message: "Minimum claim is 1 HRUM" };
     }
 
     await db.transaction(async (tx) => {
       await tx.update(users)
         .set({
           balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
+          withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${amount}`,
+          totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${amount}`,
           lastMiningClaim: new Date(),
           updatedAt: new Date()
         })
@@ -638,13 +693,14 @@ export class DatabaseStorage implements IStorage {
 
     const currentBalance = parseFloat(user.balance || "0");
     if (currentBalance < hrumAmount) {
-      return { success: false, message: "Insufficient Hrum balance" };
+      return { success: false, message: "Insufficient HRUM balance" };
     }
 
+    // 10,000 HRUM = 1 TON
     const tonAmount = hrumAmount / 10000;
 
     await db.transaction(async (tx) => {
-      // Deduct Hrum
+      // Deduct HRUM
       await tx.update(users)
         .set({
           balance: sql`${users.balance} - ${hrumAmount.toString()}`,
@@ -666,7 +722,7 @@ export class DatabaseStorage implements IStorage {
         amount: hrumAmount.toString(),
         type: 'deduction',
         source: 'conversion',
-        description: `Converted ${hrumAmount} Hrum to ${tonAmount} TON`,
+        description: `Converted ${hrumAmount} HRUM to ${tonAmount} TON`,
       });
     });
 
@@ -1436,10 +1492,20 @@ export class DatabaseStorage implements IStorage {
       // Check balance (but don't deduct yet - wait for admin approval)
       // Note: Admins have unlimited balance, so skip balance check for them
       const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
-      const userBalance = parseFloat(user.balance || '0');
       
+      // CRITICAL FIX: Determine which balance to check based on payment system
+      // TON and STARS withdrawals use tonBalance, while others might use balance (HRUM)
+      const isTonWithdrawal = paymentSystemId === 'ton_coin' || paymentSystemId === 'telegram_stars' || paymentSystemId === 'tether_polygon';
+      const userBalance = isTonWithdrawal ? parseFloat(user.withdrawBalance || '0') : parseFloat(user.balance || '0');
+      
+      console.log('Balance check details:', { isAdmin, isTonWithdrawal, userBalance, requestedAmount, paymentSystemId });
+
       if (!isAdmin && userBalance < requestedAmount) {
-        return { success: false, message: 'Insufficient balance' };
+        const currencyName = isTonWithdrawal ? 'TON' : 'HRUM';
+        return { 
+          success: false, 
+          message: `Insufficient balance. Your ${currencyName} balance is ${userBalance.toFixed(4)}, but you requested ${requestedAmount.toFixed(4)}.` 
+        };
       }
 
       // Create pending withdrawal record (DO NOT deduct balance yet)
