@@ -25,8 +25,8 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     staleTime: 30000,
   });
 
-  const minWithdraw = parseFloat(appSettings?.minWithdrawal || "0.10");
-  const networkFee = parseFloat(appSettings?.withdrawalFee || "0.01");
+  const minWithdraw = parseFloat(appSettings?.minimum_withdrawal_ton || "0.1");
+  const networkFee = parseFloat(appSettings?.withdrawal_fee_ton || "0.01");
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
@@ -45,8 +45,23 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/withdrawals"] });
     },
-    onError: (error: Error) => {
-      showNotification(error.message, "error");
+    onError: (error: any) => {
+      let message = "Withdrawal failed";
+      try {
+        if (typeof error.message === 'string') {
+          const trimmed = error.message.trim();
+          // Check if it's a JSON string from apiRequest
+          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.message) message = parsed.message;
+          } else {
+            message = error.message;
+          }
+        }
+      } catch (e) {
+        message = error.message;
+      }
+      showNotification(message, "error");
     },
   });
 
@@ -80,19 +95,16 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
+        <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm [&>button]:hidden">
         <DialogHeader className="pt-2">
           <DialogTitle className="text-xl font-black text-center uppercase tracking-tight">TON withdrawal</DialogTitle>
-          <p className="text-[11px] text-zinc-400 text-center font-bold leading-relaxed px-1 mt-1">
-            Withdraw your earned TON to your personal wallet instantly.
-          </p>
         </DialogHeader>
         
         <div className="space-y-4 mt-4">
           <div className="space-y-1.5">
             <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Address (TON):</Label>
             <Input 
-              placeholder="EQDxZjSx4D9gFDL..." 
+              placeholder="" 
               value={withdrawAddress}
               onChange={(e) => setWithdrawAddress(e.target.value)}
               className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"

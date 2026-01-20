@@ -78,7 +78,7 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-transparent pb-32">
+    <div className="min-h-screen bg-transparent pb-4">
       {/* Page Content with Transition */}
       <AnimatePresence mode="wait">
         <motion.div
