@@ -96,7 +96,7 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full bg-transparent text-white p-4 space-y-4 pb-32">
+      <div className="flex flex-col h-full bg-transparent text-white p-4 space-y-4 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
