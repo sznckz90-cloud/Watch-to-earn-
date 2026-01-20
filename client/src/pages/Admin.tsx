@@ -1458,7 +1458,7 @@ function SettingsSection() {
     queryFn: () => apiRequest("GET", "/api/admin/settings").then(res => res.json()),
   });
   
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Record<string, string | boolean>>({
     dailyAdLimit: '50',
     rewardPerAd: '2',
     affiliateCommission: '10',
@@ -1479,16 +1479,13 @@ function SettingsSection() {
     referralRewardTON: '0.0005',
     referralRewardHrum: '50',
     referralAdsRequired: '1',
-    // Withdrawal requirements
     withdrawalAdRequirementEnabled: true,
     minimumAdsForWithdrawal: '100',
     withdrawalInviteRequirementEnabled: true,
     minimumInvitesForWithdrawal: '3',
-    // Daily task rewards
     streakReward: '100',
     shareTaskReward: '1000',
     communityTaskReward: '1000',
-    // BUG currency settings
     bugRewardPerAd: '1',
     bugRewardPerTask: '10',
     bugRewardPerReferral: '50',
@@ -1522,16 +1519,13 @@ function SettingsSection() {
         referralRewardTON: settingsData.referralRewardTON?.toString() || '0.0005',
         referralRewardHrum: settingsData.referralRewardHrum?.toString() || '50',
         referralAdsRequired: settingsData.referralAdsRequired?.toString() || '1',
-        // Withdrawal requirements
         withdrawalAdRequirementEnabled: settingsData.withdrawalAdRequirementEnabled !== false,
         minimumAdsForWithdrawal: settingsData.minimumAdsForWithdrawal?.toString() || '100',
         withdrawalInviteRequirementEnabled: settingsData.withdrawalInviteRequirementEnabled !== false,
         minimumInvitesForWithdrawal: settingsData.minimumInvitesForWithdrawal?.toString() || '3',
-        // Daily task rewards
         streakReward: settingsData.streakReward?.toString() || '100',
         shareTaskReward: settingsData.shareTaskReward?.toString() || '1000',
         communityTaskReward: settingsData.communityTaskReward?.toString() || '1000',
-        // BUG currency settings
         bugRewardPerAd: settingsData.bugRewardPerAd?.toString() || '1',
         bugRewardPerTask: settingsData.bugRewardPerTask?.toString() || '10',
         bugRewardPerReferral: settingsData.bugRewardPerReferral?.toString() || '50',
@@ -1554,81 +1548,63 @@ function SettingsSection() {
   ];
   
   const handleSaveSettings = async () => {
-    const adLimit = parseInt(settings.dailyAdLimit);
-    const reward = parseInt(settings.rewardPerAd);
-    const affiliate = parseFloat(settings.affiliateCommission);
-    const walletFee = parseInt(settings.walletChangeFee);
-    const minWithdrawal = parseFloat(settings.minimum_withdrawal_ton);
-    const withdrawalFee = parseFloat(settings.withdrawal_fee_ton);
-    const channelCost = parseFloat(settings.channelTaskCost);
-    const botCost = parseFloat(settings.botTaskCost);
-    const channelReward = parseInt(settings.channelTaskReward);
-    const botReward = parseInt(settings.botTaskReward);
-    const partnerReward = parseInt(settings.partnerTaskReward);
-    const minConvertHrum = parseInt(settings.minimumConvertHrum);
-    const minClicks = parseInt(settings.minimumClicks);
-    const refReward = parseFloat(settings.referralRewardTON);
-    const refRewardHrum = parseInt(settings.referralRewardHrum);
-
-    if (isNaN(adLimit) || adLimit <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "Daily ad limit must be a positive number",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isNaN(reward) || reward <= 0) {
-      toast({
-        title: "Validation Error",
-        description: "Reward per ad must be a positive number",
-        variant: "destructive",
-      });
-      return;
-    }
+    const adLimit = parseInt(settings.dailyAdLimit as string);
+    const reward = parseInt(settings.rewardPerAd as string);
+    const affiliate = parseFloat(settings.affiliateCommission as string);
+    const walletFee = parseInt(settings.walletChangeFee as string);
+    const minWithdrawal = parseFloat(settings.minimum_withdrawal_ton as string);
+    const withdrawalFee = parseFloat(settings.withdrawal_fee_ton as string);
+    const channelCost = parseFloat(settings.channelTaskCost as string);
+    const botCost = parseFloat(settings.botTaskCost as string);
+    const channelReward = parseInt(settings.channelTaskReward as string);
+    const botReward = parseInt(settings.botTaskReward as string);
+    const partnerReward = parseInt(settings.partnerTaskReward as string);
+    const minConvertHrum = parseInt(settings.minimumConvertHrum as string);
+    const minClicks = parseInt(settings.minimumClicks as string);
+    const refReward = parseFloat(settings.referralRewardTON as string);
+    const refRewardHrum = parseInt(settings.referralRewardHrum as string);
 
     setIsSaving(true);
     try {
-      const response = await apiRequest('PUT', '/api/admin/settings', {
-        dailyAdLimit: adLimit,
-        rewardPerAd: reward,
-        affiliateCommission: affiliate,
-        walletChangeFee: walletFee,
-        minimum_withdrawal_ton: minWithdrawal,
-        withdrawal_fee_ton: withdrawalFee,
-        channelTaskCost: channelCost,
-        botTaskCost: botCost,
-        channelTaskReward: channelReward,
-        botTaskReward: botReward,
-        partnerTaskReward: partnerReward,
-        minimumConvertHrum: minConvertHrum,
-        minimumClicks: minClicks,
-        seasonBroadcastActive: settings.seasonBroadcastActive,
-        referralRewardEnabled: settings.referralRewardEnabled,
-        referralRewardTON: refReward,
-        referralRewardHrum: refRewardHrum,
-        referralAdsRequired: parseInt(settings.referralAdsRequired) || 1,
-        withdrawalAdRequirementEnabled: settings.withdrawalAdRequirementEnabled,
-        minimumAdsForWithdrawal: parseInt(settings.minimumAdsForWithdrawal) || 100,
-        withdrawalInviteRequirementEnabled: settings.withdrawalInviteRequirementEnabled,
-        minimumInvitesForWithdrawal: parseInt(settings.minimumInvitesForWithdrawal) || 3,
-        streakReward: parseInt(settings.streakReward) || 100,
-        shareTaskReward: parseInt(settings.shareTaskReward) || 1000,
-        communityTaskReward: parseInt(settings.communityTaskReward) || 1000,
-        bugRewardPerAd: parseInt(settings.bugRewardPerAd) || 1,
-        bugRewardPerTask: parseInt(settings.bugRewardPerTask) || 10,
-        bugRewardPerReferral: parseInt(settings.bugRewardPerReferral) || 50,
-        minimumBugForWithdrawal: parseInt(settings.minimumBugForWithdrawal) || 1000,
-        padToBugRate: parseInt(settings.padToBugRate) || 1,
-        minimumConvertPadToBug: parseInt(settings.minimumConvertPadToBug) || 1000,
-        bugPerUsd: parseInt(settings.bugPerUsd) || 10000,
-        withdrawalBugRequirementEnabled: settings.withdrawalBugRequirementEnabled
-      });
+      const payload: Record<string, string | boolean> = {
+        dailyAdLimit: settings.dailyAdLimit?.toString() || '50',
+        rewardPerAd: settings.rewardPerAd?.toString() || '2',
+        affiliateCommission: settings.affiliateCommission?.toString() || '10',
+        walletChangeFee: settings.walletChangeFee?.toString() || '100',
+        minimum_withdrawal_ton: settings.minimum_withdrawal_ton?.toString() || '0.1',
+        withdrawal_fee_ton: settings.withdrawal_fee_ton?.toString() || '0.01',
+        channelTaskCost: settings.channelTaskCost?.toString() || '0.003',
+        botTaskCost: settings.botTaskCost?.toString() || '0.003',
+        channelTaskReward: settings.channelTaskReward?.toString() || '30',
+        botTaskReward: settings.botTaskReward?.toString() || '20',
+        partnerTaskReward: settings.partnerTaskReward?.toString() || '5',
+        minimumConvertHrum: settings.minimumConvertHrum?.toString() || '100',
+        minimumClicks: settings.minimumClicks?.toString() || '500',
+        referralRewardTON: settings.referralRewardTON?.toString() || '0.0005',
+        referralRewardHrum: settings.referralRewardHrum?.toString() || '50',
+        seasonBroadcastActive: !!settings.seasonBroadcastActive,
+        referralRewardEnabled: !!settings.referralRewardEnabled,
+        referralAdsRequired: settings.referralAdsRequired?.toString() || '1',
+        withdrawalAdRequirementEnabled: !!settings.withdrawalAdRequirementEnabled,
+        minimumAdsForWithdrawal: settings.minimumAdsForWithdrawal?.toString() || '100',
+        withdrawalInviteRequirementEnabled: !!settings.withdrawalInviteRequirementEnabled,
+        minimumInvitesForWithdrawal: settings.minimumInvitesForWithdrawal?.toString() || '3',
+        streakReward: settings.streakReward?.toString() || '100',
+        shareTaskReward: settings.shareTaskReward?.toString() || '1000',
+        communityTaskReward: settings.communityTaskReward?.toString() || '1000',
+        bugRewardPerAd: settings.bugRewardPerAd?.toString() || '1',
+        bugRewardPerTask: settings.bugRewardPerTask?.toString() || '10',
+        bugRewardPerReferral: settings.bugRewardPerReferral?.toString() || '50',
+        minimumBugForWithdrawal: settings.minimumBugForWithdrawal?.toString() || '1000',
+        padToBugRate: settings.padToBugRate?.toString() || '1',
+        minimumConvertPadToBug: settings.minimumConvertPadToBug?.toString() || '1000',
+        bugPerUsd: settings.bugPerUsd?.toString() || '10000',
+        withdrawalBugRequirementEnabled: !!settings.withdrawalBugRequirementEnabled
+      };
+
+      const res = await apiRequest("PUT", "/api/admin/settings", payload);
       
-      const result = await response.json();
-      
-      if (result.success) {
+      if (res.ok) {
         toast({
           title: "Settings Updated",
           description: "App settings have been updated successfully",
@@ -1636,7 +1612,8 @@ function SettingsSection() {
         queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
         queryClient.invalidateQueries({ queryKey: ["/api/app-settings"] });
       } else {
-        throw new Error(result.message || 'Failed to update settings');
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to update settings');
       }
     } catch (error: any) {
       toast({
