@@ -334,6 +334,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  app.get("/api/admin/stats", authenticateAdmin, async (req: any, res) => {
+    try {
+      const stats = await storage.getAppStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/admin/settings", authenticateAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getAllAdminSettings();
+      const settingsMap: Record<string, string | boolean> = {};
+      settings.forEach(s => {
+        if (s.settingValue === 'true') settingsMap[s.settingKey] = true;
+        else if (s.settingValue === 'false') settingsMap[s.settingKey] = false;
+        else settingsMap[s.settingKey] = s.settingValue;
+      });
+      res.json(settingsMap);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.put("/api/admin/settings", authenticateAdmin, async (req, res) => {
+    try {
+      const settings = req.body;
+      console.log('💾 Saving admin settings (PUT):', JSON.stringify(settings));
+      
+      for (const [key, value] of Object.entries(settings)) {
+        if (value !== undefined && value !== null) {
+          await storage.updateAdminSetting(key, String(value));
+        }
+      }
+      
+      if (settings.minimum_withdrawal_ton || settings.withdrawal_fee_ton) {
+        const minWithdraw = parseFloat(String(settings.minimum_withdrawal_ton || '0.1'));
+        const fee = parseFloat(String(settings.withdrawal_fee_ton || '0.01'));
+        await storage.updatePaymentSystemsFromSettings(minWithdraw, fee);
+      }
+      
+      res.json({ success: true, message: "Settings updated successfully" });
+    } catch (error) {
+      console.error('❌ Failed to update settings:', error);
+      res.status(500).json({ success: false, message: "Failed to update settings" });
+    }
+  });
+
+  app.get("/api/app-settings", async (req, res) => {
+    try {
+      const minWithdraw = await storage.getAppSetting('minimum_withdrawal_ton', '0.1');
+      const fee = await storage.getAppSetting('withdrawal_fee_ton', '0.01');
+      res.json({
+        minimum_withdrawal_ton: minWithdraw,
+        withdrawal_fee_ton: fee
+      });
+    } catch (error) {
+      res.json({ minimum_withdrawal_ton: '0.1', withdrawal_fee_ton: '0.01' });
+    }
+  });
+
   app.post("/api/ads/extra-watch", authenticateTelegram, async (req: any, res) => {
     try {
       const user = req.user?.user;

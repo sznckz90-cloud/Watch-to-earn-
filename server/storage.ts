@@ -60,6 +60,9 @@ export function updatePaymentSystemsFromSettings(minWithdraw: number, fee: numbe
 
 // Interface for storage operations
 export interface IStorage {
+  getAllAdminSettings(): Promise<AdminSetting[]>;
+  updateAdminSetting(key: string, value: string): Promise<void>;
+  updatePaymentSystemsFromSettings(minWithdraw: number, fee: number): void;
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<{ user: User; isNewUser: boolean }>;
@@ -387,11 +390,58 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAppSetting(key: string, defaultValue: string | number): Promise<string> {
+    try {
+      const [setting] = await db
+        .select({ settingValue: adminSettings.settingValue })
+        .from(adminSettings)
+        .where(eq(adminSettings.settingKey, key))
+        .limit(1);
+      
+      if (setting && setting.settingValue) {
+        return setting.settingValue;
+      }
+      return String(defaultValue);
+    } catch (error) {
+      console.error(`Error getting app setting ${key}:`, error);
+      return String(defaultValue);
+    }
+  }
+
+  async getAllAdminSettings(): Promise<AdminSetting[]> {
+    return db.select().from(adminSettings);
+  }
+
+  async updateAdminSetting(key: string, value: string): Promise<void> {
+    await db
+      .insert(adminSettings)
+      .values({
+        settingKey: key,
+        settingValue: value,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: adminSettings.settingKey,
+        set: {
+          settingValue: value,
+          updatedAt: new Date()
+        }
+      });
+  }
+
+  async updatePaymentSystemsFromSettings(minWithdraw: number, fee: number) {
+    // In our simplified TON-only model, we update the app settings directly.
+    // The payment system logic is handled by getAppSetting in WithdrawalPopup.
+    await this.updateAdminSetting('minimum_withdrawal_ton', minWithdraw.toString());
+    await this.updateAdminSetting('withdrawal_fee_ton', fee.toString());
+    console.log(`✅ Payment system settings updated: Min=${minWithdraw}, Fee=${fee}`);
+  }
+
   // Mining operations
   async claimMining(userId: string): Promise<{ success: boolean; amount: string; message: string }> {
     try {
-      const state = await this.getMiningState(userId);
-      const amount = state.currentMining;
+      const miningState = await this.getMiningState(userId);
+      const amount = miningState.currentMining;
 
       if (parseFloat(amount) < 1) {
         return { success: false, amount: "0", message: "Minimum claim is 1 HRUM" };
