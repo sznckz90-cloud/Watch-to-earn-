@@ -1463,8 +1463,8 @@ function SettingsSection() {
     rewardPerAd: '2',
     affiliateCommission: '10',
     walletChangeFee: '100',
-    minWithdrawalAmountTON: '0.5',
-    withdrawalFeeTON: '3',
+    minimum_withdrawal_ton: '0.1',
+    withdrawal_fee_ton: '0.01',
     channelTaskCost: '0.003',
     botTaskCost: '0.003',
     channelTaskCostTON: '0.0003',
@@ -1506,8 +1506,8 @@ function SettingsSection() {
         rewardPerAd: settingsData.rewardPerAd?.toString() || '2',
         affiliateCommission: settingsData.affiliateCommission?.toString() || '10',
         walletChangeFee: settingsData.walletChangeFee?.toString() || '100',
-        minWithdrawalAmountTON: settingsData.minWithdrawalAmountTON?.toString() || '0.5',
-        withdrawalFeeTON: settingsData.withdrawalFeeTON?.toString() || '3',
+        minimum_withdrawal_ton: settingsData.minimum_withdrawal_ton?.toString() || '0.1',
+        withdrawal_fee_ton: settingsData.withdrawal_fee_ton?.toString() || '0.01',
         channelTaskCost: settingsData.channelTaskCost?.toString() || '0.003',
         botTaskCost: settingsData.botTaskCost?.toString() || '0.003',
         channelTaskCostTON: settingsData.channelTaskCostTON?.toString() || '0.0003',
@@ -1558,8 +1558,8 @@ function SettingsSection() {
     const reward = parseInt(settings.rewardPerAd);
     const affiliate = parseFloat(settings.affiliateCommission);
     const walletFee = parseInt(settings.walletChangeFee);
-    const minWithdrawal = parseFloat(settings.minWithdrawalAmountTON);
-    const withdrawalFee = parseFloat(settings.withdrawalFeeTON);
+    const minWithdrawal = parseFloat(settings.minimum_withdrawal_ton);
+    const withdrawalFee = parseFloat(settings.withdrawal_fee_ton);
     const channelCost = parseFloat(settings.channelTaskCost);
     const botCost = parseFloat(settings.botTaskCost);
     const channelReward = parseInt(settings.channelTaskReward);
@@ -1595,8 +1595,8 @@ function SettingsSection() {
         rewardPerAd: reward,
         affiliateCommission: affiliate,
         walletChangeFee: walletFee,
-        minWithdrawalAmount: minWithdrawal,
-        withdrawalFeeTON: withdrawalFee,
+        minimum_withdrawal_ton: minWithdrawal,
+        withdrawal_fee_ton: withdrawalFee,
         channelTaskCost: channelCost,
         botTaskCost: botCost,
         channelTaskReward: channelReward,
@@ -1812,38 +1812,38 @@ function SettingsSection() {
             <div className="space-y-2">
               <Label htmlFor="minimum-withdrawal-ton" className="text-sm font-semibold">
                 <i className="fas fa-gem mr-2 text-blue-600"></i>
-                Min  ( Method)
+                Min Withdrawal (TON)
               </Label>
               <Input
                 id="minimum-withdrawal-ton"
                 type="number"
-                value={settings.minWithdrawalAmountTON}
-                onChange={(e) => setSettings({ ...settings, minWithdrawalAmountTON: e.target.value })}
+                value={settings.minimum_withdrawal_ton}
+                onChange={(e) => setSettings({ ...settings, minimum_withdrawal_ton: e.target.value })}
                 placeholder="0.1"
                 min="0"
                 step="0.01"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.minWithdrawalAmountTON || settingsData?.minimum_withdrawal_ton || 0.1} TON
+                Current: {settingsData?.minimum_withdrawal_ton || 0.1} TON
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="withdrawal-fee-ton" className="text-sm font-semibold">
                 <i className="fas fa-percent mr-2 text-blue-600"></i>
-                 Fee (TON)
+                Withdraw Fee (TON)
               </Label>
               <Input
                 id="withdrawal-fee-ton"
                 type="number"
-                value={settings.withdrawalFeeTON}
-                onChange={(e) => setSettings({ ...settings, withdrawalFeeTON: e.target.value })}
+                value={settings.withdrawal_fee_ton}
+                onChange={(e) => setSettings({ ...settings, withdrawal_fee_ton: e.target.value })}
                 placeholder="0.01"
                 min="0"
                 step="0.001"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.withdrawalFeeTON || settingsData?.withdrawal_fee_ton || 0.01} TON
+                Current: {settingsData?.withdrawal_fee_ton || 0.01} TON
               </p>
             </div>
 

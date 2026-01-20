@@ -66,8 +66,8 @@ export default function Withdraw() {
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const withdrawalsData = Array.isArray(withdrawalsResponse?.withdrawals) ? withdrawalsResponse.withdrawals : [];
   
-  const minWithdraw = parseFloat(appSettings?.minWithdrawal || "0.10");
-  const networkFee = appSettings?.withdrawalFee || "0.01";
+  const minWithdraw = parseFloat(appSettings?.minimum_withdrawal_ton || "0.1");
+  const networkFee = parseFloat(appSettings?.withdrawal_fee_ton || "0.01");
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
@@ -189,7 +189,7 @@ export default function Withdraw() {
                     <Label className="text-xs text-[#D1D5DB] font-bold">To receive (TON):</Label>
                     <div className="bg-[#3D1F00] border-[#B34700]/30 h-12 rounded-xl px-4 flex items-center justify-between">
                       <span className="text-sm font-bold text-white">
-                        {withdrawAmount ? (parseFloat(withdrawAmount) - parseFloat(networkFee) > 0 ? (parseFloat(withdrawAmount) - parseFloat(networkFee)).toFixed(4) : "0.0000") : "0.0000"}
+                        {withdrawAmount ? (parseFloat(withdrawAmount) - networkFee > 0 ? (parseFloat(withdrawAmount) - networkFee).toFixed(4) : "0.0000") : "0.0000"}
                       </span>
                       <div className="w-6 h-6 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30">
                         <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
@@ -197,19 +197,19 @@ export default function Withdraw() {
                     </div>
                   </div>
 
-                  <div className="pt-2">
-                    <Button 
-                      className="w-full h-14 bg-[#E88A1A] hover:bg-[#B34700] text-white rounded-2xl text-lg font-bold shadow-lg shadow-[#E88A1A]/20 border-0 transition-all active:scale-95 disabled:opacity-50"
-                      onClick={handleWithdrawClick}
-                      disabled={withdrawMutation.isPending}
-                    >
-                      {withdrawMutation.isPending ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        `Withdraw { Minimum ${minWithdraw} TON }`
-                      )}
-                    </Button>
-                  </div>
+                    <div className="pt-2">
+                      <Button 
+                        className="w-full h-14 bg-[#E88A1A] hover:bg-[#B34700] text-white rounded-2xl text-lg font-bold shadow-lg shadow-[#E88A1A]/20 border-0 transition-all active:scale-95 disabled:opacity-50"
+                        onClick={handleWithdrawClick}
+                        disabled={withdrawMutation.isPending}
+                      >
+                        {withdrawMutation.isPending ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          `Withdraw (Min ${minWithdraw} TON)`
+                        )}
+                      </Button>
+                    </div>
 
                   <div className="space-y-1 pt-2">
                     <p className="text-[11px] text-[#D1D5DB] font-bold">•Network fee: {networkFee} TON</p>
