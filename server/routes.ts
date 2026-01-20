@@ -389,12 +389,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/withdrawals", authenticateTelegram, async (req: any, res) => {
-    // For backwards compatibility or direct calls
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
-      const { amount, address, method } = req.body;
-      const result = await storage.createPayoutRequest(user.id, amount.toString(), method === 'TON' ? 'ton_coin' : method, address);
+      const { amount, address } = req.body;
+      const result = await storage.createPayoutRequest(user.id, amount.toString(), 'ton_coin', address);
       if (!result.success) return res.status(400).json({ message: result.message });
       res.json(result);
     } catch (error) {

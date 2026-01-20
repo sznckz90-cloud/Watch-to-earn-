@@ -47,12 +47,16 @@ export interface PaymentSystem {
   fee: number;
 }
 
-export const PAYMENT_SYSTEMS: PaymentSystem[] = [
-  { id: 'telegram_stars', name: 'Telegram Stars', emoji: '⭐', minWithdrawal: 1.00, fee: 0.0 },
-  { id: 'tether_polygon', name: 'Tether (Polygon POS)', emoji: '🌐', minWithdrawal: 0.01, fee: 0.0 },
-  { id: 'ton_coin', name: 'TON', emoji: '💎', minWithdrawal: 0.5, fee: 0.0 },
-  { id: 'litecoin', name: 'Litecoin', emoji: '⏺', minWithdrawal: 0.35, fee: 0.0 }
+export let PAYMENT_SYSTEMS: PaymentSystem[] = [
+  { id: 'ton_coin', name: 'TON', emoji: '💎', minWithdrawal: 0.1, fee: 0.01 }
 ];
+
+// Helper to update payment systems from admin settings
+export function updatePaymentSystemsFromSettings(minWithdraw: number, fee: number) {
+  PAYMENT_SYSTEMS = [
+    { id: 'ton_coin', name: 'TON', emoji: '💎', minWithdrawal: minWithdraw, fee: fee }
+  ];
+}
 
 // Interface for storage operations
 export interface IStorage {
@@ -1423,8 +1427,18 @@ export class DatabaseStorage implements IStorage {
         return { success: false, message: 'User not found' };
       }
 
-      // Find payment system and calculate fee
-      const paymentSystem = PAYMENT_SYSTEMS.find(p => p.id === paymentSystemId);
+      // Sync payment systems with admin settings before processing
+      const minWithdrawSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'minimum_withdrawal_ton')).limit(1);
+      const feeSetting = await db.select().from(adminSettings).where(eq(adminSettings.settingKey, 'withdrawal_fee_ton')).limit(1);
+      
+      const minWithdrawValue = parseFloat(minWithdrawSetting[0]?.settingValue || "0.1");
+      const feeValue = parseFloat(feeSetting[0]?.settingValue || "0.01");
+      
+      updatePaymentSystemsFromSettings(minWithdrawValue, feeValue);
+
+      // FORCE TON method only
+      const effectivePaymentSystemId = 'ton_coin';
+      const paymentSystem = PAYMENT_SYSTEMS.find(p => p.id === effectivePaymentSystemId);
       if (!paymentSystem) {
         return { success: false, message: 'Invalid payment system' };
       }
@@ -1439,25 +1453,21 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (netAmount <= 0) {
-        return { success: false, message: `Withdrawal amount must be greater than the fee of ${fee} ${paymentSystem.name}` };
+        return { success: false, message: `Withdrawal amount must be greater than the fee of ${fee} TON` };
       }
 
       // Check balance (but don't deduct yet - wait for admin approval)
       // Note: Admins have unlimited balance, so skip balance check for them
       const isAdmin = user.telegram_id === process.env.TELEGRAM_ADMIN_ID;
       
-      // CRITICAL FIX: Determine which balance to check based on payment system
-      // TON and STARS withdrawals use tonBalance, while others might use balance (HRUM)
-      const isTonWithdrawal = paymentSystemId === 'ton_coin' || paymentSystemId === 'telegram_stars' || paymentSystemId === 'tether_polygon';
-      const userBalance = isTonWithdrawal ? parseFloat(user.tonBalance || '0') : parseFloat(user.balance || '0');
+      const userBalance = parseFloat(user.tonBalance || '0');
       
-      console.log('Balance check details:', { isAdmin, isTonWithdrawal, userBalance, requestedAmount, paymentSystemId });
+      console.log('Balance check details:', { isAdmin, userBalance, requestedAmount, paymentSystemId: effectivePaymentSystemId });
 
       if (!isAdmin && userBalance < requestedAmount) {
-        const currencyName = isTonWithdrawal ? 'TON' : 'HRUM';
         return { 
           success: false, 
-          message: `Insufficient balance. Your ${currencyName} balance is ${userBalance.toFixed(4)}, but you requested ${requestedAmount.toFixed(4)}.` 
+          message: `Insufficient balance. Your TON balance is ${userBalance.toFixed(4)}, but you requested ${requestedAmount.toFixed(4)}.` 
         };
       }
 
@@ -1465,7 +1475,7 @@ export class DatabaseStorage implements IStorage {
       const withdrawalDetails = {
         paymentSystem: paymentSystem.name,
         paymentDetails: paymentDetails,
-        paymentSystemId: paymentSystemId,
+        paymentSystemId: effectivePaymentSystemId,
         requestedAmount: requestedAmount.toString(),
         fee: fee.toString(),
         netAmount: netAmount.toString(),
@@ -1482,7 +1492,7 @@ export class DatabaseStorage implements IStorage {
 
       return { 
         success: true, 
-        message: `Payout request created successfully. Fee: ${fee} ${paymentSystem.name}, Net transfer: ${netAmount.toFixed(8)} ${paymentSystem.name}`,
+        message: `Payout request created successfully. Fee: ${fee} TON, Net transfer: ${netAmount.toFixed(8)} TON`,
         withdrawalId: withdrawal.id
       };
     } catch (error) {
