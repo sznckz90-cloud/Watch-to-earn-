@@ -1010,8 +1010,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Helper function to get setting value with default
       const getSetting = (key: string, defaultValue: string): string => {
-        const setting = settings.find(s => s.key === key);
-        return setting ? setting.value : defaultValue;
+        const setting = settings.find(s => s.setting_key === key);
+        return setting ? setting.setting_value : defaultValue;
       };
 
       const minWithdrawalAmount = parseFloat(getSetting('minimum_withdrawal_ton', '0.1')); // Minimum withdrawal
@@ -2969,8 +2969,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardPerAd: 'reward_per_ad',
         affiliateCommission: 'affiliate_commission',
         walletChangeFee: 'wallet_change_fee',
-        minWithdrawalAmount: 'minimum_withdrawal_ton',
-        withdrawalFeeTON: 'withdrawal_fee_ton',
+        minimum_withdrawal_ton: 'minimum_withdrawal_ton',
+        withdrawal_fee_ton: 'withdrawal_fee_ton',
         channelTaskCost: 'channel_task_cost_usd',
         botTaskCost: 'bot_task_cost_usd',
         channelTaskCostTON: 'channel_task_cost_ton',
@@ -3047,8 +3047,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rewardPerAd: 'reward_per_ad',
         affiliateCommission: 'affiliate_commission',
         walletChangeFee: 'wallet_change_fee',
-        minWithdrawalAmount: 'minimum_withdrawal_ton',
-        withdrawalFeeTON: 'withdrawal_fee_ton',
+        minimum_withdrawal_ton: 'minimum_withdrawal_ton',
+        withdrawal_fee_ton: 'withdrawal_fee_ton',
         channelTaskCost: 'channel_task_cost_usd',
         botTaskCost: 'bot_task_cost_usd',
         channelTaskCostTON: 'channel_task_cost_ton',

@@ -1435,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
       
       // Validate minimum withdrawal amount and ensure net amount is positive
       if (requestedAmount < paymentSystem.minWithdrawal) {
-        return { success: false, message: `Minimum withdrawal is ${paymentSystem.minWithdrawal} ${paymentSystem.name}` };
+        return { success: false, message: `Minimum withdrawal is ${paymentSystem.minWithdrawal} TON` };
       }
       
       if (netAmount <= 0) {
