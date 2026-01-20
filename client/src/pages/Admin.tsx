@@ -1595,13 +1595,13 @@ function SettingsSection() {
         rewardPerAd: reward,
         affiliateCommission: affiliate,
         walletChangeFee: walletFee,
-        minWithdrawalAmountTON: minWithdrawal,
+        minWithdrawalAmount: minWithdrawal,
         withdrawalFeeTON: withdrawalFee,
         channelTaskCost: channelCost,
         botTaskCost: botCost,
         channelTaskReward: channelReward,
         botTaskReward: botReward,
-        partnerReward: partnerReward,
+        partnerTaskReward: partnerReward,
         minimumConvertHrum: minConvertHrum,
         minimumClicks: minClicks,
         seasonBroadcastActive: settings.seasonBroadcastActive,
@@ -1817,34 +1817,33 @@ function SettingsSection() {
               <Input
                 id="minimum-withdrawal-ton"
                 type="number"
-                value={settings.minWithdrawalAmount}
+                value={settings.minWithdrawalAmountTON}
                 onChange={(e) => setSettings({ ...settings, minWithdrawalAmountTON: e.target.value })}
-                placeholder="0.5"
+                placeholder="0.1"
                 min="0"
                 step="0.01"
               />
               <p className="text-xs text-muted-foreground">
-                Current: ${settingsData?.minWithdrawalAmount || 0.5}
+                Current: {settingsData?.minWithdrawalAmountTON || settingsData?.minimum_withdrawal_ton || 0.1} TON
               </p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="withdrawal-fee-ton" className="text-sm font-semibold">
                 <i className="fas fa-percent mr-2 text-blue-600"></i>
-                 Fee (%)
+                 Fee (TON)
               </Label>
               <Input
                 id="withdrawal-fee-ton"
                 type="number"
-                value={settings.withdrawalFee}
+                value={settings.withdrawalFeeTON}
                 onChange={(e) => setSettings({ ...settings, withdrawalFeeTON: e.target.value })}
-                placeholder="5"
+                placeholder="0.01"
                 min="0"
-                max="100"
-                step="0.1"
+                step="0.001"
               />
               <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.withdrawalFee || 5}%
+                Current: {settingsData?.withdrawalFeeTON || settingsData?.withdrawal_fee_ton || 0.01} TON
               </p>
             </div>
 

@@ -1088,14 +1088,14 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-4 pb-12 overflow-y-auto">
+      <main className="max-w-md mx-auto px-4 pt-4 pb-4 overflow-y-auto">
         {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div 
                 className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] cursor-pointer hover:opacity-80 transition-opacity`}
-                onClick={() => setLocation("/profile")}
+                onClick={() => setLocation("/admin")}
               >
                 {photoUrl ? (
                   <img 
@@ -1112,7 +1112,7 @@ export default function Home() {
               <div className="flex flex-col">
                 <span 
                   className={`text-white font-black text-base leading-none tracking-tight cursor-pointer hover:opacity-80`}
-                  onClick={() => setLocation("/profile")}
+                  onClick={() => setLocation("/admin")}
                 >
                   {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
                 </span>
@@ -1474,7 +1474,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => window.open("https://t.me/PaidAdzGroup", "_blank")}
+                      onClick={() => window.open("https://t.me/MoneyAdz", "_blank")}
                       className="flex-1 h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider gap-1"
                     >
                       <Send className="w-3.5 h-3.5" />
