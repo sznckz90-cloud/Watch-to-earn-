@@ -21,12 +21,11 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   const { data: appSettings } = useQuery<any>({
     queryKey: ['/api/app-settings'],
-    retry: false,
     staleTime: 30000,
   });
 
-  const minWithdraw = parseFloat(appSettings?.minimum_withdrawal_ton || "0.1");
-  const networkFee = parseFloat(appSettings?.withdrawal_fee_ton || "0.01");
+  const minWithdraw = appSettings?.minimum_withdrawal_ton ? parseFloat(appSettings.minimum_withdrawal_ton) : 0.1;
+  const networkFee = appSettings?.withdrawal_fee_ton ? parseFloat(appSettings.withdrawal_fee_ton) : 0.01;
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
