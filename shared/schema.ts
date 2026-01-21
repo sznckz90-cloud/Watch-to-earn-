@@ -330,6 +330,17 @@ export const blockedCountries = pgTable("blocked_countries", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Deposits table
+export const deposits = pgTable("deposits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  amount: decimal("amount", { precision: 30, scale: 10 }).notNull(),
+  status: varchar("status").default('pending').notNull(), // 'pending', 'completed', 'failed'
+  memo: text("memo").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertEarningSchema = createInsertSchema(earnings).omit({ createdAt: true });
@@ -349,6 +360,7 @@ export const insertSpinDataSchema = createInsertSchema(spinData).omit({ id: true
 export const insertSpinHistorySchema = createInsertSchema(spinHistory).omit({ id: true, createdAt: true });
 export const insertDailyMissionSchema = createInsertSchema(dailyMissions).omit({ id: true, createdAt: true });
 export const insertBlockedCountrySchema = createInsertSchema(blockedCountries).omit({ id: true, createdAt: true });
+export const insertDepositSchema = createInsertSchema(deposits).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -387,3 +399,5 @@ export type DailyMission = typeof dailyMissions.$inferSelect;
 export type InsertDailyMission = z.infer<typeof insertDailyMissionSchema>;
 export type BlockedCountry = typeof blockedCountries.$inferSelect;
 export type InsertBlockedCountry = z.infer<typeof insertBlockedCountrySchema>;
+export type Deposit = typeof deposits.$inferSelect;
+export type InsertDeposit = z.infer<typeof insertDepositSchema>;
