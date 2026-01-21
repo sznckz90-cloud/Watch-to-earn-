@@ -39,6 +39,7 @@ export const users = pgTable("users", {
   personalCode: text("personal_code"),
   balance: decimal("balance", { precision: 20, scale: 0 }).default("0"), // Hrum stored as BIGINT
   tonBalance: decimal("ton_balance", { precision: 30, scale: 10 }).default("0"),
+  tonAppBalance: decimal("ton_app_balance", { precision: 30, scale: 10 }).default("0"),
   adsWatched: integer("ads_watched").default(0),
   dailyAdsWatched: integer("daily_ads_watched").default(0),
   adsWatchedToday: integer("ads_watched_today").default(0),
