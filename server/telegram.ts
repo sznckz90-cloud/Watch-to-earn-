@@ -1742,23 +1742,28 @@ ${walletAddress}
         const { sql } = await import('drizzle-orm');
         const { users, earnings, withdrawals, advertiserTasks } = await import('../shared/schema');
         
-        const totalUsersCount = await db.select({ count: sql<number>`count(*)` }).from(users);
-        const dailyActiveCount = await db.select({ count: sql<number>`count(distinct ${earnings.userId})` }).from(earnings).where(sql`DATE(${earnings.createdAt}) = CURRENT_DATE`);
-        const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users);
-        const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users);
-        const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`);
-        const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
-        const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
-        const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
-        const totalPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
-        const todayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE`);
-        const yesterdayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE - INTERVAL '1 day'`);
-        const totalTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks);
-        const todayTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks).where(sql`DATE(${advertiserTasks.createdAt}) = CURRENT_DATE`);
-        const yesterdayTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks).where(sql`DATE(${advertiserTasks.createdAt}) = CURRENT_DATE - INTERVAL '1 day'`);
-        const pendingWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} = 'pending'`);
-        const approvedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
-        const rejectedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} = 'rejected'`);
+        const totalUsersCount = await db.select({ count: sql<number>`count(*)` }).from(users).catch(() => [{ count: 0 }]);
+        const dailyActiveCount = await db.select({ count: sql<number>`count(distinct ${earnings.userId})` }).from(earnings).where(sql`DATE(${earnings.createdAt}) = CURRENT_DATE`).catch(() => [{ count: 0 }]);
+        const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users).catch(() => [{ total: 0 }]);
+        const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users).catch(() => [{ total: 0 }]);
+        const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`).catch(() => ({ rows: [{ total: 0 }] }));
+        
+        // Use explicit cast to numeric for SUM on decimal columns
+        const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), '0')` }).from(users).catch(() => [{ total: '0' }]);
+        const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(CAST(total_earned AS NUMERIC)), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`).catch(() => ({ rows: [{ total: '0' }] }));
+        const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(CAST(total_earned AS NUMERIC)), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`).catch(() => ({ rows: [{ total: '0' }] }));
+        
+        const totalPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`).catch(() => [{ total: '0' }]);
+        const todayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE`).catch(() => [{ total: '0' }]);
+        const yesterdayPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved') AND DATE(${withdrawals.updatedAt}) = CURRENT_DATE - INTERVAL '1 day'`).catch(() => [{ total: '0' }]);
+        
+        const totalTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks).catch(() => [{ count: 0 }]);
+        const todayTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks).where(sql`DATE(${advertiserTasks.createdAt}) = CURRENT_DATE`).catch(() => [{ count: 0 }]);
+        const yesterdayTasksCount = await db.select({ count: sql<number>`count(*)` }).from(advertiserTasks).where(sql`DATE(${advertiserTasks.createdAt}) = CURRENT_DATE - INTERVAL '1 day'`).catch(() => [{ count: 0 }]);
+        
+        const pendingWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} = 'pending'`).catch(() => [{ count: 0 }]);
+        const approvedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`).catch(() => [{ count: 0 }]);
+        const rejectedWithdrawalsCount = await db.select({ count: sql<number>`count(*)` }).from(withdrawals).where(sql`${withdrawals.status} = 'rejected'`).catch(() => [{ count: 0 }]);
         
         const totalUsers = totalUsersCount[0]?.count || 0;
         const activeUsers = dailyActiveCount[0]?.count || 0;
