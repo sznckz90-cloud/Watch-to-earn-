@@ -587,7 +587,8 @@ function UserProfileTabs({ user: initialUser, onClose }: { user: any; onClose: (
             <p className="text-xs text-muted-foreground mb-2">Balances</p>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div><p className="text-xs text-muted-foreground">Hrum</p><p className="font-bold text-[#4cd3ff]">{formatHrum(user.balance)}</p></div>
-              <div><p className="text-xs text-muted-foreground">TON</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON (W)</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON (A)</p><p className="font-bold text-blue-400">{parseFloat(user.tonAppBalance || '0').toFixed(4)}</p></div>
               <div><p className="text-xs text-muted-foreground">BUG</p><p className="font-bold text-green-400" >{parseFloat(user.bugBalance || '0').toFixed(2)}</p></div>
             </div>
           </div>
@@ -991,10 +992,18 @@ function PromoCreatorSection() {
             <Input placeholder="PROMO CODE" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })} maxLength={20} className="flex-1 h-8 text-sm" />
             <Button type="button" variant="outline" onClick={handleGenerateCode} size="sm" className="h-8"><i className="fas fa-random"></i></Button>
           </div>
-          <div className="grid grid-cols-4 gap-1">
-            {(['Hrum', '', '', 'BUG'] as const).map(type => (
-              <Button key={type} type="button" variant={formData.rewardType === type ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardType: type })} className="h-8 text-xs">{type}</Button>
-            ))}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-4 gap-1 col-span-2">
+              {(['Hrum', 'TON', 'BUG'] as const).map(type => (
+                <Button key={type} type="button" variant={formData.rewardType === type ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardType: type, rewardCurrency: type === 'TON' ? 'App' : '' })} className="h-8 text-xs">{type}</Button>
+              ))}
+            </div>
+            {formData.rewardType === 'TON' && (
+              <div className="col-span-2 flex gap-1">
+                <Button type="button" variant={formData.rewardCurrency === 'App' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'App' })} className="h-8 text-[10px] flex-1">App Balance</Button>
+                <Button type="button" variant={formData.rewardCurrency === 'Withdraw' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'Withdraw' })} className="h-8 text-[10px] flex-1">Withdraw Balance</Button>
+              </div>
+            )}
           </div>
           <Input type="number" placeholder={`Amount (${formData.rewardType})`} value={formData.rewardAmount} onChange={(e) => setFormData({ ...formData, rewardAmount: e.target.value })} min="0" className="h-8 text-sm" />
           <div className="grid grid-cols-2 gap-2">

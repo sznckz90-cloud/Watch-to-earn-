@@ -90,7 +90,7 @@ export default function Shop() {
             <div className="w-4 h-4 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
               <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
             </div>
-            <span className="text-sm font-bold text-white">{parseFloat(user?.tonBalance || '0').toFixed(4)}</span>
+            <span className="text-sm font-bold text-white">{parseFloat(user?.tonAppBalance || '0').toFixed(4)}</span>
           </div>
         </div>
 
