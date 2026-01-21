@@ -3373,14 +3373,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin users endpoint
+  app.get('/api/admin/user-tasks/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const tasks = await db.select().from(dailyTasks).where(eq(dailyTasks.userId, userId));
+      res.json(tasks);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-ads/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const ads = await db.select().from(earnings).where(and(eq(earnings.userId, userId), eq(earnings.source, 'ad_watch')));
+      res.json(ads);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-referrals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const refs = await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+      res.json(refs);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-withdrawals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const draws = await db.select().from(withdrawals).where(eq(withdrawals.userId, userId));
+      res.json(draws);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-ban-history/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const logs = await db.select().from(banLogs).where(eq(banLogs.bannedUserId, userId));
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/admin/users', authenticateAdmin, async (req: any, res) => {
     try {
-      const users = await storage.getAllUsersWithStats();
-      res.json(users);
+      const allUsers = await storage.getAllUsersWithStats();
+      res.json(allUsers);
     } catch (error) {
-      console.error("Error fetching admin users:", error);
-      res.status(500).json({ message: "Failed to fetch users" });
+      console.error('❌ Error fetching admin users:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-tasks/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const tasks = await db.select().from(dailyTasks).where(eq(dailyTasks.userId, userId));
+      res.json(tasks);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-ads/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const ads = await db.select().from(earnings).where(and(eq(earnings.userId, userId), eq(earnings.source, 'ad_watch')));
+      res.json(ads);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-referrals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const refs = await db.select().from(referrals).where(eq(referrals.referrerId, userId));
+      res.json(refs);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-withdrawals/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const draws = await db.select().from(withdrawals).where(eq(withdrawals.userId, userId));
+      res.json(draws);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get('/api/admin/user-ban-history/:userId', authenticateAdmin, async (req: any, res) => {
+    try {
+      const { userId } = req.params;
+      const logs = await db.select().from(banLogs).where(eq(banLogs.bannedUserId, userId));
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

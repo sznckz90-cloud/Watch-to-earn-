@@ -1621,7 +1621,7 @@ export class DatabaseStorage implements IStorage {
 
       // Total earnings (Hrum)
       const [totalEarningsResult] = await db
-        .select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), '0')` })
+        .select({ total: sql<string>`COALESCE(SUM(CAST(${users.total_earnings} AS NUMERIC)), '0')` })
         .from(users);
 
       // Total referral earnings
@@ -1697,7 +1697,7 @@ export class DatabaseStorage implements IStorage {
         firstName: users.firstName,
         lastName: users.lastName,
         balance: users.balance,
-        totalEarnings: users.totalEarnings,
+        totalEarnings: users.total_earnings, // Fixed field name
         tonBalance: users.tonBalance,
         bugBalance: users.bugBalance,
         adsWatched: users.adsWatched,
@@ -1709,7 +1709,7 @@ export class DatabaseStorage implements IStorage {
         bannedReason: users.bannedReason,
         createdAt: users.createdAt,
         totalWithdrawn: users.totalClaimedReferralBonus,
-        totalEarned: users.totalEarnings,
+        totalEarned: users.total_earned, // Fixed field name
         referralCount: sql<number>`(SELECT count(*) FROM ${referrals} WHERE ${referrals.referrerId} = ${users.id})`
       }).from(users).orderBy(desc(users.createdAt));
       
