@@ -8,7 +8,8 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut } from "lucide-react";
+import { useLanguage } from "@/hooks/useLanguage";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,6 +64,7 @@ interface User {
 export default function Home() {
   const { user, isLoading } = useAuth();
   const { isAdmin } = useAdmin();
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
@@ -1126,13 +1128,13 @@ export default function Home() {
               onClick={() => setWithdrawPopupOpen(true)}
               className="bg-[#1a1a1a] hover:bg-[#222] text-[#4cd3ff] border border-[#4cd3ff]/20 rounded-xl px-4 py-1.5 h-auto text-xs font-black uppercase tracking-wider transition-all active:scale-95"
             >
-              WITHDRAW
+              {t('withdraw')}
             </Button>
           </div>
 
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
             <div className="flex flex-col items-center flex-1">
-              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">Total HRUM Mined</span>
+              <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-0.5">{t('total_hrum_mined')}</span>
               <div className="flex items-center gap-1.5 leading-none">
                 <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
                   <img src="/images/hrum-logo.jpg" alt="Hrum" className="w-full h-full object-cover rounded-sm" />
@@ -1145,7 +1147,7 @@ export default function Home() {
             <div className="w-[1px] h-6 bg-white/10 mx-1"></div>
             <div className="flex flex-col items-center flex-1">
               <div className="flex items-center gap-1 mb-0.5 leading-none">
-                <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">Total TON Earned</span>
+                <span className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider">{t('total_ton_earned')}</span>
               </div>
               <div className="flex items-center gap-1.5 leading-none">
                 <div className="w-4 h-4 flex items-center justify-center flex-shrink-0">
@@ -1159,15 +1161,15 @@ export default function Home() {
           </div>
           <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">MINING STATUS</span>
+              <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 bg-[#B9FF66] rounded-full animate-pulse"></div>
-                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">ACTIVE</span>
+                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
               </div>
             </div>
             
             <div className="text-center mb-4">
-              <div className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-1">MINED HRUM</div>
+              <div className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-1">{t('mined_hrum')}</div>
               <div className="text-3xl font-black text-white tabular-nums tracking-tight">
                 {miningAmount.toFixed(6)}
               </div>
@@ -1183,7 +1185,7 @@ export default function Home() {
                 className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <ArrowUpCircle className="w-3.5 h-3.5" />
-                UPGRADE
+                {t('upgrade')}
               </Button>
               <Button 
                 onClick={handleClaimClick}
@@ -1197,7 +1199,7 @@ export default function Home() {
                 {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
                   <>
                     <HandCoins className="w-3.5 h-3.5" />
-                    CLAIM
+                    {t('claim')}
                   </>
                 )}
               </Button>
@@ -1210,14 +1212,14 @@ export default function Home() {
                 className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
               >
                 <RefreshCw className="w-4 h-4" />
-                Convert
+                {t('convert')}
               </Button>
               <Button
                 onClick={() => setPromoPopupOpen(true)}
                 className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
               >
                 <Ticket className="w-4 h-4" />
-                Promo
+                {t('promo')}
               </Button>
             </div>
 
@@ -1230,7 +1232,7 @@ export default function Home() {
                     className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
                   >
                     <LayoutDashboard className="w-4 h-4" />
-                    Earn
+                    {t('earn')}
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
                   </TabsTrigger>
                   <TabsTrigger 
@@ -1238,7 +1240,7 @@ export default function Home() {
                     className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
                   >
                     <HeartHandshake className="w-4 h-4" />
-                    Referrals
+                    {t('referrals')}
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
                   </TabsTrigger>
                 </TabsList>
@@ -1251,39 +1253,29 @@ export default function Home() {
 
                 <TabsContent value="referrals" className="mt-0 outline-none">
                   <div className="flex flex-col items-center text-center pt-4">
-                    <h2 className="text-xl font-bold text-white mb-1">Invite friends and earn</h2>
+                    <h2 className="text-xl font-bold text-white mb-1">{t('invite_friends_earn')}</h2>
                     <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
-                      10% of their Hrum and When your friend buys a plan you get <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> instantly
+                      {t('referral_desc_prefix')} <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> {t('referral_desc_suffix')}
                     </p>
 
                     <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
                       <div>
-                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">User referred</p>
+                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('user_referred')}</p>
                         <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">Successful</p>
+                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('successful')}</p>
                         <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
                       </div>
                     </div>
 
-                    <div className="flex w-full gap-2">
-                      <Button
-                        onClick={copyReferralLink}
-                        disabled={!referralLink}
-                        className="flex-1 h-12 bg-[#111111] hover:bg-[#1a1a1a] text-white rounded-2xl font-bold text-sm gap-2"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy Link
-                      </Button>
-                      <Button
+                    <Button
                         onClick={shareReferralLink}
                         disabled={!referralLink || isSharing}
                         className="flex-1 h-12 bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl font-bold text-sm"
                       >
-                        {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Invite Friends +"}
+                        {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : `${t('invite_friends')} +`}
                       </Button>
-                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
