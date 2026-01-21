@@ -35,8 +35,18 @@ app.post('/api/telegram/webhook', async (req: any, res) => {
   try {
     console.log('📨 Direct webhook called!', JSON.stringify(req.body, null, 2));
     
-    const { handleTelegramMessage } = await import('./telegram');
+    const { handleTelegramMessage, handleTelegramCallback } = await import('./telegram');
     const handled = await handleTelegramMessage(req.body);
+    
+    // Handle callback queries
+    if (req.body.callback_query) {
+      try {
+        await handleTelegramCallback(req.body.callback_query);
+      } catch (err) {
+        console.error('Error in callback handler:', err);
+      }
+    }
+    
     console.log('✅ Message handled:', handled);
     
     res.status(200).json({ ok: true, handled });

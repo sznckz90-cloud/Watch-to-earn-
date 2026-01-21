@@ -185,6 +185,61 @@ function extractBotUsernameFromUrl(url: string): string | null {
 
 // All old Telegram notifications removed - bot uses inline buttons only
 
+// Admin callback handler
+export async function handleTelegramCallback(callbackQuery: any): Promise<boolean> {
+  const data = callbackQuery.data;
+  const message = callbackQuery.message;
+  const adminId = callbackQuery.from.id.toString();
+
+  if (!isAdmin(adminId)) return false;
+
+  if (data.startsWith('deposit_')) {
+    const [_, action, depositId] = data.split('_');
+    const deposit = await storage.getDeposit(depositId);
+    if (!deposit) return false;
+
+    if (action === 'success') {
+      await storage.updateDepositStatus(depositId, 'completed');
+      await sendUserTelegramNotification(deposit.memo, "✅ Your TON deposit has been successfully credited.");
+      await bot.editMessageText(message.text + "\n\n✅ Status: SUCCESS", {
+        chat_id: message.chat.id,
+        message_id: message.message_id
+      });
+    } else if (action === 'failed') {
+      await storage.updateDepositStatus(depositId, 'failed');
+      await sendUserTelegramNotification(deposit.memo, "❌ Deposit not confirmed. Please try again.");
+      await bot.editMessageText(message.text + "\n\n❌ Status: FAILED", {
+        chat_id: message.chat.id,
+        message_id: message.message_id
+      });
+    }
+    return true;
+  }
+  return false;
+}
+
+export async function sendDepositNotificationToAdmin(deposit: any, user: any): Promise<boolean> {
+  const adminId = process.env.TELEGRAM_ADMIN_ID;
+  if (!adminId) return false;
+
+  const text = `💰 <b>New Deposit Request</b>\n\n` +
+               `👤 User: ${user.firstName || user.username}\n` +
+               `🆔 Telegram ID: <code>${user.telegram_id}</code>\n` +
+               `💵 Amount: ${deposit.amount} TON\n` +
+               `📝 Memo: <code>${deposit.memo}</code>\n` +
+               `📅 Date: ${new Date().toLocaleString()}\n` +
+               `\nStatus: Pending`;
+
+  const replyMarkup = {
+    inline_keyboard: [[
+      { text: "✅ SUCCESS", callback_data: `deposit_success_${deposit.id}` },
+      { text: "❌ FAILED", callback_data: `deposit_failed_${deposit.id}` }
+    ]]
+  };
+
+  return await sendUserTelegramNotification(adminId, text, replyMarkup);
+}
+
 export async function sendTelegramMessage(message: string): Promise<boolean> {
   if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_ADMIN_ID) {
     console.error('Telegram bot token or admin ID not configured');

@@ -511,6 +511,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/deposits", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      const deposits = await storage.getUserDeposits(user.id);
+      res.json(deposits);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/deposits", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+
+      const pending = await storage.getPendingDeposit(user.id);
+      if (pending) {
+        return res.status(400).json({ message: "You already have a pending deposit. Please wait for admin approval." });
+      }
+
+      const { amount } = req.body;
+      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const deposit = await storage.createDeposit({
+        userId: user.id,
+        amount: amount.toString(),
+        memo: user.telegram_id,
+        status: 'pending'
+      });
+
+      // Notify admin
+      const { sendDepositNotificationToAdmin } = await import('./telegram');
+      await sendDepositNotificationToAdmin(deposit, user);
+
+      res.json(deposit);
+    } catch (error) {
+      console.error("Deposit creation error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/transactions", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      
+      const [userTransactions, userWithdrawals, userDeposits] = await Promise.all([
+        db.select().from(transactions).where(eq(transactions.userId, user.id)).orderBy(desc(transactions.createdAt)),
+        storage.getUserWithdrawals(user.id),
+        storage.getUserDeposits(user.id)
+      ]);
+
+      res.json({
+        transactions: userTransactions,
+        withdrawals: userWithdrawals,
+        deposits: userDeposits
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/health', async (req: any, res) => {
     try {
       const dbCheck = await db.select({ count: sql<number>`count(*)` }).from(users);
