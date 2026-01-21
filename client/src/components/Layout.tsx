@@ -1,7 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useLanguage } from "@/hooks/useLanguage";
 import { motion, AnimatePresence } from "framer-motion";
+
 const CustomHomeIcon = ({ className, isActive }: { className?: string, isActive?: boolean }) => (
   <svg 
     viewBox="0 0 24 24" 
@@ -63,6 +65,43 @@ const CustomMenuIcon = ({ className, isActive }: { className?: string, isActive?
   </svg>
 );
 
+const CustomShopIcon = ({ className, isActive }: { className?: string, isActive?: boolean }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <defs>
+      <linearGradient id="shopGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#B9FF66" />
+        <stop offset="100%" stopColor="#80B542" />
+      </linearGradient>
+    </defs>
+    <path 
+      d="M6 2L3 6V20C3 20.5304 3.21071 21.0391 3.58579 21.4142C3.96086 21.7893 4.46957 22 5 22H19C19.5304 22 20.0391 21.7893 20.4142 21.4142C20.7893 21.0391 21 20.5304 21 20V6L18 2H6Z" 
+      stroke={isActive ? "url(#shopGradient)" : "currentColor"} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+    <path 
+      d="M3 6H21" 
+      stroke={isActive ? "url(#shopGradient)" : "currentColor"} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+    <path 
+      d="M16 10C16 11.0609 15.5786 12.0783 14.8284 12.8284C14.0783 13.5786 13.0609 14 12 14C10.9391 14 9.92172 13.5786 9.17157 12.8284C8.42143 12.0783 8 11.0609 8 10" 
+      stroke={isActive ? "url(#shopGradient)" : "currentColor"} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+    />
+  </svg>
+);
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -71,10 +110,12 @@ export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const { isConnected } = useWebSocket();
   const { isAdmin } = useAdmin();
+  const { t } = useLanguage();
 
   const navItems = [
-    { href: "/", icon: CustomHomeIcon, label: "Home" },
-    { href: "/profile", icon: CustomMenuIcon, label: "Menu" },
+    { href: "/", icon: CustomHomeIcon, label: t('home') },
+    { href: "/shop", icon: CustomShopIcon, label: t('shop') },
+    { href: "/profile", icon: CustomMenuIcon, label: t('menu') },
   ];
 
   return (
