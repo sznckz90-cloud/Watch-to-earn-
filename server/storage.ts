@@ -1362,7 +1362,7 @@ export class DatabaseStorage implements IStorage {
       return { success: false, message: "Invalid promo code", errorType: "invalid" };
     }
 
-    // Check per-user limit first (already applied)
+    // Check per-user limit
     const userUsageCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(promoCodeUsage)
@@ -1385,34 +1385,71 @@ export class DatabaseStorage implements IStorage {
       return { success: false, message: "Promo code not active", errorType: "not_active" };
     }
 
-    // Check usage limit (global limit reached)
+    // Check usage limit
     if (promoCode.usageLimit && (promoCode.usageCount || 0) >= promoCode.usageLimit) {
-      return { success: false, message: "Promo code not active", errorType: "not_active" };
+      return { success: false, message: "Promo code usage limit reached", errorType: "not_active" };
     }
 
-    // Record usage
-    await db.insert(promoCodeUsage).values({
-      promoCodeId: promoCode.id,
-      userId,
-      rewardAmount: promoCode.rewardAmount,
+    const rewardAmount = promoCode.rewardAmount;
+    const rewardType = promoCode.rewardType;
+
+    await db.transaction(async (tx) => {
+      // Record usage
+      await tx.insert(promoCodeUsage).values({
+        promoCodeId: promoCode.id,
+        userId,
+        rewardAmount: rewardAmount,
+      });
+
+      // Update usage count
+      await tx
+        .update(promoCodes)
+        .set({
+          usageCount: sql`${promoCodes.usageCount} + 1`,
+          updatedAt: new Date(),
+        })
+        .where(eq(promoCodes.id, promoCode.id));
+
+      // Apply reward based on type and currency
+      if (rewardType === 'Hrum') {
+        await tx.update(users)
+          .set({ 
+            balance: sql`COALESCE(${users.balance}, 0) + ${rewardAmount}`,
+            totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${rewardAmount}`,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+      } else if (rewardType === 'TON') {
+        if (promoCode.rewardCurrency === 'Withdraw') {
+          await tx.update(users)
+            .set({ 
+              tonBalance: sql`COALESCE(${users.tonBalance}, 0) + ${rewardAmount}`,
+              updatedAt: new Date()
+            })
+            .where(eq(users.id, userId));
+        } else {
+          // Default to App Balance
+          await tx.update(users)
+            .set({ 
+              tonAppBalance: sql`COALESCE(${users.tonAppBalance}, 0) + ${rewardAmount}`,
+              updatedAt: new Date()
+            })
+            .where(eq(users.id, userId));
+        }
+      } else if (rewardType === 'BUG') {
+        await tx.update(users)
+          .set({ 
+            bugBalance: sql`COALESCE(${users.bugBalance}, 0) + ${rewardAmount}`,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+      }
     });
-
-    // Update usage count
-    await db
-      .update(promoCodes)
-      .set({
-        usageCount: sql`${promoCodes.usageCount} + 1`,
-        updatedAt: new Date(),
-      })
-      .where(eq(promoCodes.id, promoCode.id));
-
-    // NOTE: Reward is added by the routes.ts handler, not here
-    // This prevents double-rewarding and allows routes.ts to handle different reward types (Hrum, TON, )
 
     return {
       success: true,
-      message: `Promo code redeemed! You earned ${promoCode.rewardAmount} ${promoCode.rewardCurrency || 'Hrum'}`,
-      reward: promoCode.rewardAmount,
+      message: `Promo code redeemed! You earned ${rewardAmount} ${rewardType}`,
+      reward: rewardAmount,
     };
   }
 

@@ -463,6 +463,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Production health check endpoint - checks database connectivity and user count
+  app.post("/api/shop/buy-plan", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+
+      const { planId } = req.body;
+      const plan = MINING_PLANS.find(p => p.id === planId);
+      if (!plan) return res.status(400).json({ message: "Invalid plan" });
+
+      // Check TON (App Balance)
+      const tonAppBalance = parseFloat(user.tonAppBalance || "0");
+      if (tonAppBalance < plan.price) {
+        return res.status(400).json({ message: "Insufficient TON (App Balance). Top up or use a promo code." });
+      }
+
+      await db.transaction(async (tx) => {
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        // Deduct from tonAppBalance
+        await tx.update(users)
+          .set({ 
+            tonAppBalance: (tonAppBalance - plan.price).toString(),
+            activePlanId: planId,
+            planExpiresAt: expiresAt,
+            miningRate: (plan.hrumProfit / (24 * 3600)).toFixed(8),
+            lastMiningClaim: now,
+            updatedAt: now
+          })
+          .where(eq(users.id, user.id));
+
+        await tx.insert(transactions).values({
+          userId: user.id,
+          amount: plan.price.toString(),
+          type: "deduction",
+          source: "mining_plan_purchase",
+          description: `Purchased mining plan: ${plan.name}`,
+          metadata: { planId }
+        });
+      });
+
+      res.json({ success: true, message: "Plan activated successfully" });
+    } catch (error) {
+      console.error("Error buying plan:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get('/api/health', async (req: any, res) => {
     try {
       const dbCheck = await db.select({ count: sql<number>`count(*)` }).from(users);
