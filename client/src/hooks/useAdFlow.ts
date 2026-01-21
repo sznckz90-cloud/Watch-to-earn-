@@ -28,9 +28,8 @@ export function useAdFlow() {
           })
           .catch((error) => {
             console.error('Monetag ad error:', error);
-            const watchDuration = Date.now() - monetagStartTimeRef.current;
-            const watchedAtLeast3Seconds = watchDuration >= 3000;
-            resolve({ success: false, watchedFully: watchedAtLeast3Seconds, unavailable: false });
+            // RESOLVE even on error to prevent freezing
+            resolve({ success: false, watchedFully: false, unavailable: false });
           });
       } else {
         resolve({ success: false, watchedFully: false, unavailable: true });
