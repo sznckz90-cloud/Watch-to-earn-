@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Play, Clock, Shield, Zap } from "lucide-react";
+import { Play, Clock, Shield, Zap, Loader2 } from "lucide-react";
 import { showNotification } from "@/components/AppNotification";
 
 declare global {
@@ -120,11 +120,25 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
     try {
       // STEP 1: Show Monetag ad - User must watch at least 3 seconds
       setCurrentAdStep('monetag');
-      const monetagResult = await showMonetagAd();
+      let monetagResult;
+      try {
+        monetagResult = await showMonetagAd();
+      } catch (e) {
+        console.error('Monetag fatal error:', e);
+        monetagResult = { success: false, watchedFully: false, unavailable: false };
+      }
       
+      // Reset state immediately after ad closes to prevent black screen if something hangs
+      if (!monetagResult.success && !monetagResult.watchedFully) {
+        setCurrentAdStep('idle');
+        setIsShowingAds(false);
+      }
+
       // Handle Monetag unavailable
       if (monetagResult.unavailable) {
         showNotification("Ads not available. Please try again later.", "error");
+        setIsShowingAds(false);
+        setCurrentAdStep('idle');
         return;
       }
       
@@ -148,16 +162,26 @@ export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
         
         // Optimistic UI update - only ONE increment to progress
         const rewardAmount = appSettings?.rewardPerAd || 2;
-        queryClient.setQueryData(["/api/auth/user"], (old: any) => ({
-          ...old,
-          tonBalance: String(parseFloat(old?.tonBalance || '0') + (appSettings?.affiliateCommission || 0.1) * rewardAmount / 100), // This logic seems slightly off, but I'm matching the balance increment pattern
-          balance: String(parseFloat(old?.balance || '0') + rewardAmount),
-          adsWatchedToday: (old?.adsWatchedToday || 0) + 1
-        }));
+        queryClient.setQueryData(["/api/auth/user"], (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            tonBalance: String(parseFloat(old?.tonBalance || '0') + (appSettings?.affiliateCommission || 0.1) * rewardAmount / 100),
+            balance: String(parseFloat(old?.balance || '0') + rewardAmount),
+            adsWatchedToday: (old?.adsWatchedToday || 0) + 1
+          };
+        });
         
         // Sync with backend - single reward call
-        watchAdMutation.mutate('monetag');
+        try {
+          await watchAdMutation.mutateAsync('monetag');
+        } catch (e) {
+          console.error('Reward mutation failed:', e);
+        }
       }
+    } catch (error) {
+      console.error('handleStartEarning global error:', error);
+      showNotification("An unexpected error occurred. Please try again.", "error");
     } finally {
       // Always reset state on completion or error
       setCurrentAdStep('idle');
