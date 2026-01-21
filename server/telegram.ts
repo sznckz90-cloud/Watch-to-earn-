@@ -322,7 +322,7 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 💸 Amount: ${netAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
-🤖 Bot: @MoneyAdzbot`;
+🤖 Bot: @MoneyHrumbot`;
 
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
@@ -456,17 +456,17 @@ export async function sendSharePhotoToChat(
 }
 
 export function formatWelcomeMessage(): { message: string; inlineKeyboard: any } {
-  const botUsername = process.env.VITE_BOT_USERNAME || process.env.BOT_USERNAME || 'MoneyAdzbot';
+  const botUsername = process.env.VITE_BOT_USERNAME || process.env.BOT_USERNAME || 'MoneyHrumbot';
   const channelUrl = 'https://t.me/MoneyAdz';
   const groupUrl = 'https://t.me/MoneyAdzChat';
   
-  const message = `Stop wasting time on useless airdrops.
+  const message = `✋🏻 Stop wasting time on useless hash mining.
 Start earning real rewards today.
 
-Money Adz is a Telegram mini-app where you earn TONHrum tokens by watching ads or completing simple tasks — and swap them instantly to TON, even before any airdrop. 💸
+Money $HRUM is a mining app where you buy a plan, mine $HRUM directly in the app, convert it to $TON, and withdraw to your wallet — no waiting, no fake hype. 💸
 
-Every ad has value.
-Every task pays. 🚀`;
+Mine smarter.
+Earn real $TON. 🚀`;
 
   const inlineKeyboard = {
     inline_keyboard: [
@@ -618,7 +618,7 @@ export async function handleInlineQuery(inlineQuery: any): Promise<boolean> {
     }
 
     // Build the referral link - use /start flow for reliable referral tracking
-    const botUsername = process.env.VITE_BOT_USERNAME || process.env.BOT_USERNAME || 'MoneyAdzbot';
+    const botUsername = process.env.VITE_BOT_USERNAME || process.env.BOT_USERNAME || 'MoneyHrumbot';
     const referralLink = `https://t.me/${botUsername}?start=${user.referralCode}`;
     
     // Get the app URL for the share banner image

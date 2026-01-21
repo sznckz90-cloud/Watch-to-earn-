@@ -7466,6 +7466,66 @@ ${walletAddress}
           reward: rewardAmount,
           rewardType: 'BUG'
         });
+      } else if (promo.rewardType === 'TON' && (promo.rewardCurrency === 'ton_app' || promo.rewardCurrency === 'App')) {
+        // TON App Balance
+        const [currentUser] = await db
+          .select({ tonAppBalance: users.tonAppBalance })
+          .from(users)
+          .where(eq(users.id, userId));
+        
+        const currentBalance = parseFloat(currentUser?.tonAppBalance || '0');
+        const newBalance = (currentBalance + parseFloat(rewardAmount || '0')).toFixed(6);
+        
+        await db
+          .update(users)
+          .set({ tonAppBalance: newBalance, updatedAt: new Date() })
+          .where(eq(users.id, userId));
+        
+        await storage.logTransaction({
+          userId,
+          amount: rewardAmount || '0',
+          type: "addition",
+          source: "promo_code",
+          description: `Redeemed promo code: ${code}`,
+          metadata: { code, rewardType: 'TON_APP' }
+        });
+        
+        res.json({ 
+          success: true, 
+          message: `${rewardAmount} TON added to your App Balance!`,
+          reward: rewardAmount,
+          rewardType: 'TON_APP'
+        });
+      } else if (promo.rewardType === 'TON' && (promo.rewardCurrency === 'ton_withdraw' || promo.rewardCurrency === 'Withdraw')) {
+        // TON Withdraw Balance
+        const [currentUser] = await db
+          .select({ tonBalance: users.tonBalance })
+          .from(users)
+          .where(eq(users.id, userId));
+        
+        const currentBalance = parseFloat(currentUser?.tonBalance || '0');
+        const newBalance = (currentBalance + parseFloat(rewardAmount || '0')).toFixed(6);
+        
+        await db
+          .update(users)
+          .set({ tonBalance: newBalance, updatedAt: new Date() })
+          .where(eq(users.id, userId));
+        
+        await storage.logTransaction({
+          userId,
+          amount: rewardAmount || '0',
+          type: "addition",
+          source: "promo_code",
+          description: `Redeemed promo code: ${code}`,
+          metadata: { code, rewardType: 'TON_WITHDRAW' }
+        });
+        
+        res.json({ 
+          success: true, 
+          message: `${rewardAmount} TON added to your Withdraw Balance!`,
+          reward: rewardAmount,
+          rewardType: 'TON_WITHDRAW'
+        });
       } else {
         // Default: Add Hrum balance
         const rewardPad = parseInt(rewardAmount || '0');
@@ -8526,7 +8586,7 @@ ${walletAddress}
         return res.status(500).json({ error: 'Bot not configured' });
       }
 
-      const botUsername = process.env.BOT_USERNAME || 'MoneyAdzbot';
+      const botUsername = process.env.BOT_USERNAME || 'MoneyHrumbot';
       const referralLink = `https://t.me/${botUsername}?start=${user.referralCode}`;
       
       const appUrl = process.env.RENDER_EXTERNAL_URL || 
@@ -8550,9 +8610,9 @@ ${walletAddress}
         id: `share_${user.referralCode}_${Date.now()}`,
         photo_url: shareImageUrl,
         thumbnail_url: shareImageUrl,
-        title: '💵 Get Paid with Money Adz!',
-        description: 'Join Money Adz and earn TONHrum tokens by watching ads or completing simple tasks!',
-        caption: '💵 Get paid for completing tasks and watching ads.',
+        title: '⛏️ Money $HRUM Mining',
+        description: 'Plan → HRUM Mining → TON Conversion → Withdraw',
+        caption: '⛏️ Plan → HRUM Mining → TON Conversion → Withdraw',
         parse_mode: 'HTML',
         reply_markup: {
           inline_keyboard: [
@@ -8601,7 +8661,7 @@ ${walletAddress}
             success: false,
             error: prepareResult.description || 'Failed to prepare message',
             referralLink,
-            fallbackUrl: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('💵 Get paid for completing tasks and watching ads.')}`
+            fallbackUrl: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('⛏️ Plan → HRUM Mining → TON Conversion → Withdraw')}`
           });
         }
       } catch (telegramError: any) {
@@ -8610,7 +8670,7 @@ ${walletAddress}
           success: false,
           error: telegramError.message || 'Telegram API error',
           referralLink,
-          fallbackUrl: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('💸 Start earning money just by completing tasks & watching ads!')}`
+          fallbackUrl: `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('⛏️ Plan → HRUM Mining → TON Conversion → Withdraw')}`
         });
       }
 

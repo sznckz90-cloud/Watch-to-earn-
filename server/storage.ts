@@ -1423,15 +1423,15 @@ export class DatabaseStorage implements IStorage {
         if (promoCode.rewardCurrency === 'Withdraw') {
           await tx.update(users)
             .set({ 
-              tonBalance: sql`COALESCE(${users.tonBalance}, 0) + ${rewardAmount}`,
+              tonBalance: sql`COALESCE(CAST(${users.tonBalance} AS NUMERIC), 0) + ${rewardAmount}`,
               updatedAt: new Date()
             })
             .where(eq(users.id, userId));
-        } else {
+        } else if (promoCode.rewardCurrency === 'App' || !promoCode.rewardCurrency) {
           // Default to App Balance
           await tx.update(users)
             .set({ 
-              tonAppBalance: sql`COALESCE(${users.tonAppBalance}, 0) + ${rewardAmount}`,
+              tonAppBalance: sql`COALESCE(CAST(${users.tonAppBalance} AS NUMERIC), 0) + ${rewardAmount}`,
               updatedAt: new Date()
             })
             .where(eq(users.id, userId));
