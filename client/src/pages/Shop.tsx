@@ -4,8 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { showNotification } from '@/components/AppNotification';
 import Layout from '@/components/Layout';
-import { Share2, Users, Copy, Loader2, Bug, DollarSign, Zap, TrendingUp, Star } from 'lucide-react';
+import { Share2, Users, Copy, Loader2, Bug, DollarSign, Zap, TrendingUp, Star, PlusCircle } from 'lucide-react';
 import { queryClient } from '@/lib/queryClient';
+import TopUpPopup from '@/components/TopUpPopup';
 
 interface User {
   id: string;
@@ -13,8 +14,10 @@ interface User {
   firstName?: string;
   referralCode?: string;
   tonBalance?: string;
+  tonAppBalance?: string;
   activePlanId?: string;
   planExpiresAt?: string;
+  telegram_id?: string;
   [key: string]: any;
 }
 
@@ -32,6 +35,7 @@ const MINING_PLANS = [
 ];
 
 export default function Shop() {
+  const [isTopUpOpen, setIsTopUpOpen] = useState(false);
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
@@ -86,13 +90,28 @@ export default function Shop() {
         <main className="flex-1 overflow-y-auto px-4 pt-3 pb-24 scrollbar-hide">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-black text-white uppercase tracking-tight">Hrum Shop</h1>
-          <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
-            <div className="w-4 h-4 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
-              <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-4 h-4 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
+                <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+              </div>
+              <span className="text-sm font-bold text-white">{parseFloat(user?.tonAppBalance || '0').toFixed(4)}</span>
             </div>
-            <span className="text-sm font-bold text-white">{parseFloat(user?.tonAppBalance || '0').toFixed(4)}</span>
+            <Button 
+              size="icon" 
+              className="w-8 h-8 rounded-full bg-[#B9FF66] text-black hover:bg-[#B9FF66]/80"
+              onClick={() => setIsTopUpOpen(true)}
+            >
+              <PlusCircle className="w-5 h-5" />
+            </Button>
           </div>
         </div>
+
+        <TopUpPopup 
+          open={isTopUpOpen} 
+          onOpenChange={setIsTopUpOpen} 
+          telegramId={user?.telegram_id || ''} 
+        />
 
         {isActive && (
           <div className="mb-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">

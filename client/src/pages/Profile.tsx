@@ -18,13 +18,15 @@ import {
   HelpCircle,
   Shield,
   Languages,
-  X
+  X,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { showNotification } from "@/components/AppNotification";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+import TransactionsOverlay from "@/components/TransactionsOverlay";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -32,6 +34,7 @@ export default function Profile() {
   const [copied, setCopied] = React.useState(false);
   const [selectedLegal, setSelectedLegal] = React.useState<string | null>(null);
   const [isLanguageOpen, setIsLanguageOpen] = React.useState(false);
+  const [isTransactionsOpen, setIsTransactionsOpen] = React.useState(false);
 
   const languages: { code: Language, name: string, flag: string }[] = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -225,6 +228,17 @@ export default function Profile() {
         {/* Settings Groups */}
         <div className="space-y-4">
           <section>
+            <h3 className="text-[9px] uppercase font-black text-[#8E8E93] tracking-widest mb-3 px-1">Activity</h3>
+            <div className="space-y-2">
+              <ProfileItem 
+                icon={<History className="w-4 h-4 text-amber-400" />} 
+                label="Transactions" 
+                onClick={() => setIsTransactionsOpen(true)}
+              />
+            </div>
+          </section>
+
+          <section>
             <h3 className="text-[9px] uppercase font-black text-[#8E8E93] tracking-widest mb-3 px-1">{t('account_localization')}</h3>
             <div className="space-y-2">
               <ProfileItem 
@@ -341,6 +355,11 @@ export default function Profile() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <TransactionsOverlay 
+          open={isTransactionsOpen} 
+          onOpenChange={setIsTransactionsOpen} 
+        />
       </div>
     </Layout>
   );
