@@ -1179,7 +1179,7 @@ export default function Home() {
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <Button 
-                onClick={() => setBoosterPopupOpen(true)}
+                onClick={() => setLocation("/shop")}
                 className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <ArrowUpCircle className="w-3.5 h-3.5" />

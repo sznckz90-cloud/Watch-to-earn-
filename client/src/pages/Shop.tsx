@@ -13,20 +13,22 @@ interface User {
   firstName?: string;
   referralCode?: string;
   tonBalance?: string;
+  activePlanId?: string;
+  planExpiresAt?: string;
   [key: string]: any;
 }
 
 const MINING_PLANS = [
-  { id: 'cookgo', name: 'CookGo', price: 0.1, netProfit: 40, totalReturn: 1040, icon: Zap, color: 'text-blue-400' },
-  { id: 'wannacook', name: 'WannaCook', price: 0.2, netProfit: 100, totalReturn: 2100, icon: TrendingUp, color: 'text-green-400' },
-  { id: 'cookpad', name: 'Cookpad', price: 0.3, netProfit: 210, totalReturn: 3210, icon: Zap, color: 'text-purple-400' },
-  { id: 'pepper', name: 'Pepper', price: 0.4, netProfit: 360, totalReturn: 4360, icon: Zap, color: 'text-red-400' },
-  { id: 'mrcook', name: 'Mr Cook', price: 0.5, netProfit: 600, totalReturn: 5600, icon: Users, color: 'text-yellow-400' },
-  { id: 'mealplanner', name: 'Meal Planner', price: 0.6, netProfit: 900, totalReturn: 6900, icon: Zap, color: 'text-orange-400' },
-  { id: 'recify', name: 'Recify', price: 0.7, netProfit: 1260, totalReturn: 8260, icon: Zap, color: 'text-pink-400' },
-  { id: 'chowman', name: 'Chowman', price: 0.8, netProfit: 1760, totalReturn: 9760, icon: Zap, color: 'text-indigo-400' },
-  { id: 'cookbook', name: 'Cookbook', price: 0.9, netProfit: 2430, totalReturn: 11430, icon: Zap, color: 'text-cyan-400' },
-  { id: 'recime', name: 'ReciMe', price: 1, netProfit: 3500, totalReturn: 13500, icon: Star, color: 'text-yellow-500', best: true },
+  { id: 'cookgo', name: 'CookGo', price: 0.2, hrumProfit: 200, icon: Zap, color: 'text-blue-400' },
+  { id: 'wannacook', name: 'WannaCook', price: 0.35, hrumProfit: 450, icon: TrendingUp, color: 'text-green-400' },
+  { id: 'cookpad', name: 'Cookpad', price: 0.5, hrumProfit: 750, icon: Zap, color: 'text-purple-400' },
+  { id: 'pepper', name: 'Pepper', price: 0.7, hrumProfit: 1100, icon: Zap, color: 'text-red-400' },
+  { id: 'mrcook', name: 'Mr Cook', price: 1.0, hrumProfit: 1500, icon: Users, color: 'text-yellow-400' },
+  { id: 'mealplanner', name: 'Meal Planner', price: 1.3, hrumProfit: 2000, icon: Zap, color: 'text-orange-400' },
+  { id: 'recify', name: 'Recify', price: 1.6, hrumProfit: 2600, icon: Zap, color: 'text-pink-400' },
+  { id: 'chowman', name: 'Chowman', price: 2.0, hrumProfit: 3300, icon: Zap, color: 'text-indigo-400' },
+  { id: 'cookbook', name: 'Cookbook', price: 2.5, hrumProfit: 4100, icon: Zap, color: 'text-cyan-400' },
+  { id: 'recime', name: 'ReciMe', price: 3.0, hrumProfit: 5000, icon: Star, color: 'text-yellow-500', best: true },
 ];
 
 export default function Shop() {
@@ -34,8 +36,13 @@ export default function Shop() {
     queryKey: ['/api/auth/user'],
   });
 
+  const isActive = user?.activePlanId && user?.planExpiresAt && new Date(user.planExpiresAt) > new Date();
+
   const buyPlanMutation = useMutation({
     mutationFn: async (planId: string) => {
+      if (isActive) {
+        throw new Error('You already have an active plan');
+      }
       const response = await fetch('/api/shop/buy-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,7 +56,7 @@ export default function Shop() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      showNotification('Plan purchased successfully!', 'success');
+      showNotification('Plan activated! Mining started.', 'success');
     },
     onError: (error: Error) => {
       showNotification(error.message, 'error');
@@ -77,11 +84,36 @@ export default function Shop() {
     <Layout>
       <div className="flex flex-col h-full overflow-hidden">
         <main className="flex-1 overflow-y-auto px-4 pt-3 pb-24 scrollbar-hide">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-black text-white uppercase tracking-tight">Hrum Shop</h1>
           <div className="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/5">
-            <img src="/images/ton.png" alt="TON" className="w-4 h-4" />
+            <div className="w-4 h-4 rounded-full overflow-hidden border border-white/10 flex items-center justify-center">
+              <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+            </div>
             <span className="text-sm font-bold text-white">{parseFloat(user?.tonBalance || '0').toFixed(4)}</span>
+          </div>
+        </div>
+
+        {isActive && (
+          <div className="mb-4 bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
+            <p className="text-[11px] text-blue-400 font-bold uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-3 h-3 fill-current" />
+              Active Plan: {MINING_PLANS.find(p => p.id === user.activePlanId)?.name}
+            </p>
+            <p className="text-[10px] text-zinc-500 font-medium mt-1">
+              Expires in: {Math.ceil((new Date(user.planExpiresAt!).getTime() - Date.now()) / (1000 * 60 * 60))} hours
+            </p>
+          </div>
+        )}
+
+        <div className="mb-4 space-y-1">
+          <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+            <div className="w-1 h-1 bg-zinc-500 rounded-full" />
+            Duration: 24 Hours (Fixed)
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+            <div className="w-1 h-1 bg-zinc-500 rounded-full" />
+            Profit: 1 TON = 10,000 HRUM
           </div>
         </div>
 
@@ -102,18 +134,21 @@ export default function Shop() {
                     <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">{plan.name}</h3>
                     <div className="flex flex-col gap-0.5">
                       <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">
-                        Profit: <span className="text-green-400">+{plan.netProfit.toLocaleString()} Hrum</span>
+                        Net Profit: <span className="text-green-400">+{plan.hrumProfit.toLocaleString()} HRUM</span>
                       </p>
                       <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">
-                        Total: <span className="text-white">{plan.totalReturn.toLocaleString()} Hrum</span>
+                        Profit (TON): <span className="text-white">{(plan.hrumProfit / 10000).toFixed(3)} TON</span>
+                      </p>
+                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider">
+                        Rate: <span className="text-zinc-300">{(plan.hrumProfit / 24).toFixed(2)} HRUM/h</span>
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <Button
                       onClick={() => buyPlanMutation.mutate(plan.id)}
-                      disabled={buyPlanMutation.isPending}
-                      className="bg-white hover:bg-zinc-200 text-black font-black text-xs h-9 px-4 rounded-xl uppercase tracking-widest"
+                      disabled={buyPlanMutation.isPending || isActive}
+                      className={`${isActive ? 'bg-zinc-800 text-zinc-500' : 'bg-white hover:bg-zinc-200 text-black'} font-black text-xs h-9 px-4 rounded-xl uppercase tracking-widest transition-all`}
                     >
                       {buyPlanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : `${plan.price} TON`}
                     </Button>
