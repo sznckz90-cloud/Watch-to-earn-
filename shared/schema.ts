@@ -103,6 +103,8 @@ export const users = pgTable("users", {
   // Mining fields
   lastMiningClaim: timestamp("last_mining_claim").defaultNow(),
   miningRate: decimal("mining_rate", { precision: 20, scale: 8 }).default("0.00001"), // Hrum per second
+  activePlanId: varchar("active_plan_id"),
+  planExpiresAt: timestamp("plan_expires_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
