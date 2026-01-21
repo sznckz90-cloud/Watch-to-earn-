@@ -483,7 +483,7 @@ export default function Home() {
     staleTime: 60000,
   });
 
-  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MoneyAdzbot';
+  const botUsername = import.meta.env.VITE_BOT_USERNAME || 'MoneyHrumbot';
   const referralLink = user?.referralCode 
     ? `https://t.me/${botUsername}?start=${user.referralCode}`
     : '';
@@ -1090,7 +1090,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-4 pb-4 overflow-y-auto">
+      <main className="max-w-md mx-auto px-4 pt-4 pb-24 overflow-y-auto">
         {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
@@ -1209,14 +1209,14 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
               <Button
                 onClick={handleConvertClick}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
               >
                 <RefreshCw className="w-4 h-4" />
                 {t('convert')}
               </Button>
               <Button
                 onClick={() => setPromoPopupOpen(true)}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-bold flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
               >
                 <Ticket className="w-4 h-4" />
                 {t('promo')}
@@ -1252,13 +1252,13 @@ export default function Home() {
                 </TabsContent>
 
                 <TabsContent value="referrals" className="mt-0 outline-none">
-                  <div className="flex flex-col items-center text-center pt-4">
-                    <h2 className="text-xl font-bold text-white mb-1">{t('invite_friends_earn')}</h2>
-                    <p className="text-[13px] text-[#8E8E93] mb-5 max-w-[280px] leading-snug">
-                      {t('referral_desc_prefix')} <span className="font-bold">{appSettings?.referralRewardHrum || 50} Hrum</span> {t('referral_desc_suffix')}
+                  <div className="flex flex-col items-center text-center pt-2">
+                    <h2 className="text-xl font-bold text-white mb-0.5">{t('invite_friends_earn')}</h2>
+                    <p className="text-[11px] text-[#8E8E93] mb-3 max-w-[280px] leading-snug uppercase tracking-wider font-black opacity-80 italic">
+                      Invite friends & get 20% of their earnings instantly.
                     </p>
 
-                    <div className="w-full bg-[#111111] rounded-[24px] p-5 mb-5 flex justify-around">
+                    <div className="w-full bg-[#111111] rounded-[24px] p-4 mb-3 flex justify-around border border-white/5">
                       <div>
                         <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('user_referred')}</p>
                         <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
@@ -1269,13 +1269,32 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <Button
+                    <div className="grid grid-cols-2 gap-3 w-full mb-5">
+                      <Button
+                        onClick={copyReferralLink}
+                        disabled={!referralLink}
+                        className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                      >
+                        <Copy className="w-3.5 h-3.5 mr-2" />
+                        Copy
+                      </Button>
+                      <Button
                         onClick={shareReferralLink}
                         disabled={!referralLink || isSharing}
-                        className="flex-1 h-12 bg-[#B9FF66] hover:bg-[#a8e65a] text-black rounded-2xl font-bold text-sm"
+                        className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
                       >
-                        {isSharing ? <Loader2 className="w-4 h-4 animate-spin" /> : `${t('invite_friends')} +`}
+                        {isSharing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5 mr-2" />}
+                        {isSharing ? 'Sharing...' : 'Invite'}
                       </Button>
+                    </div>
+
+                    {appSettings?.referralRewardEnabled && (
+                      <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                        <p className="text-[10px] text-green-400 font-black text-center uppercase tracking-tight italic">
+                          Bonus: {appSettings.referralRewardHrum || 50} Hrum + {appSettings.referralReward || 0.0005} TON on first ad!
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>

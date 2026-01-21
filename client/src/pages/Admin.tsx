@@ -1000,8 +1000,8 @@ function PromoCreatorSection() {
             </div>
             {formData.rewardType === 'TON' && (
               <div className="col-span-2 flex gap-1">
-                <Button type="button" variant={formData.rewardCurrency === 'App' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'App' })} className="h-8 text-[10px] flex-1">App Balance</Button>
-                <Button type="button" variant={formData.rewardCurrency === 'Withdraw' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'Withdraw' })} className="h-8 text-[10px] flex-1">Withdraw Balance</Button>
+                <Button type="button" variant={formData.rewardCurrency === 'App' || formData.rewardCurrency === 'ton_app' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'ton_app' })} className="h-8 text-[10px] flex-1">App Balance</Button>
+                <Button type="button" variant={formData.rewardCurrency === 'Withdraw' || formData.rewardCurrency === 'ton_withdraw' ? 'default' : 'outline'} onClick={() => setFormData({ ...formData, rewardCurrency: 'ton_withdraw' })} className="h-8 text-[10px] flex-1">Withdraw Balance</Button>
               </div>
             )}
           </div>
