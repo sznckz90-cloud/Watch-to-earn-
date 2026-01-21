@@ -440,6 +440,9 @@ export class DatabaseStorage implements IStorage {
   // Mining operations
   async claimMining(userId: string): Promise<{ success: boolean; amount: string; message: string }> {
     try {
+      const user = await this.getUser(userId);
+      if (!user) throw new Error("User not found");
+
       const miningState = await this.getMiningState(userId);
       const amount = miningState.currentMining;
 
@@ -448,14 +451,24 @@ export class DatabaseStorage implements IStorage {
       }
 
       await db.transaction(async (tx) => {
+        const now = new Date();
+        const updateData: any = {
+          balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
+          withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${amount}`,
+          totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${amount}`,
+          lastMiningClaim: now,
+          updatedAt: now
+        };
+
+        // Check for plan expiration
+        if (user.activePlanId && user.planExpiresAt && now >= new Date(user.planExpiresAt)) {
+          updateData.activePlanId = null;
+          updateData.planExpiresAt = null;
+          updateData.miningRate = "0.00001"; // Reset to default base rate
+        }
+
         await tx.update(users)
-          .set({
-            balance: sql`COALESCE(${users.balance}, 0) + ${amount}`,
-            withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${amount}`,
-            totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${amount}`,
-            lastMiningClaim: new Date(),
-            updatedAt: new Date()
-          })
+          .set(updateData)
           .where(eq(users.id, userId));
 
         await tx.insert(earnings).values({
@@ -477,23 +490,43 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error("User not found");
 
-    const lastClaim = user.lastMiningClaim || new Date();
-    const miningRate = parseFloat(user.miningRate || "0.0000004166666666666667"); // 0.0015 / 3600 per second (0.0015 HRUM per hour)
     const now = new Date();
-    const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
+    const lastClaim = user.lastMiningClaim || new Date();
+    const miningRate = parseFloat(user.miningRate || "0.00001");
     
-    // Max 24 hours of mining accumulation
-    const maxSeconds = 24 * 60 * 60;
-    const accumulationSeconds = Math.min(secondsPassed, maxSeconds);
+    let secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
     
-    const currentMining = (accumulationSeconds * miningRate).toFixed(5);
-    const maxMining = (maxSeconds * miningRate).toFixed(2);
+    // If user has an active plan, check for expiration
+    if (user.activePlanId && user.planExpiresAt) {
+      const expiresAt = new Date(user.planExpiresAt);
+      if (now > expiresAt) {
+        // Plan expired, calculate only up to expiration time
+        const effectiveNow = expiresAt;
+        if (lastClaim < effectiveNow) {
+          secondsPassed = Math.floor((effectiveNow.getTime() - lastClaim.getTime()) / 1000);
+        } else {
+          secondsPassed = 0;
+        }
+        
+        // Reset user plan on expiration (this is a simplified check on get)
+        // In a real system we might have a cron job or reset on claim
+      }
+    } else {
+      // Base mining accumulation logic (24h cap)
+      const maxSeconds = 24 * 60 * 60;
+      secondsPassed = Math.min(secondsPassed, maxSeconds);
+    }
+    
+    const currentMining = (secondsPassed * miningRate).toFixed(5);
+    const maxMining = (24 * 60 * 60 * miningRate).toFixed(2);
 
     return {
       currentMining,
-      miningRate: (miningRate * 3600).toFixed(4), // Increased precision for low rates
+      miningRate: (miningRate * 3600).toFixed(4),
       lastClaim,
-      maxMining
+      maxMining,
+      activePlanId: user.activePlanId,
+      planExpiresAt: user.planExpiresAt
     };
   }
 
@@ -1565,109 +1598,130 @@ export class DatabaseStorage implements IStorage {
     approvedWithdrawals: number;
     rejectedWithdrawals: number;
   }> {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    try {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
 
-    // Total users
-    const [totalUsersResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users);
+      // Total users
+      const [totalUsersResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users);
 
-    // Active users today (users who earned something today)
-    const [activeUsersResult] = await db
-      .select({ count: sql<number>`count(DISTINCT ${earnings.userId})` })
-      .from(earnings)
-      .where(gte(earnings.createdAt, today));
+      // Active users today (users who earned something today)
+      const [activeUsersResult] = await db
+        .select({ count: sql<number>`count(DISTINCT ${earnings.userId})` })
+        .from(earnings)
+        .where(gte(earnings.createdAt, today));
 
-    // Total invites
-    const [totalInvitesResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(referrals);
+      // Total invites
+      const [totalInvitesResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(referrals);
 
-    // Total earnings (positive amounts only)
-    const [totalEarningsResult] = await db
-      .select({ total: sql<string>`COALESCE(SUM(${earnings.amount}), '0')` })
-      .from(earnings)
-      .where(sql`${earnings.amount} > 0`);
+      // Total earnings (Hrum)
+      const [totalEarningsResult] = await db
+        .select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), '0')` })
+        .from(users);
 
-    // Total referral earnings
-    const [totalReferralEarningsResult] = await db
-      .select({ total: sql<string>`COALESCE(SUM(${earnings.amount}), '0')` })
-      .from(earnings)
-      .where(sql`${earnings.source} IN ('referral_commission', 'referral')`);
+      // Total referral earnings
+      const [totalReferralEarningsResult] = await db
+        .select({ total: sql<string>`COALESCE(SUM(CAST(${referralCommissions.commissionAmount} AS NUMERIC)), '0')` })
+        .from(referralCommissions);
 
-    // Total payouts (approved withdrawals sum)
-    const [totalPayoutsResult] = await db
-      .select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}::numeric), '0')` })
-      .from(withdrawals)
-      .where(eq(withdrawals.status, 'approved'));
+      // Total payouts (approved withdrawals sum in TON)
+      const [totalPayoutsResult] = await db
+        .select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` })
+        .from(withdrawals)
+        .where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`);
 
-    // New users in last 24h
-    const [newUsersResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users)
-      .where(gte(users.createdAt, yesterday));
+      // New users in last 24h
+      const [newUsersResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(gte(users.createdAt, yesterday));
 
-    // Ads stats
-    const [adsRes] = await db.select({ 
-      total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)`,
-      today: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)`
-    }).from(users);
+      // Ads stats
+      const [adsRes] = await db.select({ 
+        total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)`,
+        today: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)`
+      }).from(users);
 
-    // Withdrawal counts
-    const [withdrawStatusRes] = await db.select({
-      pending: sql<number>`COUNT(*) FILTER (WHERE status = 'pending')`,
-      approved: sql<number>`COUNT(*) FILTER (WHERE status = 'approved')`,
-      rejected: sql<number>`COUNT(*) FILTER (WHERE status = 'rejected')`
-    }).from(withdrawals);
+      // Withdrawal counts
+      const [withdrawStatusRes] = await db.select({
+        pending: sql<number>`COUNT(*) FILTER (WHERE status = 'pending')`,
+        approved: sql<number>`COUNT(*) FILTER (WHERE status IN ('completed', 'success', 'paid', 'Approved', 'approved'))`,
+        rejected: sql<number>`COUNT(*) FILTER (WHERE status = 'rejected')`
+      }).from(withdrawals);
 
-    return {
-      totalUsers: totalUsersResult.count || 0,
-      activeUsersToday: activeUsersResult.count || 0,
-      totalInvites: totalInvitesResult.count || 0,
-      totalEarnings: totalEarningsResult.total || '0',
-      totalReferralEarnings: totalReferralEarningsResult.total || '0',
-      totalPayouts: totalPayoutsResult.total || '0',
-      newUsersLast24h: newUsersResult.count || 0,
-      totalAdsWatched: adsRes.total || 0,
-      adsWatchedToday: adsRes.today || 0,
-      pendingWithdrawals: withdrawStatusRes.pending || 0,
-      approvedWithdrawals: withdrawStatusRes.approved || 0,
-      rejectedWithdrawals: withdrawStatusRes.rejected || 0
-    };
+      return {
+        totalUsers: Number(totalUsersResult.count || 0),
+        activeUsersToday: Number(activeUsersResult.count || 0),
+        totalInvites: Number(totalInvitesResult.count || 0),
+        totalEarnings: totalEarningsResult.total || '0',
+        totalReferralEarnings: totalReferralEarningsResult.total || '0',
+        totalPayouts: totalPayoutsResult.total || '0',
+        newUsersLast24h: Number(newUsersResult.count || 0),
+        totalAdsWatched: Number(adsRes.total || 0),
+        adsWatchedToday: Number(adsRes.today || 0),
+        pendingWithdrawals: Number(withdrawStatusRes.pending || 0),
+        approvedWithdrawals: Number(withdrawStatusRes.approved || 0),
+        rejectedWithdrawals: Number(withdrawStatusRes.rejected || 0)
+      };
+    } catch (error) {
+      console.error('❌ Error in getAppStats:', error);
+      return {
+        totalUsers: 0,
+        activeUsersToday: 0,
+        totalInvites: 0,
+        totalEarnings: '0',
+        totalReferralEarnings: '0',
+        totalPayouts: '0',
+        newUsersLast24h: 0,
+        totalAdsWatched: 0,
+        adsWatchedToday: 0,
+        pendingWithdrawals: 0,
+        approvedWithdrawals: 0,
+        rejectedWithdrawals: 0
+      };
+    }
   }
 
   async getAllUsersWithStats(): Promise<any[]> {
     try {
-      const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
-      console.log(`📊 Found ${allUsers.length} users in database`);
-      return allUsers.map(user => {
-        // Extract plain values from potential Drizzle proxies or objects
-        const safeString = (val: any) => (val !== null && val !== undefined) ? val.toString() : '0';
-        
-        return {
-          id: user.id,
-          telegramId: user.telegram_id,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          balance: safeString(user.balance),
-          totalEarnings: safeString(user.totalEarnings),
-          tonBalance: safeString(user.tonBalance),
-          bugBalance: safeString(user.bugBalance),
-          adsWatched: user.adsWatched || 0,
-          adsWatchedToday: user.adsWatchedToday || 0,
-          referredBy: user.referredBy,
-          personalCode: user.personalCode,
-          referralCode: user.referralCode,
-          banned: user.banned,
-          bannedReason: user.bannedReason,
-          createdAt: user.createdAt,
-          totalWithdrawn: safeString(user.totalClaimedReferralBonus),
-          totalEarned: safeString(user.totalEarnings)
-        };
-      });
+      // Fetch users with real-time referral count from the referrals table
+      const allUsers = await db.select({
+        id: users.id,
+        telegramId: users.telegram_id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        balance: users.balance,
+        totalEarnings: users.totalEarnings,
+        tonBalance: users.tonBalance,
+        bugBalance: users.bugBalance,
+        adsWatched: users.adsWatched,
+        adsWatchedToday: users.adsWatchedToday,
+        referredBy: users.referredBy,
+        personalCode: users.personalCode,
+        referralCode: users.referralCode,
+        banned: users.banned,
+        bannedReason: users.bannedReason,
+        createdAt: users.createdAt,
+        totalWithdrawn: users.totalClaimedReferralBonus,
+        totalEarned: users.totalEarnings,
+        referralCount: sql<number>`(SELECT count(*) FROM ${referrals} WHERE ${referrals.referrerId} = ${users.id})`
+      }).from(users).orderBy(desc(users.createdAt));
+      
+      return allUsers.map(user => ({
+        ...user,
+        balance: user.balance?.toString() || '0',
+        totalEarnings: user.totalEarnings?.toString() || '0',
+        tonBalance: user.tonBalance?.toString() || '0',
+        bugBalance: user.bugBalance?.toString() || '0',
+        totalWithdrawn: user.totalWithdrawn?.toString() || '0',
+        totalEarned: user.totalEarned?.toString() || '0'
+      }));
     } catch (error) {
       console.error('❌ Error in getAllUsersWithStats:', error);
       return [];

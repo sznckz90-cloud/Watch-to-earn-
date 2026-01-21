@@ -6474,7 +6474,7 @@ ${walletAddress}
       if (pendingWithdrawals.length > 0) {
         return res.status(400).json({
           success: false,
-          message: 'Cannot create new request until current one is processed'
+          message: 'You already have a pending withdrawal'
         });
       }
 
@@ -6484,6 +6484,8 @@ ${walletAddress}
         const [user] = await tx
           .select({ 
             tonBalance: users.tonBalance,
+            firstName: users.firstName,
+            username: users.username,
             banned: users.banned,
             bannedReason: users.bannedReason,
             deviceId: users.deviceId
@@ -6562,10 +6564,26 @@ ${walletAddress}
           details: { walletAddress: walletAddress || '', comment: comment || '' }
         }).returning();
         
-        return { withdrawal, withdrawnAmount: currentTonBalance };
+        return { withdrawal, withdrawnAmount: currentTonBalance, user };
       });
 
       console.log(`✅ Withdrawal via /api/withdraw: ${result.withdrawnAmount} TON`);
+
+      // Send Admin Telegram Notification
+      try {
+        const { sendTelegramMessage } = await import('./telegram');
+        const adminMessage = `💰 <b>New Withdrawal Request</b>\n\n` +
+          `👤 <b>User:</b> ${result.user.firstName || 'N/A'} (@${result.user.username || 'N/A'})\n` +
+          `🆔 <b>UID:</b> ${userId}\n` +
+          `💸 <b>Amount:</b> ${result.withdrawnAmount.toFixed(8)} TON\n` +
+          `💳 <b>Method:</b> ton_coin\n` +
+          `🌐 <b>Address:</b> <code>${walletAddress || 'N/A'}</code>\n` +
+          `📝 <b>ID:</b> <code>${result.withdrawal.id}</code>`;
+        
+        await sendTelegramMessage(adminMessage);
+      } catch (notifyError) {
+        console.error('❌ Failed to send admin notification:', notifyError);
+      }
 
       // Send real-time update
       sendRealtimeUpdate(userId, {
@@ -7643,6 +7661,73 @@ ${walletAddress}
     } catch (error) {
       console.error('❌ Webhook processing error:', error);
       res.status(500).json({ error: 'Webhook processing failed' });
+    }
+  });
+
+  app.post("/api/shop/buy-plan", authenticateTelegram, async (req: any, res) => {
+    try {
+      const userId = req.user.user.id;
+      const { planId } = req.body;
+
+      const PLANS: Record<string, { price: number; hrumProfit: number }> = {
+        cookgo: { price: 0.2, hrumProfit: 200 },
+        wannacook: { price: 0.35, hrumProfit: 450 },
+        cookpad: { price: 0.5, hrumProfit: 750 },
+        pepper: { price: 0.7, hrumProfit: 1100 },
+        mrcook: { price: 1.0, hrumProfit: 1500 },
+        mealplanner: { price: 1.3, hrumProfit: 2000 },
+        recify: { price: 1.6, hrumProfit: 2600 },
+        chowman: { price: 2.0, hrumProfit: 3300 },
+        cookbook: { price: 2.5, hrumProfit: 4100 },
+        recime: { price: 3.0, hrumProfit: 5000 },
+      };
+
+      const plan = PLANS[planId];
+      if (!plan) return res.status(400).json({ success: false, message: "Invalid plan ID" });
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+      const now = new Date();
+      if (user.activePlanId && user.planExpiresAt && new Date(user.planExpiresAt) > now) {
+        return res.status(400).json({ success: false, message: "You already have an active plan" });
+      }
+
+      const tonBalance = parseFloat(user.tonBalance || "0");
+      if (tonBalance < plan.price) {
+        return res.status(400).json({ success: false, message: "Insufficient TON balance" });
+      }
+
+      const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const hrumPerHour = plan.hrumProfit / 24;
+      const miningRate = hrumPerHour / 3600;
+
+      await db.transaction(async (tx) => {
+        await tx.update(users)
+          .set({
+            tonBalance: (tonBalance - plan.price).toFixed(10),
+            activePlanId: planId,
+            planExpiresAt: expiresAt,
+            miningRate: miningRate.toFixed(10),
+            lastMiningClaim: now,
+            updatedAt: now
+          })
+          .where(eq(users.id, userId));
+
+        await tx.insert(transactions).values({
+          userId,
+          amount: plan.price.toString(),
+          type: "deduction",
+          source: "shop_purchase",
+          description: `Purchased ${planId} plan`,
+          metadata: { planId, expiresAt }
+        });
+      });
+
+      res.json({ success: true, message: "Plan activated successfully" });
+    } catch (error) {
+      console.error("Plan purchase error:", error);
+      res.status(500).json({ success: false, message: "Internal server error" });
     }
   });
 
