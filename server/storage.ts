@@ -13,6 +13,7 @@ import {
   taskClicks,
   adminSettings,
   banLogs,
+  deposits,
   type User,
   type UpsertUser,
   type InsertEarning,
@@ -33,6 +34,8 @@ import {
   type InsertTransaction,
   type DailyTask,
   type InsertDailyTask,
+  type Deposit,
+  type InsertDeposit,
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
@@ -1671,11 +1674,11 @@ export class DatabaseStorage implements IStorage {
         .select({ total: sql<string>`COALESCE(SUM(CAST(${referralCommissions.commissionAmount} AS NUMERIC)), '0')` })
         .from(referralCommissions);
 
-      // Total payouts (approved withdrawals sum in TON)
+      // Total payouts (ONLY approved withdrawals sum in TON)
       const [totalPayoutsResult] = await db
         .select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` })
         .from(withdrawals)
-        .where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`);
+        .where(sql`${withdrawals.status} IN ('approved', 'Approved', 'completed', 'success', 'paid')`);
 
       // New users in last 24h
       const [newUsersResult] = await db
@@ -1692,7 +1695,7 @@ export class DatabaseStorage implements IStorage {
       // Withdrawal counts
       const [withdrawStatusRes] = await db.select({
         pending: sql<number>`COUNT(*) FILTER (WHERE status = 'pending')`,
-        approved: sql<number>`COUNT(*) FILTER (WHERE status IN ('completed', 'success', 'paid', 'Approved', 'approved'))`,
+        approved: sql<number>`COUNT(*) FILTER (WHERE status IN ('approved', 'Approved', 'completed', 'success', 'paid'))`,
         rejected: sql<number>`COUNT(*) FILTER (WHERE status = 'rejected')`
       }).from(withdrawals);
 
@@ -1781,7 +1784,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserWithdrawals(userId: string): Promise<Withdrawal[]> {
-    return db.select().from(withdrawals).where(eq(withdrawals.userId, userId)).orderBy(desc(withdrawals.createdAt));
+    return db.select().from(withdrawals)
+      .where(eq(withdrawals.userId, userId))
+      .orderBy(desc(withdrawals.createdAt));
   }
 
   async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
@@ -1828,7 +1833,7 @@ export class DatabaseStorage implements IStorage {
         type: 'deduction',
         source: 'withdrawal',
         description: `Withdrawal ${status}`,
-        metadata: { withdrawalId: result.id }
+        metadata: { withdrawalId: result.id, status }
       });
     }
     
@@ -2161,16 +2166,13 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  // Ensure admin user with unlimited balance exists for production deployment
   async ensureAdminUserExists(): Promise<void> {
     try {
       const adminTelegramId = '6653616672';
-      const maxBalance = '99.999'; // Admin balance as requested
+      const maxBalance = '99.999';
       
-      // Check if admin user already exists
       const existingAdmin = await this.getUserByTelegramId(adminTelegramId);
       if (existingAdmin) {
-        // Update balance if it's less than max
         if (parseFloat(existingAdmin.balance || '0') < parseFloat(maxBalance)) {
           await db.update(users)
             .set({ 
@@ -2179,7 +2181,6 @@ export class DatabaseStorage implements IStorage {
             })
             .where(eq(users.telegram_id, adminTelegramId));
           
-          // Also update user_balances table
           await db.insert(userBalances).values({
             userId: existingAdmin.id,
             balance: maxBalance,
@@ -2200,18 +2201,18 @@ export class DatabaseStorage implements IStorage {
         return;
       }
 
-      // Create admin user with unlimited balance
-      const adminUser = await db.insert(users).values({
+      const adminData: any = {
         telegram_id: adminTelegramId,
         username: 'admin',
         balance: maxBalance,
         referralCode: 'ADMIN001',
         createdAt: new Date(),
         updatedAt: new Date()
-      } as any).returning();
+      };
+
+      const adminUser = await db.insert(users).values(adminData).returning();
 
       if (adminUser[0]) {
-        // Also create user balance record
         await db.insert(userBalances).values({
           userId: adminUser[0].id,
           balance: maxBalance,
@@ -2223,7 +2224,6 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error('❌ Error ensuring admin user exists:', error);
-      // Don't throw - server should still start even if admin creation fails
     }
   }
 
