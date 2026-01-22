@@ -19,14 +19,18 @@ import {
   Shield,
   Languages,
   X,
-  History
+  History,
+  Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { showNotification } from "@/components/AppNotification";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
+import { DiamondIcon } from "@/components/DiamondIcon";
 import TransactionsOverlay from "@/components/TransactionsOverlay";
+import TopUpPopup from "@/components/TopUpPopup";
+import WithdrawalPopup from "@/components/WithdrawalPopup";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -35,6 +39,8 @@ export default function Profile() {
   const [selectedLegal, setSelectedLegal] = React.useState<string | null>(null);
   const [isLanguageOpen, setIsLanguageOpen] = React.useState(false);
   const [isTransactionsOpen, setIsTransactionsOpen] = React.useState(false);
+  const [isTopUpOpen, setIsTopUpOpen] = React.useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = React.useState(false);
 
   const languages: { code: Language, name: string, flag: string }[] = [
     { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -206,11 +212,31 @@ export default function Profile() {
           </div>
           
           <div className="grid grid-cols-2 gap-3">
+            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5 col-span-2">
+              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">TON APP BALANCE</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 flex items-center justify-center">
+                    <img src="/images/ton.png" alt="TON" className="w-full h-full object-contain" />
+                  </div>
+                  <p className="text-lg font-black text-[#B9FF66]">{(user as any)?.tonAppBalance || "0.0000"}</p>
+                </div>
+                <Button 
+                  size="sm" 
+                  className="h-7 bg-[#B9FF66] text-black text-[10px] font-black uppercase italic rounded-lg px-4"
+                  onClick={() => setIsTopUpOpen(true)}
+                >
+                  Top Up
+                </Button>
+              </div>
+            </div>
             <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
-              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">{t('hrum_balance')}</p>
+              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">HRUM BALANCE</p>
               <div className="flex items-center gap-1.5">
-                <img src="/hrum-coin.png" alt="HRUM" className="w-4 h-4" onError={(e) => (e.currentTarget.src = "https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Golden%20Coin.png")} />
-                <p className="text-lg font-black text-[#B9FF66]">{Math.floor(parseFloat((user as any)?.balance || "0")).toLocaleString()}</p>
+                <div className="w-5 h-5 flex items-center justify-center">
+                  <DiamondIcon size={20} withGlow />
+                </div>
+                <p className="text-lg font-black text-white">{Math.floor(parseFloat((user as any)?.balance || "0")).toLocaleString()}</p>
               </div>
             </div>
             <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
@@ -234,6 +260,11 @@ export default function Profile() {
                 icon={<History className="w-4 h-4 text-amber-400" />} 
                 label="Transactions" 
                 onClick={() => setIsTransactionsOpen(true)}
+              />
+              <ProfileItem 
+                icon={<Wallet className="w-4 h-4 text-emerald-400" />} 
+                label="Withdraw" 
+                onClick={() => setIsWithdrawOpen(true)}
               />
             </div>
           </section>
@@ -359,6 +390,17 @@ export default function Profile() {
         <TransactionsOverlay 
           open={isTransactionsOpen} 
           onOpenChange={setIsTransactionsOpen} 
+        />
+
+        <TopUpPopup
+          open={isTopUpOpen}
+          onOpenChange={setIsTopUpOpen}
+        />
+
+        <WithdrawalPopup
+          open={isWithdrawOpen}
+          onOpenChange={setIsWithdrawOpen}
+          tonBalance={(user as any)?.tonAppBalance || "0"}
         />
       </div>
     </Layout>
