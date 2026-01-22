@@ -515,8 +515,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
-      const deposits = await storage.getUserDeposits(user.id);
-      res.json(deposits);
+      
+      let userDeposits = [];
+      try {
+        userDeposits = await storage.getUserDeposits(user.id);
+      } catch (error: any) {
+        console.error("Database error fetching deposits:", error);
+        if (error.code === '42P01') {
+          return res.json([]); // Return empty array if table doesn't exist yet
+        }
+        throw error;
+      }
+      res.json(userDeposits);
     } catch (error) {
       console.error("Error fetching deposits:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -534,9 +544,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let pending;
       try {
         pending = await storage.getPendingDeposit(user.id);
-      } catch (storageError) {
+      } catch (storageError: any) {
         console.error("Storage error checking pending deposit:", storageError);
-        // If function doesn't exist yet in the running process, we should handle it
+        // Handle missing table gracefully
+        if (storageError.code === '42P01') {
+          return res.status(503).json({ 
+            message: "Deposit system is currently being initialized. Please try again in a few minutes.",
+            retryAfter: 300
+          });
+        }
+        
         if (storageError instanceof TypeError && (storageError.message.includes('getPendingDeposit') || storageError.message.includes('is not a function'))) {
           return res.status(500).json({ message: "System is updating, please try again in a moment." });
         }
@@ -552,12 +569,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
-      const deposit = await storage.createDeposit({
-        userId: user.id,
-        amount: amount.toString(),
-        memo: user.telegram_id || user.id,
-        status: 'pending'
-      });
+      let deposit;
+      try {
+        deposit = await storage.createDeposit({
+          userId: user.id,
+          amount: amount.toString(),
+          memo: user.telegram_id || user.id,
+          status: 'pending'
+        });
+      } catch (error: any) {
+        console.error("Error creating deposit in DB:", error);
+        if (error.code === '42P01') {
+          return res.status(503).json({ 
+            message: "Deposit system is initializing. Please wait.",
+            retryAfter: 300
+          });
+        }
+        throw error;
+      }
 
       console.log(`✅ Deposit created: ${deposit.id} for user ${user.id}`);
 

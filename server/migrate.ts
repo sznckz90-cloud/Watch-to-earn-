@@ -453,6 +453,20 @@ export async function ensureDatabaseSchema(): Promise<void> {
       )
     `);
     console.log('✅ [MIGRATION] advertiser_tasks table created');
+
+    // Deposits table
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS deposits (
+        id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR NOT NULL REFERENCES users(id),
+        amount DECIMAL(30, 10) NOT NULL,
+        status VARCHAR DEFAULT 'pending' NOT NULL,
+        memo TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+      )
+    `);
+    console.log('✅ [MIGRATION] Deposits table ensured');
     
     // Task clicks tracking table - CRITICAL for preventing duplicate clicks
     console.log('🔄 [MIGRATION] Creating task_clicks table...');
