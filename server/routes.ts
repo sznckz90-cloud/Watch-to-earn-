@@ -449,18 +449,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/withdrawals", authenticateTelegram, async (req: any, res) => {
+  // Deposit endpoints
+  app.post("/api/deposits", authenticateTelegram, async (req: any, res) => {
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
-      const { amount, address } = req.body;
-      const result = await storage.createPayoutRequest(user.id, amount.toString(), 'ton_coin', address);
-      if (!result.success) return res.status(400).json({ message: result.message });
-      res.json(result);
+
+      const pending = await storage.getPendingDeposit(user.id);
+      if (pending) {
+        return res.status(400).json({ message: "You already have a pending deposit. Please wait for admin approval." });
+      }
+
+      const { amount } = req.body;
+      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const deposit = await storage.createDeposit({
+        userId: user.id,
+        amount: amount.toString(),
+        memo: user.telegram_id,
+        status: 'pending'
+      });
+
+      // Notify admin
+      const { sendDepositNotificationToAdmin } = await import('./telegram');
+      await sendDepositNotificationToAdmin(deposit, user);
+
+      res.json(deposit);
+    } catch (error) {
+      console.error("Deposit creation error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/deposits", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      const deposits = await storage.getUserDeposits(user.id);
+      res.json(deposits);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
   });
+
+  // Withdrawal endpoints
 
   // Production health check endpoint - checks database connectivity and user count
   app.post("/api/shop/buy-plan", authenticateTelegram, async (req: any, res) => {

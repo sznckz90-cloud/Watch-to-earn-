@@ -2032,6 +2032,66 @@ export class DatabaseStorage implements IStorage {
     return withdrawal;
   }
 
+  // Deposit operations implementation
+  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
+    const [newDeposit] = await db
+      .insert(deposits)
+      .values(deposit)
+      .returning();
+    return newDeposit;
+  }
+
+  async getUserDeposits(userId: string): Promise<Deposit[]> {
+    return await db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.userId, userId))
+      .orderBy(desc(deposits.createdAt));
+  }
+
+  async getDeposit(depositId: string): Promise<Deposit | undefined> {
+    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId));
+    return deposit;
+  }
+
+  async updateDepositStatus(depositId: string, status: string, adminNotes?: string): Promise<Deposit> {
+    const [updated] = await db
+      .update(deposits)
+      .set({ 
+        status, 
+        adminNotes,
+        updatedAt: new Date() 
+      })
+      .where(eq(deposits.id, depositId))
+      .returning();
+
+    // If completed, add balance to user
+    if (status === 'completed' && updated) {
+      const user = await this.getUser(updated.userId);
+      if (user) {
+        const currentBalance = parseFloat(user.tonAppBalance || "0");
+        const depositAmount = parseFloat(updated.amount);
+        const newBalance = (currentBalance + depositAmount).toString();
+        
+        await db.update(users)
+          .set({ tonAppBalance: newBalance })
+          .where(eq(users.id, user.id));
+
+        // Also add a transaction record
+        await db.insert(transactions).values({
+          userId: user.id,
+          amount: updated.amount,
+          type: "earning",
+          source: "deposit",
+          description: `Deposit approved: ${updated.amount} TON`,
+          metadata: { depositId }
+        });
+      }
+    }
+
+    return updated;
+  }
+
 
   // Ensure all required system tasks exist for production deployment
   async ensureSystemTasksExist(): Promise<void> {

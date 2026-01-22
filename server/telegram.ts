@@ -191,26 +191,59 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
   const message = callbackQuery.message;
   const adminId = callbackQuery.from.id.toString();
 
+  const TELEGRAM_ADMIN_ID = process.env.TELEGRAM_ADMIN_ID;
+  const isAdmin = (id: string) => id === TELEGRAM_ADMIN_ID;
+
   if (!isAdmin(adminId)) return false;
 
   if (data.startsWith('deposit_')) {
-    const [_, action, depositId] = data.split('_');
+    const parts = data.split('_');
+    const action = parts[1]; // 'success' or 'failed'
+    const depositId = parts[2];
+    
     const deposit = await storage.getDeposit(depositId);
-    if (!deposit) return false;
+    if (!deposit) {
+      console.error(`Deposit ${depositId} not found`);
+      return false;
+    }
 
     if (action === 'success') {
       await storage.updateDepositStatus(depositId, 'completed');
-      await sendUserTelegramNotification(deposit.memo, "✅ Your TON deposit has been successfully credited.");
-      await bot.editMessageText(message.text + "\n\n✅ Status: SUCCESS", {
-        chat_id: message.chat.id,
-        message_id: message.message_id
+      
+      const user = await storage.getUser(deposit.userId);
+      if (user && user.telegram_id) {
+        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${deposit.amount} TON has been approved and added to your balance!`);
+      }
+
+      const updatedText = message.text + "\n\n✅ <b>Status: APPROVED</b>";
+      await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/editMessageText`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: message.chat.id,
+          message_id: message.message_id,
+          text: updatedText,
+          parse_mode: 'HTML'
+        })
       });
     } else if (action === 'failed') {
       await storage.updateDepositStatus(depositId, 'failed');
-      await sendUserTelegramNotification(deposit.memo, "❌ Deposit not confirmed. Please try again.");
-      await bot.editMessageText(message.text + "\n\n❌ Status: FAILED", {
-        chat_id: message.chat.id,
-        message_id: message.message_id
+      
+      const user = await storage.getUser(deposit.userId);
+      if (user && user.telegram_id) {
+        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${deposit.amount} TON was rejected by admin.`);
+      }
+
+      const updatedText = message.text + "\n\n❌ <b>Status: REJECTED</b>";
+      await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/editMessageText`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: message.chat.id,
+          message_id: message.message_id,
+          text: updatedText,
+          parse_mode: 'HTML'
+        })
       });
     }
     return true;
