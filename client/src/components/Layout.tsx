@@ -114,7 +114,6 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { href: "/", icon: CustomHomeIcon, label: t('home') },
-    { href: "/shop", icon: CustomShopIcon, label: t('shop') },
     { href: "/profile", icon: CustomMenuIcon, label: t('menu') },
   ];
 
