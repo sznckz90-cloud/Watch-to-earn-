@@ -93,7 +93,12 @@ export interface IStorage {
   // Withdrawal operations
   createWithdrawal(withdrawal: InsertWithdrawal): Promise<Withdrawal>;
   getUserWithdrawals(userId: string): Promise<Withdrawal[]>;
-  
+
+  // Deposit operations
+  createDeposit(deposit: InsertDeposit): Promise<Deposit>;
+  getUserDeposits(userId: string): Promise<Deposit[]>;
+  getPendingDeposit(userId: string): Promise<Deposit | undefined>;
+
   // Admin withdrawal operations
   getAllPendingWithdrawals(): Promise<Withdrawal[]>;
   getAllWithdrawals(): Promise<Withdrawal[]>;
@@ -1777,6 +1782,27 @@ export class DatabaseStorage implements IStorage {
 
   async getUserWithdrawals(userId: string): Promise<Withdrawal[]> {
     return db.select().from(withdrawals).where(eq(withdrawals.userId, userId)).orderBy(desc(withdrawals.createdAt));
+  }
+
+  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
+    const [newDeposit] = await db
+      .insert(deposits)
+      .values(deposit)
+      .returning();
+    return newDeposit;
+  }
+
+  async getUserDeposits(userId: string): Promise<Deposit[]> {
+    return db.select().from(deposits).where(eq(deposits.userId, userId)).orderBy(desc(deposits.createdAt));
+  }
+
+  async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
+    const [pending] = await db
+      .select()
+      .from(deposits)
+      .where(and(eq(deposits.userId, userId), eq(deposits.status, 'pending')))
+      .limit(1);
+    return pending;
   }
 
   async getAllPendingWithdrawals(): Promise<Withdrawal[]> {
