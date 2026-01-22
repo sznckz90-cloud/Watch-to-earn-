@@ -289,11 +289,12 @@ export class DatabaseStorage implements IStorage {
       `);
       const user = result.rows[0] as User;
       
-      // Update existing user with referral code if missing
+      // Ensure existing user has referral code
       if (!user.referralCode) {
         console.log('🔄 Generating missing referral code for existing user:', user.id);
         try {
           await this.generateReferralCode(user.id);
+          // Fetch updated user with referral code
           const updatedUser = await this.getUser(user.id);
           return { user: updatedUser || user, isNewUser };
         } catch (error) {
@@ -1777,6 +1778,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Withdrawal operations (missing implementations)
+  async createWithdrawal(withdrawal: InsertWithdrawal): Promise<Withdrawal> {
+    const [result] = await db.insert(withdrawals).values(withdrawal).returning();
+    return result;
+  }
+
+  async getUserWithdrawals(userId: string): Promise<Withdrawal[]> {
+    return db.select().from(withdrawals)
+      .where(eq(withdrawals.userId, userId))
+      .orderBy(desc(withdrawals.createdAt));
+  }
+
+  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
+    const [newDeposit] = await db
+      .insert(deposits)
+      .values(deposit)
+      .returning();
+    return newDeposit;
+  }
+
+  async getUserDeposits(userId: string): Promise<Deposit[]> {
+    return db.select().from(deposits).where(eq(deposits.userId, userId)).orderBy(desc(deposits.createdAt));
+  }
+
   async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
     const [pending] = await db
       .select()
@@ -1814,52 +1838,6 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result;
-  }
-
-  // Admin Payout Approval (Deposit completion)
-  async approveDeposit(depositId: string, adminNotes?: string): Promise<Deposit> {
-    return await db.transaction(async (tx) => {
-      const [deposit] = await tx
-        .select()
-        .from(deposits)
-        .where(eq(deposits.id, depositId))
-        .for('update');
-
-      if (!deposit) throw new Error("Deposit not found");
-      if (deposit.status !== 'pending') throw new Error("Deposit is already processed");
-
-      // Update deposit status
-      const [updatedDeposit] = await tx
-        .update(deposits)
-        .set({
-          status: 'completed',
-          adminNotes,
-          updatedAt: new Date()
-        })
-        .where(eq(deposits.id, depositId))
-        .returning();
-
-      // Add TON balance to user
-      await tx
-        .update(users)
-        .set({
-          tonBalance: sql`COALESCE(${users.tonBalance}, 0) + ${deposit.amount}`,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, deposit.userId));
-
-      // Log transaction
-      await tx.insert(transactions).values({
-        userId: deposit.userId,
-        amount: deposit.amount,
-        type: 'addition',
-        source: 'deposit',
-        description: 'TON Deposit approved by admin',
-        metadata: { depositId }
-      });
-
-      return updatedDeposit;
-    });
   }
 
   async approveWithdrawal(withdrawalId: string, adminNotes?: string, transactionHash?: string): Promise<{ success: boolean; message: string; withdrawal?: Withdrawal }> {
@@ -2052,50 +2030,6 @@ export class DatabaseStorage implements IStorage {
   async getWithdrawal(withdrawalId: string): Promise<Withdrawal | undefined> {
     const [withdrawal] = await db.select().from(withdrawals).where(eq(withdrawals.id, withdrawalId));
     return withdrawal;
-  }
-
-  // Deposit operations implementation
-  async getDeposit(depositId: string): Promise<Deposit | undefined> {
-    const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId));
-    return deposit;
-  }
-
-  async updateDepositStatus(depositId: string, status: string, adminNotes?: string): Promise<Deposit> {
-    const [updated] = await db
-      .update(deposits)
-      .set({ 
-        status, 
-        adminNotes,
-        updatedAt: new Date() 
-      })
-      .where(eq(deposits.id, depositId))
-      .returning();
-
-    // If completed, add balance to user
-    if (status === 'completed' && updated) {
-      const user = await this.getUser(updated.userId);
-      if (user) {
-        const currentBalance = parseFloat(user.tonAppBalance || "0");
-        const depositAmount = parseFloat(updated.amount);
-        const newBalance = (currentBalance + depositAmount).toString();
-        
-        await db.update(users)
-          .set({ tonAppBalance: newBalance })
-          .where(eq(users.id, user.id));
-
-        // Also add a transaction record
-        await db.insert(transactions).values({
-          userId: user.id,
-          amount: updated.amount,
-          type: "earning",
-          source: "deposit",
-          description: `Deposit approved: ${updated.amount} TON`,
-          metadata: { depositId }
-        });
-      }
-    }
-
-    return updated;
   }
 
 
@@ -3804,6 +3738,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get app setting from admin_settings table
   async getAppSetting(key: string, defaultValue: string | number): Promise<string> {
     try {
       const [setting] = await db

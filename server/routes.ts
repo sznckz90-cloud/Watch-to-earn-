@@ -334,32 +334,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  app.post("/api/admin/deposits/:id/approve", authenticateAdmin, async (req, res) => {
+  app.get("/api/admin/stats", authenticateAdmin, async (req: any, res) => {
     try {
-      const { id } = req.params;
-      const { adminNotes } = req.body;
-      const deposit = await (storage as any).approveDeposit(id, adminNotes);
-      res.json(deposit);
-    } catch (error: any) {
-      console.error("Deposit approval error:", error);
-      res.status(400).json({ message: error.message || "Internal server error" });
-    }
-  });
-
-  app.post("/api/admin/deposits/:id/reject", authenticateAdmin, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { adminNotes } = req.body;
-      const [deposit] = await db
-        .update(deposits)
-        .set({
-          status: 'failed',
-          adminNotes,
-          updatedAt: new Date()
-        })
-        .where(eq(deposits.id, id))
-        .returning();
-      res.json(deposit);
+      const stats = await storage.getAppStats();
+      res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -1152,11 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ensure referralCode exists
       if (!user.referralCode) {
-        try {
-          await storage.generateReferralCode(userId);
-        } catch (error) {
-          console.error('Failed to generate referral code in auth route:', error);
-        }
+        await storage.generateReferralCode(userId);
         const updatedUser = await storage.getUser(userId);
         user.referralCode = updatedUser?.referralCode || '';
       }
