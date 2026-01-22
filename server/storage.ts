@@ -289,12 +289,11 @@ export class DatabaseStorage implements IStorage {
       `);
       const user = result.rows[0] as User;
       
-      // Ensure existing user has referral code
+      // Update existing user with referral code if missing
       if (!user.referralCode) {
         console.log('🔄 Generating missing referral code for existing user:', user.id);
         try {
           await this.generateReferralCode(user.id);
-          // Fetch updated user with referral code
           const updatedUser = await this.getUser(user.id);
           return { user: updatedUser || user, isNewUser };
         } catch (error) {
@@ -1778,29 +1777,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Withdrawal operations (missing implementations)
-  async createWithdrawal(withdrawal: InsertWithdrawal): Promise<Withdrawal> {
-    const [result] = await db.insert(withdrawals).values(withdrawal).returning();
-    return result;
-  }
-
-  async getUserWithdrawals(userId: string): Promise<Withdrawal[]> {
-    return db.select().from(withdrawals)
-      .where(eq(withdrawals.userId, userId))
-      .orderBy(desc(withdrawals.createdAt));
-  }
-
-  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
-    const [newDeposit] = await db
-      .insert(deposits)
-      .values(deposit)
-      .returning();
-    return newDeposit;
-  }
-
-  async getUserDeposits(userId: string): Promise<Deposit[]> {
-    return db.select().from(deposits).where(eq(deposits.userId, userId)).orderBy(desc(deposits.createdAt));
-  }
-
   async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
     const [pending] = await db
       .select()
@@ -2079,22 +2055,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Deposit operations implementation
-  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
-    const [newDeposit] = await db
-      .insert(deposits)
-      .values(deposit)
-      .returning();
-    return newDeposit;
-  }
-
-  async getUserDeposits(userId: string): Promise<Deposit[]> {
-    return await db
-      .select()
-      .from(deposits)
-      .where(eq(deposits.userId, userId))
-      .orderBy(desc(deposits.createdAt));
-  }
-
   async getDeposit(depositId: string): Promise<Deposit | undefined> {
     const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId));
     return deposit;
@@ -3844,7 +3804,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Get app setting from admin_settings table
   async getAppSetting(key: string, defaultValue: string | number): Promise<string> {
     try {
       const [setting] = await db
