@@ -128,7 +128,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
               </button>
             </div>
             <p className="text-[10px] text-zinc-500 font-bold ml-1">
-              Available: <span className="text-zinc-300">{tonBalance.toFixed(4)} TON</span>
+              Available: <span className="text-zinc-300">{Number(tonBalance).toFixed(4)} TON</span>
             </p>
           </div>
 
