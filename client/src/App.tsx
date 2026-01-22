@@ -22,7 +22,6 @@ const Home = lazy(() => import("@/pages/Home"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const Profile = lazy(() => import("@/pages/Profile"));
-const Shop = lazy(() => import("@/pages/Shop"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -38,7 +37,6 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/task/create" component={CreateTask} />
         <Route path="/create-task" component={CreateTask} />
-        <Route path="/shop" component={Shop} />
         <Route path="/profile" component={Profile} />
         <Route path="/admin" component={Admin} />
         <Route path="/admin/country-controls" component={CountryControls} />
