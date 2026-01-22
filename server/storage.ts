@@ -157,6 +157,7 @@ export interface IStorage {
   getPendingDeposit(userId: string): Promise<Deposit | undefined>;
   createDeposit(deposit: InsertDeposit): Promise<Deposit>;
   getUserDeposits(userId: string): Promise<Deposit[]>;
+  getDeposit(depositId: string): Promise<Deposit | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3728,25 +3729,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Get app setting from admin_settings table
-  async getAppSetting(key: string, defaultValue: string | number): Promise<string> {
-    try {
-      const [setting] = await db
-        .select({ settingValue: adminSettings.settingValue })
-        .from(adminSettings)
-        .where(eq(adminSettings.settingKey, key))
-        .limit(1);
-      
-      if (setting && setting.settingValue) {
-        return setting.settingValue;
-      }
-      return String(defaultValue);
-    } catch (error) {
-      console.error(`Error getting app setting ${key}:`, error);
-      return String(defaultValue);
-    }
-  }
-
   // Add  balance to user
   async addTONBalance(userId: string, amount: string, source: string, description: string): Promise<void> {
     try {
@@ -4084,6 +4066,16 @@ export class DatabaseStorage implements IStorage {
       }
     });
   }
-}
+  async getDeposit(depositId: string): Promise<Deposit | undefined> {
+    try {
+      const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId)).limit(1);
+      return deposit;
+    } catch (error: any) {
+      console.error("Error fetching deposit:", error);
+      if (error.code === '42P01') return undefined;
+      throw error;
+    }
+  }
 
-export const storage = new DatabaseStorage();
+  // Add TON balance to user
+  async addTONBalance(userId: string, amount: string, source: string, description: string): Promise<void> {

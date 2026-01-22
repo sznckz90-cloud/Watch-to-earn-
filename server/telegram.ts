@@ -201,16 +201,19 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
     const action = parts[1]; // 'success' or 'failed'
     const depositId = parts[2];
     
-    const deposit = await storage.getDeposit(depositId);
+    // Use direct import if possible or ensure storage is correctly loaded
+    const { storage: storageInstance } = await import('./storage');
+    const deposit = await storageInstance.getDeposit(depositId);
     if (!deposit) {
       console.error(`Deposit ${depositId} not found`);
       return false;
     }
 
     if (action === 'success') {
-      await storage.updateDepositStatus(depositId, 'completed');
+      const { storage: storageInstance } = await import('./storage');
+      await storageInstance.updateDepositStatus(depositId, 'completed');
       
-      const user = await storage.getUser(deposit.userId);
+      const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
         await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${deposit.amount} TON has been approved and added to your balance!`);
       }
@@ -227,9 +230,10 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
         })
       });
     } else if (action === 'failed') {
-      await storage.updateDepositStatus(depositId, 'failed');
+      const { storage: storageInstance } = await import('./storage');
+      await storageInstance.updateDepositStatus(depositId, 'failed');
       
-      const user = await storage.getUser(deposit.userId);
+      const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
         await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${deposit.amount} TON was rejected by admin.`);
       }
@@ -585,7 +589,8 @@ Earn real $TON. 🚀`;
 export async function sendWelcomeMessage(userId: string): Promise<boolean> {
   // Check if user is banned before sending welcome message
   try {
-    const user = await storage.getUserByTelegramId(userId);
+    const { storage: storageInstance } = await import('./storage');
+    const user = await storageInstance.getUserByTelegramId(userId);
     if (user?.banned) {
       console.log(`🚫 Skipping welcome message for banned user ${userId}`);
       return false;
@@ -633,7 +638,8 @@ export async function sendBroadcastMessage(message: string, adminTelegramId: str
 
   try {
     // Get all users from database
-    const allUsers = await storage.getAllUsers();
+    const { storage: storageInstance } = await import('./storage');
+    const allUsers = await storageInstance.getAllUsers();
     console.log(`📢 Broadcasting message to ${allUsers.length} users...`);
     
     let successCount = 0;
