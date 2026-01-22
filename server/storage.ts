@@ -13,6 +13,7 @@ import {
   taskClicks,
   adminSettings,
   banLogs,
+  deposits,
   type User,
   type UpsertUser,
   type InsertEarning,
@@ -33,6 +34,8 @@ import {
   type InsertTransaction,
   type DailyTask,
   type InsertDailyTask,
+  type Deposit,
+  type InsertDeposit,
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
@@ -149,6 +152,11 @@ export interface IStorage {
     amount: string;
     message: string;
   }>;
+  
+  // Deposit operations
+  getPendingDeposit(userId: string): Promise<Deposit | undefined>;
+  createDeposit(deposit: InsertDeposit): Promise<Deposit>;
+  getUserDeposits(userId: string): Promise<Deposit[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1634,6 +1642,7 @@ export class DatabaseStorage implements IStorage {
     pendingWithdrawals: number;
     approvedWithdrawals: number;
     rejectedWithdrawals: number;
+    pendingDeposits: number;
   }> {
     try {
       const now = new Date();
@@ -1691,19 +1700,25 @@ export class DatabaseStorage implements IStorage {
         rejected: sql<number>`COUNT(*) FILTER (WHERE status = 'rejected')`
       }).from(withdrawals);
 
+      // Pending deposits count
+      const [pendingDepositsRes] = await db.select({
+        count: sql<number>`count(*)`
+      }).from(deposits).where(eq(deposits.status, 'pending'));
+
       return {
         totalUsers: Number(totalUsersResult.count || 0),
         activeUsersToday: Number(activeUsersResult.count || 0),
         totalInvites: Number(totalInvitesResult.count || 0),
         totalEarnings: totalEarningsResult.total || '0',
         totalReferralEarnings: totalReferralEarningsResult.total || '0',
-        totalPayouts: totalPayoutsResult.total || '0',
+        totalPayouts: payoutSum.sum || '0',
         newUsersLast24h: Number(newUsersResult.count || 0),
         totalAdsWatched: Number(adsRes.total || 0),
         adsWatchedToday: Number(adsRes.today || 0),
         pendingWithdrawals: Number(withdrawStatusRes.pending || 0),
         approvedWithdrawals: Number(withdrawStatusRes.approved || 0),
-        rejectedWithdrawals: Number(withdrawStatusRes.rejected || 0)
+        rejectedWithdrawals: Number(withdrawStatusRes.rejected || 0),
+        pendingDeposits: pendingDepositsRes.count
       };
     } catch (error) {
       console.error('❌ Error in getAppStats:', error);
@@ -1719,7 +1734,8 @@ export class DatabaseStorage implements IStorage {
         adsWatchedToday: 0,
         pendingWithdrawals: 0,
         approvedWithdrawals: 0,
-        rejectedWithdrawals: 0
+        rejectedWithdrawals: 0,
+        pendingDeposits: 0
       };
     }
   }
@@ -3971,6 +3987,32 @@ export class DatabaseStorage implements IStorage {
         isAdminTask: true,
         rewardHrum: Math.round(parseFloat(task.costPerClick || '0.0001750') * 10000000),
       }));
+  }
+
+  // Deposit operations implementation
+  async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
+    const [deposit] = await db
+      .select()
+      .from(deposits)
+      .where(and(eq(deposits.userId, userId), eq(deposits.status, 'pending')))
+      .limit(1);
+    return deposit;
+  }
+
+  async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
+    const [newDeposit] = await db
+      .insert(deposits)
+      .values(deposit)
+      .returning();
+    return newDeposit;
+  }
+
+  async getUserDeposits(userId: string): Promise<Deposit[]> {
+    return db
+      .select()
+      .from(deposits)
+      .where(eq(deposits.userId, userId))
+      .orderBy(desc(deposits.createdAt));
   }
 }
 

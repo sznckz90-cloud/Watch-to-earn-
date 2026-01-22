@@ -518,6 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deposits = await storage.getUserDeposits(user.id);
       res.json(deposits);
     } catch (error) {
+      console.error("Error fetching deposits:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -533,20 +534,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { amount } = req.body;
-      if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
       }
 
       const deposit = await storage.createDeposit({
         userId: user.id,
         amount: amount.toString(),
-        memo: user.telegram_id,
+        memo: user.telegram_id || user.id,
         status: 'pending'
       });
 
       // Notify admin
-      const { sendDepositNotificationToAdmin } = await import('./telegram');
-      await sendDepositNotificationToAdmin(deposit, user);
+      try {
+        const { sendDepositNotificationToAdmin } = await import('./telegram');
+        await sendDepositNotificationToAdmin(deposit, user);
+      } catch (notifyError) {
+        console.error("Failed to notify admin of deposit:", notifyError);
+      }
 
       res.json(deposit);
     } catch (error) {

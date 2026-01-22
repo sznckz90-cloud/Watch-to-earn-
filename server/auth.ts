@@ -156,24 +156,37 @@ export const authenticateTelegram: RequestHandler = async (req: any, res, next) 
       
       const testUserId = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
       
-      const { user: upsertedUser } = await storage.upsertUser({
-        id: testUserId,
-        email: `${testUser.username}@telegram.user`,
-        firstName: testUser.first_name,
-        lastName: testUser.last_name,
-        username: testUser.username,
-        telegram_id: testUser.id.toString(),
-        personalCode: testUser.username || testUser.id.toString(),
-        withdrawBalance: '0',
-        totalEarnings: '0',
-        adsWatched: 0,
-        dailyAdsWatched: 0,
-        dailyEarnings: '0',
-        level: 1,
-        flagged: false,
-        banned: false,
-        referralCode: 'ff0269235650', // Use migrated test user code
-      });
+      // In development, try to get existing user first
+      let upsertedUser;
+      try {
+        const existingUser = await storage.getUser(testUserId);
+        if (existingUser) {
+          upsertedUser = existingUser;
+        } else {
+          const { user } = await storage.upsertUser({
+            id: testUserId,
+            email: `${testUser.username}@telegram.user`,
+            firstName: testUser.first_name,
+            lastName: testUser.last_name,
+            username: testUser.username,
+            telegram_id: testUser.id.toString(),
+            personalCode: testUser.username || testUser.id.toString(),
+            withdrawBalance: '0',
+            totalEarnings: '0',
+            adsWatched: 0,
+            dailyAdsWatched: 0,
+            dailyEarnings: '0',
+            level: 1,
+            flagged: false,
+            banned: false,
+            referralCode: 'ff0269235650', // Use migrated test user code
+          });
+          upsertedUser = user;
+        }
+      } catch (upsertError) {
+        console.error('❌ Failed to upsert test user:', upsertError);
+        return res.status(500).json({ message: "Development authentication failed" });
+      }
       
       // Ensure test user has referral code
       if (!upsertedUser.referralCode) {
