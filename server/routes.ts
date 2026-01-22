@@ -523,12 +523,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/deposits", authenticateTelegram, async (req: any, res) => {
+  app.post("/api/deposits", authenticateTelegram, async (req: any, res: any) => {
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
 
-      const pending = await storage.getPendingDeposit(user.id);
+      console.log(`💰 Deposit attempt for user ${user.id}`);
+
+      // Check for pending deposit
+      let pending;
+      try {
+        pending = await storage.getPendingDeposit(user.id);
+      } catch (storageError) {
+        console.error("Storage error checking pending deposit:", storageError);
+        // If function doesn't exist yet in the running process, we should handle it
+        if (storageError instanceof TypeError && (storageError.message.includes('getPendingDeposit') || storageError.message.includes('is not a function'))) {
+          return res.status(500).json({ message: "System is updating, please try again in a moment." });
+        }
+        throw storageError;
+      }
+
       if (pending) {
         return res.status(400).json({ message: "You already have a pending deposit. Please wait for admin approval." });
       }
@@ -545,6 +559,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'pending'
       });
 
+      console.log(`✅ Deposit created: ${deposit.id} for user ${user.id}`);
+
       // Notify admin
       try {
         const { sendDepositNotificationToAdmin } = await import('./telegram');
@@ -556,7 +572,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(deposit);
     } catch (error) {
       console.error("Deposit creation error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      res.status(500).json({ 
+        message: "Failed to create deposit",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Admin Deposit Approval
+  app.post("/api/admin/deposits/:depositId/approve", authenticateAdmin, async (req: any, res) => {
+    try {
+      const { depositId } = req.params;
+      
+      console.log(`👨‍💼 Admin ${req.user.telegramUser.id} approving deposit ${depositId}`);
+      
+      // Atomic status update and balance credit with transaction locking and idempotency
+      await storage.updateDepositStatus(depositId, 'completed');
+      
+      // Fetch deposit details for real-time update
+      const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId)).limit(1);
+      if (deposit) {
+        sendRealtimeUpdate(deposit.userId, {
+          type: 'balance_update',
+          message: `✅ Your deposit of ${deposit.amount} TON has been approved and added to your App Balance!`
+        });
+      }
+
+      res.json({ success: true, message: "Deposit approved successfully" });
+    } catch (error) {
+      console.error("❌ Error approving deposit:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to approve deposit" 
+      });
+    }
+  });
+
+  // Admin Deposit Rejection
+  app.post("/api/admin/deposits/:depositId/reject", authenticateAdmin, async (req: any, res) => {
+    try {
+      const { depositId } = req.params;
+      const { reason } = req.body;
+      
+      console.log(`👨‍💼 Admin ${req.user.telegramUser.id} rejecting deposit ${depositId}. Reason: ${reason || 'No reason provided'}`);
+      
+      await storage.updateDepositStatus(depositId, 'failed', reason);
+      
+      const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId)).limit(1);
+      if (deposit) {
+        sendRealtimeUpdate(deposit.userId, {
+          type: 'deposit_rejected',
+          message: `❌ Your deposit of ${deposit.amount} TON was rejected.${reason ? ` Reason: ${reason}` : ''}`
+        });
+      }
+
+      res.json({ success: true, message: "Deposit rejected" });
+    } catch (error) {
+      console.error("❌ Error rejecting deposit:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error instanceof Error ? error.message : "Failed to reject deposit" 
+      });
     }
   });
 

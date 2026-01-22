@@ -3991,18 +3991,27 @@ export class DatabaseStorage implements IStorage {
 
   // Deposit operations implementation
   async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
-    const [deposit] = await db
-      .select()
-      .from(deposits)
-      .where(and(eq(deposits.userId, userId), eq(deposits.status, 'pending')))
-      .limit(1);
-    return deposit;
+    try {
+      const [deposit] = await db
+        .select()
+        .from(deposits)
+        .where(and(eq(deposits.userId, userId), eq(deposits.status, 'pending')))
+        .limit(1);
+      return deposit;
+    } catch (error) {
+      console.error('Error fetching pending deposit:', error);
+      return undefined;
+    }
   }
 
   async createDeposit(deposit: InsertDeposit): Promise<Deposit> {
     const [newDeposit] = await db
       .insert(deposits)
-      .values(deposit)
+      .values({
+        ...deposit,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
       .returning();
     return newDeposit;
   }
@@ -4013,6 +4022,67 @@ export class DatabaseStorage implements IStorage {
       .from(deposits)
       .where(eq(deposits.userId, userId))
       .orderBy(desc(deposits.createdAt));
+  }
+
+  async updateDepositStatus(depositId: string, status: string, adminNotes?: string): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Use FOR UPDATE to lock the row and prevent race conditions in production
+      // We use the ORM select with forUpdate() for automatic camelCase mapping and safety
+      const [deposit] = await tx
+        .select()
+        .from(deposits)
+        .where(eq(deposits.id, depositId))
+        .for('update');
+      
+      if (!deposit) throw new Error("Deposit not found");
+
+      // Prevent re-processing already completed or failed deposits (Idempotency)
+      if (deposit.status !== 'pending') {
+        console.log(`⚠️ Deposit ${depositId} already has status ${deposit.status}. Skipping update.`);
+        return;
+      }
+
+      await tx.update(deposits)
+        .set({ 
+          status, 
+          updatedAt: new Date() 
+        })
+        .where(eq(deposits.id, depositId));
+
+      if (status === 'completed') {
+        // Atomic balance update
+        const [user] = await tx
+          .select({ id: users.id, tonAppBalance: users.tonAppBalance })
+          .from(users)
+          .where(eq(users.id, deposit.userId))
+          .for('update');
+        
+        if (user) {
+          const depositAmount = parseFloat(deposit.amount);
+          
+          await tx.update(users)
+            .set({ 
+              tonAppBalance: sql`COALESCE(ton_app_balance, 0) + ${depositAmount.toString()}`,
+              updatedAt: new Date()
+            })
+            .where(eq(users.id, deposit.userId));
+
+          await tx.insert(transactions).values({
+            userId: deposit.userId,
+            amount: deposit.amount,
+            type: 'addition',
+            source: 'deposit',
+            description: `Deposit of ${deposit.amount} TON completed (Manual Approval)`,
+            metadata: { 
+              depositId: deposit.id,
+              approvedAt: new Date().toISOString()
+            }
+          });
+          
+          console.log(`✅ User ${deposit.userId} balance credited with ${deposit.amount} TON from deposit ${deposit.id}`);
+        }
+      }
+    });
   }
 }
 
