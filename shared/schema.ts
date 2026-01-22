@@ -93,8 +93,6 @@ export const users = pgTable("users", {
   withdraw_balance: decimal("withdraw_balance", { precision: 30, scale: 10 }).default("0"),
   total_earnings: decimal("total_earnings", { precision: 30, scale: 10 }).default("0"),
   total_earned: decimal("total_earned", { precision: 30, scale: 10 }).default("0"),
-  // HRUM & TON alignment
-  hrumBalance: decimal("hrum_balance", { precision: 30, scale: 10 }).default("0"),
   // Enhanced tracking for auto-ban system
   appVersion: text("app_version"),
   browserFingerprint: text("browser_fingerprint"), // Full fingerprint hash for WebApp detection
@@ -339,20 +337,48 @@ export const deposits = pgTable("deposits", {
   amount: decimal("amount", { precision: 30, scale: 10 }).notNull(),
   status: varchar("status").default('pending').notNull(), // 'pending', 'completed', 'failed'
   memo: text("memo").notNull(),
-  transactionHash: text("transaction_hash"),
-  adminNotes: text("admin_notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertDepositSchema = createInsertSchema(deposits).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+// Insert schemas
+export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertEarningSchema = createInsertSchema(earnings).omit({ createdAt: true });
+export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, createdAt: true });
+export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserBalanceSchema = createInsertSchema(userBalances).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDailyTaskSchema = createInsertSchema(dailyTasks).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertReferralSchema = createInsertSchema(referrals).omit({ id: true, createdAt: true });
+export const insertReferralCommissionSchema = createInsertSchema(referralCommissions).omit({ id: true, createdAt: true });
+export const insertPromoCodeSchema = createInsertSchema(promoCodes).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertPromoCodeUsageSchema = createInsertSchema(promoCodeUsage).omit({ id: true, usedAt: true });
+export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAdvertiserTaskSchema = createInsertSchema(advertiserTasks).omit({ id: true, createdAt: true, updatedAt: true, completedAt: true });
+export const insertTaskClickSchema = createInsertSchema(taskClicks).omit({ id: true, clickedAt: true });
+export const insertBanLogSchema = createInsertSchema(banLogs).omit({ id: true, createdAt: true });
+export const insertSpinDataSchema = createInsertSchema(spinData).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertSpinHistorySchema = createInsertSchema(spinHistory).omit({ id: true, createdAt: true });
+export const insertDailyMissionSchema = createInsertSchema(dailyMissions).omit({ id: true, createdAt: true });
+export const insertBlockedCountrySchema = createInsertSchema(blockedCountries).omit({ id: true, createdAt: true });
+export const insertDepositSchema = createInsertSchema(deposits).omit({ id: true, createdAt: true, updatedAt: true });
 
-export type Deposit = typeof deposits.$inferSelect;
-export type InsertDeposit = z.infer<typeof insertDepositSchema>;
+// Types
+export type UpsertUser = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type InsertEarning = z.infer<typeof insertEarningSchema>;
+export type Earning = typeof earnings.$inferSelect;
+export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
+export type Withdrawal = typeof withdrawals.$inferSelect;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type ReferralCommission = typeof referralCommissions.$inferSelect;
+export type InsertReferralCommission = z.infer<typeof insertReferralCommissionSchema>;
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type InsertPromoCode = z.infer<typeof insertPromoCodeSchema>;
+export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect;
+export type InsertPromoCodeUsage = z.infer<typeof insertPromoCodeUsageSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type UserBalance = typeof userBalances.$inferSelect;
 export type InsertUserBalance = z.infer<typeof insertUserBalanceSchema>;
 export type DailyTask = typeof dailyTasks.$inferSelect;
