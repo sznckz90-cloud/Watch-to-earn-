@@ -1840,6 +1840,52 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  // Admin Payout Approval (Deposit completion)
+  async approveDeposit(depositId: string, adminNotes?: string): Promise<Deposit> {
+    return await db.transaction(async (tx) => {
+      const [deposit] = await tx
+        .select()
+        .from(deposits)
+        .where(eq(deposits.id, depositId))
+        .for('update');
+
+      if (!deposit) throw new Error("Deposit not found");
+      if (deposit.status !== 'pending') throw new Error("Deposit is already processed");
+
+      // Update deposit status
+      const [updatedDeposit] = await tx
+        .update(deposits)
+        .set({
+          status: 'completed',
+          adminNotes,
+          updatedAt: new Date()
+        })
+        .where(eq(deposits.id, depositId))
+        .returning();
+
+      // Add TON balance to user
+      await tx
+        .update(users)
+        .set({
+          tonBalance: sql`COALESCE(${users.tonBalance}, 0) + ${deposit.amount}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, deposit.userId));
+
+      // Log transaction
+      await tx.insert(transactions).values({
+        userId: deposit.userId,
+        amount: deposit.amount,
+        type: 'addition',
+        source: 'deposit',
+        description: 'TON Deposit approved by admin',
+        metadata: { depositId }
+      });
+
+      return updatedDeposit;
+    });
+  }
+
   async approveWithdrawal(withdrawalId: string, adminNotes?: string, transactionHash?: string): Promise<{ success: boolean; message: string; withdrawal?: Withdrawal }> {
     try {
       // Get withdrawal details

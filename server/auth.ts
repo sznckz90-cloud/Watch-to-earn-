@@ -177,7 +177,11 @@ export const authenticateTelegram: RequestHandler = async (req: any, res, next) 
       
       // Ensure test user has referral code
       if (!upsertedUser.referralCode) {
-        await storage.generateReferralCode(upsertedUser.id);
+        try {
+          await storage.generateReferralCode(upsertedUser.id);
+        } catch (error) {
+          console.error('Failed to generate referral code in auth:', error);
+        }
       }
       
       req.user = { 
