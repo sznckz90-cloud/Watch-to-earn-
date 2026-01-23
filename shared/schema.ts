@@ -341,8 +341,20 @@ export const deposits = pgTable("deposits", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Mining boosts table
+export const miningBoosts = pgTable("mining_boosts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  planId: varchar("plan_id").notNull(),
+  miningRate: decimal("mining_rate", { precision: 20, scale: 8 }).notNull(),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertMiningBoostSchema = createInsertSchema(miningBoosts).omit({ id: true, createdAt: true });
 export const insertEarningSchema = createInsertSchema(earnings).omit({ createdAt: true });
 export const insertTransactionSchema = createInsertSchema(transactions).omit({ id: true, createdAt: true });
 export const insertWithdrawalSchema = createInsertSchema(withdrawals).omit({ id: true, createdAt: true, updatedAt: true });
@@ -365,6 +377,8 @@ export const insertDepositSchema = createInsertSchema(deposits).omit({ id: true,
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type MiningBoost = typeof miningBoosts.$inferSelect;
+export type InsertMiningBoost = z.infer<typeof insertMiningBoostSchema>;
 export type InsertEarning = z.infer<typeof insertEarningSchema>;
 export type Earning = typeof earnings.$inferSelect;
 export type InsertWithdrawal = z.infer<typeof insertWithdrawalSchema>;
