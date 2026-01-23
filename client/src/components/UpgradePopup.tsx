@@ -85,6 +85,19 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
               </div>
 
               <div className="space-y-4">
+                {/* Active Boosts Section */}
+                {tonAppBalance && (
+                  <div className="space-y-2">
+                    <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Active Boosts</Label>
+                    <div className="max-h-[120px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                      {/* We'll pass activeBoosts via props or fetch inside, for now let's assume it's handled or we'll show a placeholder if we can't easily pass it. 
+                          Actually, better to update the parent Home.tsx to show the list, but we can add it here too if we update the component.
+                      */}
+                      <div className="text-[10px] text-[#8E8E93] font-bold uppercase">Multiple boosts can be active simultaneously</div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">App Balance Investment</Label>
