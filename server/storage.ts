@@ -4077,5 +4077,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Add TON balance to user
-  async addTONBalance(userId: string, amount: string, source: string, description: string): Promise<void> {
+}
+
+export const storage = new DatabaseStorage();
