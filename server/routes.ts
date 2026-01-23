@@ -463,32 +463,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Production health check endpoint - checks database connectivity and user count
-  app.post("/api/shop/buy-plan", authenticateTelegram, async (req: any, res) => {
+  app.post("/api/mining/upgrade", authenticateTelegram, async (req: any, res) => {
     try {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
 
-      const { planId } = req.body;
-      const plan = MINING_PLANS.find(p => p.id === planId);
-      if (!plan) return res.status(400).json({ message: "Invalid plan" });
+      const { tonAmount } = req.body;
+      const amount = parseFloat(tonAmount);
+      if (isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
 
       // Check TON (App Balance)
       const tonAppBalance = parseFloat(user.tonAppBalance || "0");
-      if (tonAppBalance < plan.price) {
+      if (tonAppBalance < amount) {
         return res.status(400).json({ message: "Insufficient TON (App Balance). Top up or use a promo code." });
       }
 
       await db.transaction(async (tx) => {
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+        const durationDays = 30;
+        const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
         
-        // Deduct from tonAppBalance
+        // 1 TON = 10,000 HRUM conversion logic for profit
+        // Daily profit = investment * 0.1 (10% daily base for example)
+        const dailyHrumProfit = amount * 1000; // 0.1 TON = 100 HRUM/day as per example
+        const newMiningRate = dailyHrumProfit / (24 * 3600);
+
         await tx.update(users)
           .set({ 
-            tonAppBalance: (tonAppBalance - plan.price).toString(),
-            activePlanId: planId,
+            tonAppBalance: (tonAppBalance - amount).toString(),
+            activePlanId: `custom_${amount}_${now.getTime()}`,
             planExpiresAt: expiresAt,
-            miningRate: (plan.hrumProfit / (24 * 3600)).toFixed(8),
+            miningRate: newMiningRate.toFixed(8),
             lastMiningClaim: now,
             updatedAt: now
           })
@@ -496,17 +503,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         await tx.insert(transactions).values({
           userId: user.id,
-          amount: plan.price.toString(),
+          amount: amount.toString(),
           type: "deduction",
-          source: "mining_plan_purchase",
-          description: `Purchased mining plan: ${plan.name}`,
-          metadata: { planId }
+          source: "mining_boost_purchase",
+          description: `Invested ${amount} TON for mining boost`,
+          metadata: { tonAmount: amount, durationDays }
         });
       });
 
-      res.json({ success: true, message: "Plan activated successfully" });
+      res.json({ success: true, message: "Mining boost activated successfully" });
     } catch (error) {
-      console.error("Error buying plan:", error);
+      console.error("Error upgrading mining:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -505,23 +505,17 @@ export class DatabaseStorage implements IStorage {
     
     let secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
     
-    // If user has an active plan, check for expiration
     if (user.activePlanId && user.planExpiresAt) {
       const expiresAt = new Date(user.planExpiresAt);
       if (now > expiresAt) {
-        // Plan expired, calculate only up to expiration time
         const effectiveNow = expiresAt;
         if (lastClaim < effectiveNow) {
           secondsPassed = Math.floor((effectiveNow.getTime() - lastClaim.getTime()) / 1000);
         } else {
           secondsPassed = 0;
         }
-        
-        // Reset user plan on expiration (this is a simplified check on get)
-        // In a real system we might have a cron job or reset on claim
       }
     } else {
-      // Base mining accumulation logic (24h cap)
       const maxSeconds = 24 * 60 * 60;
       secondsPassed = Math.min(secondsPassed, maxSeconds);
     }
@@ -535,7 +529,8 @@ export class DatabaseStorage implements IStorage {
       lastClaim,
       maxMining,
       activePlanId: user.activePlanId,
-      planExpiresAt: user.planExpiresAt
+      planExpiresAt: user.planExpiresAt,
+      rawMiningRate: miningRate
     };
   }
 
