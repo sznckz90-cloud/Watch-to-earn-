@@ -82,9 +82,6 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
                   </div>
                   <h2 className="text-xl font-black text-white uppercase tracking-tight">Boost Mining</h2>
                 </div>
-                <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
               </div>
 
               <div className="space-y-4">
@@ -156,6 +153,14 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
                   className="w-full h-12 bg-[#B9FF66] hover:bg-[#a8e655] text-black font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 disabled:opacity-50"
                 >
                   {upgradeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Boost Mining"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider mt-2"
+                >
+                  Close
                 </Button>
               </div>
             </div>
