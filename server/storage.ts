@@ -14,6 +14,7 @@ import {
   adminSettings,
   banLogs,
   deposits,
+  miningBoosts,
   type User,
   type UpsertUser,
   type InsertEarning,
@@ -36,6 +37,8 @@ import {
   type InsertDailyTask,
   type Deposit,
   type InsertDeposit,
+  type MiningBoost,
+  type InsertMiningBoost,
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
@@ -158,6 +161,10 @@ export interface IStorage {
   createDeposit(deposit: InsertDeposit): Promise<Deposit>;
   getUserDeposits(userId: string): Promise<Deposit[]>;
   getDeposit(depositId: string): Promise<Deposit | undefined>;
+
+  // New Mining operations
+  getMiningBoosts(userId: string): Promise<MiningBoost[]>;
+  addMiningBoost(boost: InsertMiningBoost): Promise<MiningBoost>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -469,13 +476,6 @@ export class DatabaseStorage implements IStorage {
           updatedAt: now
         };
 
-        // Check for plan expiration
-        if (user.activePlanId && user.planExpiresAt && now >= new Date(user.planExpiresAt)) {
-          updateData.activePlanId = null;
-          updateData.planExpiresAt = null;
-          updateData.miningRate = "0.00001"; // Reset to default base rate
-        }
-
         await tx.update(users)
           .set(updateData)
           .where(eq(users.id, userId));
@@ -500,37 +500,29 @@ export class DatabaseStorage implements IStorage {
     if (!user) throw new Error("User not found");
 
     const now = new Date();
-    const lastClaim = user.lastMiningClaim || new Date();
-    const miningRate = parseFloat(user.miningRate || "0.00001");
+    const lastClaim = user.lastMiningClaim || user.createdAt || new Date();
     
-    let secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
+    // Get all active boosts from DB
+    const boosts = await this.getMiningBoosts(userId);
     
-    if (user.activePlanId && user.planExpiresAt) {
-      const expiresAt = new Date(user.planExpiresAt);
-      if (now > expiresAt) {
-        const effectiveNow = expiresAt;
-        if (lastClaim < effectiveNow) {
-          secondsPassed = Math.floor((effectiveNow.getTime() - lastClaim.getTime()) / 1000);
-        } else {
-          secondsPassed = 0;
-        }
-      }
-    } else {
-      const maxSeconds = 24 * 60 * 60;
-      secondsPassed = Math.min(secondsPassed, maxSeconds);
-    }
+    // Base rate
+    const baseRate = 0.00001;
+    let totalRate = baseRate;
+    boosts.forEach(boost => {
+      totalRate += parseFloat(boost.miningRate);
+    });
     
-    const currentMining = (secondsPassed * miningRate).toFixed(5);
-    const maxMining = (24 * 60 * 60 * miningRate).toFixed(2);
+    const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
+    const currentMining = (secondsPassed * totalRate).toFixed(5);
+    const maxMining = (24 * 60 * 60 * totalRate).toFixed(2);
 
     return {
       currentMining,
-      miningRate: (miningRate * 3600).toFixed(4),
+      miningRate: (totalRate * 3600).toFixed(4),
       lastClaim,
       maxMining,
-      activePlanId: user.activePlanId,
-      planExpiresAt: user.planExpiresAt,
-      rawMiningRate: miningRate
+      rawMiningRate: totalRate,
+      boosts
     };
   }
 
@@ -4070,6 +4062,19 @@ export class DatabaseStorage implements IStorage {
       if (error.code === '42P01') return undefined;
       throw error;
     }
+  }
+
+  async getMiningBoosts(userId: string): Promise<MiningBoost[]> {
+    const now = new Date();
+    const boosts = await db.select()
+      .from(miningBoosts)
+      .where(and(eq(miningBoosts.userId, userId), gte(miningBoosts.expiresAt, now)));
+    return boosts;
+  }
+
+  async addMiningBoost(boost: InsertMiningBoost): Promise<MiningBoost> {
+    const [newBoost] = await db.insert(miningBoosts).values(boost).returning();
+    return newBoost;
   }
 
 }

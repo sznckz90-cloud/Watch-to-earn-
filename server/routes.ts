@@ -490,13 +490,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const dailyHrumProfit = amount * 1000; // 0.1 TON = 100 HRUM/day as per example
         const newMiningRate = dailyHrumProfit / (24 * 3600);
 
+        // Record the new boost
+        await tx.insert(miningBoosts).values({
+          userId: user.id,
+          planId: `custom_${amount}_${now.getTime()}`,
+          miningRate: newMiningRate.toFixed(8),
+          expiresAt: expiresAt,
+        });
+
+        // Deduct balance
         await tx.update(users)
           .set({ 
             tonAppBalance: (tonAppBalance - amount).toString(),
-            activePlanId: `custom_${amount}_${now.getTime()}`,
-            planExpiresAt: expiresAt,
-            miningRate: newMiningRate.toFixed(8),
-            lastMiningClaim: now,
             updatedAt: now
           })
           .where(eq(users.id, user.id));
@@ -514,6 +519,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Mining boost activated successfully" });
     } catch (error) {
       console.error("Error upgrading mining:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/mining/state", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+
+      const now = new Date();
+      const lastClaim = new Date(user.lastMiningClaim || user.createdAt);
+      
+      // Get all active boosts
+      const boosts = await storage.getMiningBoosts(user.id);
+      
+      // Calculate total mining rate
+      const baseRate = 0.00001;
+      let totalRate = baseRate;
+      boosts.forEach(boost => {
+        totalRate += parseFloat(boost.miningRate);
+      });
+
+      // Calculate earned amount since last claim
+      const secondsPassed = Math.floor((now.getTime() - lastClaim.getTime()) / 1000);
+      const minedAmount = (secondsPassed * totalRate).toFixed(5);
+
+      res.json({
+        currentMining: minedAmount,
+        miningRate: (totalRate * 3600).toFixed(4),
+        rawMiningRate: totalRate,
+        lastClaim: lastClaim,
+        boosts: boosts.map(b => ({
+          id: b.id,
+          planId: b.planId,
+          miningRate: (parseFloat(b.miningRate) * 3600).toFixed(4),
+          startTime: b.startTime,
+          expiresAt: b.expiresAt,
+          remainingTime: Math.max(0, Math.floor((new Date(b.expiresAt).getTime() - now.getTime()) / 1000))
+        }))
+      });
+    } catch (error) {
+      console.error("Error getting mining state:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

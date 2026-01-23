@@ -119,6 +119,8 @@ export async function ensureDatabaseSchema(): Promise<void> {
       // Add mining fields
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_mining_claim TIMESTAMP DEFAULT NOW()`);
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS mining_rate DECIMAL(20, 8) DEFAULT '0.00001'`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS active_plan_id VARCHAR`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP`);
       
       // Alter existing balance columns to new precision (safely handle existing data)
       await db.execute(sql`ALTER TABLE users ALTER COLUMN balance TYPE DECIMAL(20, 0) USING ROUND(balance)`);
@@ -133,6 +135,49 @@ export async function ensureDatabaseSchema(): Promise<void> {
     } catch (error) {
       // Columns might already exist - this is fine
       console.log('ℹ️ [MIGRATION] User task and wallet columns already exist or cannot be added');
+    }
+
+    // Check and add ton_app_balance column
+    try {
+      const tonAppBalanceCheck = await db.execute(sql`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'ton_app_balance'
+      `);
+      if (tonAppBalanceCheck.rows.length === 0) {
+        console.log('🔄 [MIGRATION] Adding ton_app_balance column to users table...');
+        await db.execute(sql`ALTER TABLE users ADD COLUMN ton_app_balance decimal(30, 10) DEFAULT '0'`);
+        console.log('✅ [MIGRATION] ton_app_balance column added');
+      }
+    } catch (e) {
+      console.warn('⚠️ [MIGRATION] Failed to ensure ton_app_balance column:', e);
+    }
+
+    // Check and add mining_boosts table
+    try {
+      const miningBoostsCheck = await db.execute(sql`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'mining_boosts'
+        )
+      `);
+      if (!miningBoostsCheck.rows[0].exists) {
+        console.log('🔄 [MIGRATION] Creating mining_boosts table...');
+        await db.execute(sql`
+          CREATE TABLE IF NOT EXISTS mining_boosts (
+            id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+            user_id varchar NOT NULL REFERENCES users(id),
+            plan_id varchar NOT NULL,
+            mining_rate decimal(20, 8) NOT NULL,
+            start_time timestamp NOT NULL DEFAULT now(),
+            expires_at timestamp NOT NULL,
+            created_at timestamp NOT NULL DEFAULT now()
+          )
+        `);
+        console.log('✅ [MIGRATION] mining_boosts table created');
+      }
+    } catch (e) {
+      console.warn('⚠️ [MIGRATION] Failed to ensure mining_boosts table:', e);
     }
     
     // Ensure referral_code column exists and has proper constraints
