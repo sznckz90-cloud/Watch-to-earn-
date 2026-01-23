@@ -21,6 +21,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
 
+import UpgradePopup from "@/components/UpgradePopup";
+
 // Unified Task Interface
 interface UnifiedTask {
   id: string;
@@ -79,6 +81,7 @@ export default function Home() {
   const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
   const [convertPopupOpen, setConvertPopupOpen] = useState(false);
   const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
+  const [upgradePopupOpen, setUpgradePopupOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedConvertType, setSelectedConvertType] = useState<'' | 'BUG'>('');
   const [convertAmount, setConvertAmount] = useState<string>("");
@@ -131,9 +134,9 @@ export default function Home() {
 
   const miningStateData = miningState || {};
   const [miningAmount, setMiningAmount] = useState(0);
-  const miningRatePerHour = parseFloat(miningStateData.miningRate || "0.0015");
+  const miningRatePerHour = miningStateData.miningRate ? parseFloat(miningStateData.miningRate) : (parseFloat(miningStateData.rawMiningRate || "0.00001") * 3600);
   const lastMiningClaim = miningStateData.lastClaim ? new Date(miningStateData.lastClaim).getTime() : Date.now();
-  const miningRate = miningRatePerHour / 3600;
+  const miningRate = (parseFloat(miningStateData.rawMiningRate || "0.00001"));
 
   useEffect(() => {
     if (miningStateData.currentMining) {
@@ -1175,13 +1178,13 @@ export default function Home() {
               </div>
               <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
                 <Zap className="w-3 h-3 fill-current" />
-                {(miningRatePerHour || 0.0015).toFixed(4)} H/h
+                {miningRatePerHour.toFixed(4)} H/h
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <Button 
-                onClick={() => setLocation("/profile")}
+                onClick={() => setUpgradePopupOpen(true)}
                 className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
               >
                 <ArrowUpCircle className="w-3.5 h-3.5" />
@@ -1611,6 +1614,12 @@ export default function Home() {
         open={withdrawPopupOpen}
         onOpenChange={setWithdrawPopupOpen}
         tonBalance={withdrawBalance}
+      />
+
+      <UpgradePopup 
+        isOpen={upgradePopupOpen} 
+        onClose={() => setUpgradePopupOpen(false)} 
+        tonAppBalance={user?.tonBalance || "0"} 
       />
     </Layout>
   );
