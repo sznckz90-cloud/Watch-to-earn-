@@ -9,7 +9,7 @@ import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy, Download } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,9 +134,10 @@ export default function Home() {
 
   const miningStateData = miningState || {};
   const [miningAmount, setMiningAmount] = useState(0);
-  const miningRatePerHour = miningStateData.miningRate ? parseFloat(miningStateData.miningRate) : (parseFloat(miningStateData.rawMiningRate || "0.00001") * 3600);
-  const lastMiningClaim = miningStateData.lastClaim ? new Date(miningStateData.lastClaim).getTime() : Date.now();
-  const miningRate = (parseFloat(miningStateData.rawMiningRate || "0.00001"));
+  const activeBoosts = miningStateData.boosts || [];
+  
+  const miningRate = parseFloat(miningStateData.rawMiningRate || "0.00001");
+  const miningRatePerHour = miningRate * 3600;
 
   useEffect(() => {
     if (miningStateData.currentMining) {
@@ -150,6 +151,33 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(interval);
   }, [miningRate]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      queryClient.setQueryData(['/api/mining/state'], (old: any) => {
+        if (!old || !old.boosts) return old;
+        return {
+          ...old,
+          boosts: old.boosts.map((b: any) => ({
+            ...b,
+            remainingTime: Math.max(0, b.remainingTime - 1)
+          }))
+        };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [queryClient]);
+
+  const formatRemainingTime = (seconds: number) => {
+    if (seconds <= 0) return "Expired";
+    const days = Math.floor(seconds / (24 * 3600));
+    const hours = Math.floor((seconds % (24 * 3600)) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (days > 0) return `${days}d ${hours}h`;
+    return `${hours}h ${minutes}m ${secs}s`;
+  };
 
   const claimMiningMutation = useMutation({
     mutationFn: async () => {
@@ -1181,6 +1209,32 @@ export default function Home() {
                 {miningRatePerHour.toFixed(4)} H/h
               </div>
             </div>
+
+            {/* Active Boosts List */}
+            {activeBoosts.length > 0 && (
+              <div className="mb-4 space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-3 h-3 text-[#8E8E93]" />
+                  <span className="text-[#8E8E93] text-[9px] font-black uppercase tracking-widest">Active Boosters</span>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {activeBoosts.map((boost: any) => (
+                    <div key={boost.id} className="bg-white/5 rounded-xl p-3 border border-white/5 flex justify-between items-center">
+                      <div className="space-y-0.5 text-left">
+                        <div className="text-white text-[10px] font-black uppercase tracking-tight">Mining Boost</div>
+                        <div className="text-[#B9FF66] text-[9px] font-bold">+{boost.miningRate} HRUM/h</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[#8E8E93] text-[8px] font-black uppercase tracking-widest">Expires In</div>
+                        <div className="text-white text-[10px] font-bold tabular-nums">
+                          {formatRemainingTime(boost.remainingTime)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <Button 
