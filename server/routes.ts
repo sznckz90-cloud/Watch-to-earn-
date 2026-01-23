@@ -18,7 +18,8 @@ import {
   taskClicks,
   spinData,
   spinHistory,
-  dailyMissions
+  dailyMissions,
+  miningBoosts
 } from "../shared/schema";
 import { db } from "./db";
 import { eq, sql, desc, and, gte } from "drizzle-orm";

@@ -121,6 +121,9 @@ export interface IStorage {
   getUserByTelegramId(telegramId: string): Promise<User | undefined>;
   upsertTelegramUser(telegramId: string, userData: Omit<UpsertUser, 'id' | 'telegramId'>): Promise<{ user: User; isNewUser: boolean }>;
   
+  // Mining operations
+  getMiningBoosts(userId: string): Promise<MiningBoost[]>;
+  addMiningBoost(boost: InsertMiningBoost): Promise<MiningBoost>;
   
   // Daily reset system
   performDailyReset(): Promise<void>;
