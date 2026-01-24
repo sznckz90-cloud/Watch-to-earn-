@@ -385,14 +385,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/app-settings", async (req, res) => {
     try {
-      const minWithdraw = await storage.getAppSetting('minimum_withdrawal_ton', '0.1');
-      const fee = await storage.getAppSetting('withdrawal_fee_ton', '0.01');
+      const settings = await storage.getAllAdminSettings();
+      const settingsMap: Record<string, string> = {};
+      settings.forEach(s => {
+        settingsMap[s.settingKey] = s.settingValue;
+      });
+
       res.json({
-        minimum_withdrawal_ton: minWithdraw,
-        withdrawal_fee_ton: fee
+        minimum_withdrawal_ton: settingsMap['minimum_withdrawal_ton'] || '0.1',
+        withdrawal_fee_ton: settingsMap['withdrawal_fee_ton'] || '0.01',
+        ad_section1_limit: settingsMap['ad_section1_limit'] || '250',
+        ad_section2_limit: settingsMap['ad_section2_limit'] || '250',
+        ad_section1_reward: settingsMap['ad_section1_reward'] || '0.0015',
+        ad_section2_reward: settingsMap['ad_section2_reward'] || '0.0001',
       });
     } catch (error) {
-      res.json({ minimum_withdrawal_ton: '0.1', withdrawal_fee_ton: '0.01' });
+      res.json({ 
+        minimum_withdrawal_ton: '0.1', 
+        withdrawal_fee_ton: '0.01',
+        ad_section1_limit: '250',
+        ad_section2_limit: '250'
+      });
     }
   });
 

@@ -20,9 +20,14 @@ const pendingRejections = new Map<string, {
 // State management for admin broadcast flow
 const pendingBroadcasts = new Map<string, { timestamp: number }>();
 
-// Utility function to format  amounts
+// Utility function to format TON amounts
 function format$(value: string | number): string {
   const num = parseFloat(String(value));
+  if (isNaN(num)) return "0";
+  const parts = num.toString().split('.');
+  if (!parts[1]) {
+    return num.toString();
+  }
   return num.toFixed(2);
 }
 
@@ -215,7 +220,7 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${deposit.amount} TON has been approved and added to your balance!`);
+        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${format$(deposit.amount)} TON has been approved and added to your balance!`);
       }
 
       const updatedText = message.text + "\n\n✅ <b>Status: APPROVED</b>";
@@ -235,7 +240,7 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${deposit.amount} TON was rejected by admin.`);
+        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${format$(deposit.amount)} TON was rejected by admin.`);
       }
 
       const updatedText = message.text + "\n\n❌ <b>Status: REJECTED</b>";
@@ -262,8 +267,9 @@ export async function sendDepositNotificationToAdmin(deposit: any, user: any): P
   const text = `💰 <b>New Deposit Request</b>\n\n` +
                `👤 User: ${user.firstName || user.username}\n` +
                `🆔 Telegram ID: <code>${user.telegram_id}</code>\n` +
-               `💵 Amount: ${deposit.amount} TON\n` +
-               `📝 Memo: <code>${deposit.memo}</code>\n` +
+               `💳 Username: ${user.username ? `@${user.username}` : 'N/A'}\n` +
+               `💵 Amount: ${format$(deposit.amount)} TON\n` +
+               `📝 Memo: <code>${user.telegram_id}</code>\n` +
                `📅 Date: ${new Date().toLocaleString()}\n` +
                `\nStatus: Pending`;
 
@@ -411,10 +417,25 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 💳 Username: ${userTelegramUsername}
 🌐 Address:
 <code>${walletAddress}</code>
-💸 Amount: ${netAmount.toFixed(5)} TON
-🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
+💸 Amount: ${format$(netAmount)} TON
+🛂 Fee: ${format$(feeAmount)} (${feePercent}%)
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyHrumbot`;
+
+    // Notify user
+    const userMessage = `🚀 Your payout has been successfully processed.\n\n💵 Amount: ${format$(netAmount)} TON\n🛂 Fee: ${format$(feeAmount)} TON (${feePercent}%)`;
+    const userKeyboard = {
+      inline_keyboard: [[
+        { text: "💬 Join Chat", url: "https://t.me/MoneyAdzChat" }
+      ]]
+    };
+    await sendUserTelegramNotification(userTelegramId, userMessage, userKeyboard);
+
+    // Notify admin
+    const adminId = process.env.TELEGRAM_ADMIN_ID;
+    if (adminId) {
+      await sendUserTelegramNotification(adminId, `🔔 Withdrawal approved for user ${userTelegramId}\nAmount: ${format$(netAmount)} TON`);
+    }
 
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
