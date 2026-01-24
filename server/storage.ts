@@ -143,7 +143,14 @@ export interface IStorage {
     totalEarnings: string;
     totalReferralEarnings: string;
     totalPayouts: string;
+    tonWithdrawn: string;
     newUsersLast24h: number;
+    totalAdsWatched: number;
+    adsWatchedToday: number;
+    pendingWithdrawals: number;
+    approvedWithdrawals: number;
+    rejectedWithdrawals: number;
+    pendingDeposits: number;
   }>;
 
   // Mining operations
@@ -1634,6 +1641,7 @@ export class DatabaseStorage implements IStorage {
     totalEarnings: string;
     totalReferralEarnings: string;
     totalPayouts: string;
+    tonWithdrawn: string;
     newUsersLast24h: number;
     totalAdsWatched: number;
     adsWatchedToday: number;
@@ -1679,6 +1687,15 @@ export class DatabaseStorage implements IStorage {
         .from(withdrawals)
         .where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`);
 
+      // Total TON withdrawn (approved withdrawals specifically for TON)
+      const [tonWithdrawnResult] = await db
+        .select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` })
+        .from(withdrawals)
+        .where(and(
+          sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`,
+          eq(withdrawals.paymentSystemId, 'ton_coin')
+        ));
+
       // New users in last 24h
       const [newUsersResult] = await db
         .select({ count: sql<number>`count(*)` })
@@ -1710,6 +1727,7 @@ export class DatabaseStorage implements IStorage {
         totalEarnings: totalEarningsResult.total || '0',
         totalReferralEarnings: totalReferralEarningsResult.total || '0',
         totalPayouts: payoutSum.sum || '0',
+        tonWithdrawn: tonWithdrawnResult.total || '0',
         newUsersLast24h: Number(newUsersResult.count || 0),
         totalAdsWatched: Number(adsRes.total || 0),
         adsWatchedToday: Number(adsRes.today || 0),
@@ -1727,6 +1745,7 @@ export class DatabaseStorage implements IStorage {
         totalEarnings: '0',
         totalReferralEarnings: '0',
         totalPayouts: '0',
+        tonWithdrawn: '0',
         newUsersLast24h: 0,
         totalAdsWatched: 0,
         adsWatchedToday: 0,
