@@ -60,10 +60,20 @@ export function formatHrumto$(hrumAmount: number | string): string {
 export function format$(value: string | number, includeSymbol: boolean = true): string {
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
-  if (isNaN(numValue)) return includeSymbol ? '0 TON' : '0';
+  if (isNaN(numValue) || !isFinite(numValue)) return includeSymbol ? '0 TON' : '0';
   
   const symbol = includeSymbol ? ' TON' : '';
-  return `${numValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}${symbol}`;
+  
+  let result;
+  const parts = numValue.toString().split('.');
+  if (!parts[1]) {
+    result = numValue.toString(); // "1"
+  } else {
+    // If it has decimals, we show 2 decimals (0.1 -> 0.10, 0.5 -> 0.50, 2.021 -> 2.02)
+    result = numValue.toFixed(2);
+  }
+
+  return `${result}${symbol}`;
 }
 
 /**
