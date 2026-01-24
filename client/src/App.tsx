@@ -24,6 +24,8 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
+const AdWatchSection1Page = lazy(() => import("@/pages/AdWatchSection1Page"));
+const AdWatchSection2Page = lazy(() => import("@/pages/AdWatchSection2Page"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PageLoader = memo(function PageLoader() {
@@ -35,6 +37,8 @@ function Router() {
     <Suspense fallback={null}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/adwatchsection" component={AdWatchSection1Page} />
+        <Route path="/adwatchsection2" component={AdWatchSection2Page} />
         <Route path="/task/create" component={CreateTask} />
         <Route path="/create-task" component={CreateTask} />
         <Route path="/profile" component={Profile} />
