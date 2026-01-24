@@ -524,6 +524,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/ads/watch", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+
+      const { adType, section } = req.body;
+      
+      // Daily limit check per section
+      let dailyLimit = 250;
+      let currentCount = 0;
+
+      if (section === 'section2') {
+        dailyLimit = parseInt(await storage.getAppSetting('ad_section2_limit', '250'));
+        currentCount = user.adSection2Count || 0;
+      } else {
+        dailyLimit = parseInt(await storage.getAppSetting('ad_section1_limit', '250'));
+        currentCount = user.adSection1Count || 0;
+      }
+
+      if (currentCount >= dailyLimit) {
+        return res.status(429).json({ message: `Daily ad limit reached for this section (${dailyLimit} ads/day)` });
+      }
+
+      // Determine which section boost to apply
+      let boostAmount = 0;
+      let updateFields: any = {};
+      
+      if (section === 'section1') {
+        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.0015');
+        boostAmount = parseFloat(rewardStr);
+        updateFields = {
+          adSection1Boost: (parseFloat(user.adSection1Boost || "0") + boostAmount).toString(),
+          adSection1Count: (user.adSection1Count || 0) + 1
+        };
+      } else if (section === 'section2') {
+        const rewardStr = await storage.getAppSetting('ad_section2_reward', '0.0001');
+        boostAmount = parseFloat(rewardStr);
+        updateFields = {
+          adSection2Boost: (parseFloat(user.adSection2Boost || "0") + boostAmount).toString(),
+          adSection2Count: (user.adSection2Count || 0) + 1
+        };
+      } else {
+        // Legacy or single section fallback
+        const rewardStr = await storage.getAppSetting('ad_section1_reward', '0.0015');
+        boostAmount = parseFloat(rewardStr);
+        updateFields = {
+          adSection1Boost: (parseFloat(user.adSection1Boost || "0") + boostAmount).toString(),
+          adSection1Count: (user.adSection1Count || 0) + 1
+        };
+      }
+
+      await db.update(users)
+        .set({
+          ...updateFields,
+          adsWatchedToday: (user.adsWatchedToday || 0) + 1,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, user.id));
+
+      const updatedUser = await storage.getUser(user.id);
+      res.json({
+        success: true,
+        newBalance: updatedUser?.balance,
+        adsWatchedToday: updatedUser?.adsWatchedToday,
+        rewardBoost: boostAmount,
+        section: section || 'section1'
+      });
+    } catch (error) {
+      console.error("Ad watch error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/mining/state", authenticateTelegram, async (req: any, res) => {
     try {
       const user = req.user?.user;
@@ -536,8 +609,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const boosts = await storage.getMiningBoosts(user.id);
       
       // Calculate total mining rate
-      const baseRate = 0.00001;
-      let totalRate = baseRate;
+      const baseRate = 0.036 / 3600; // Base: 0.036 / hour
+      const section1Boost = parseFloat(user.adSection1Boost || "0") / 3600;
+      const section2Boost = parseFloat(user.adSection2Boost || "0") / 3600;
+      
+      let totalRate = baseRate + section1Boost + section2Boost;
       boosts.forEach(boost => {
         totalRate += parseFloat(boost.miningRate);
       });
@@ -550,8 +626,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentMining: minedAmount,
         miningRate: (totalRate * 3600).toFixed(4),
         rawMiningRate: totalRate,
+        baseRate: (baseRate * 3600).toFixed(4),
+        section1Boost: (section1Boost * 3600).toFixed(4),
+        section2Boost: (section2Boost * 3600).toFixed(4),
         lastClaim: lastClaim,
-        boosts: boosts.map(b => ({
+        boosts: boosts.map((b: any) => ({
           id: b.id,
           planId: b.planId,
           miningRate: (parseFloat(b.miningRate) * 3600).toFixed(4),

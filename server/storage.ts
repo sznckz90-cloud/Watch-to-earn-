@@ -427,6 +427,12 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async watchAd(userId: string, adType: string): Promise<any> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+    return { success: true, newBalance: user.balance };
+  }
+
   async getAllAdminSettings(): Promise<AdminSetting[]> {
     return db.select().from(adminSettings);
   }
@@ -2836,6 +2842,10 @@ export class DatabaseStorage implements IStorage {
           linkShared: false,
           friendInvited: false,
           friendsInvited: 0,
+          adSection1Boost: "0",
+          adSection2Boost: "0",
+          adSection1Count: 0,
+          adSection2Count: 0,
           lastResetDate: currentDate,
           lastResetAt: periodStart,
           lastAdDate: currentDate 
