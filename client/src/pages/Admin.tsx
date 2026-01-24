@@ -49,7 +49,11 @@ interface AdminStats {
   dailyActiveUsers: number;
   totalAdsWatched: number;
   todayAdsWatched: number;
-  activePromos: number;
+  withdrawalBugRequirementEnabled: boolean;
+  ad_section1_reward?: string;
+  ad_section1_limit?: string;
+  ad_section2_reward?: string;
+  ad_section2_limit?: string;
 }
 
 // Clean Minimal Stat Card Component
@@ -156,7 +160,7 @@ export default function AdminPage() {
 
         {/* Tabs Navigation - Move to Top */}
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="grid grid-cols-7 w-full mb-3">
+          <TabsList className="grid grid-cols-5 w-full mb-3">
             <TabsTrigger value="summary" className="text-xs">
               Summary
             </TabsTrigger>
@@ -169,18 +173,11 @@ export default function AdminPage() {
             <TabsTrigger value="promos" className="text-xs">
               Promos
             </TabsTrigger>
-            <TabsTrigger value="payouts" className="text-xs">
-              Payouts
-            </TabsTrigger>
-            <TabsTrigger value="bans" className="text-xs">
-              Bans
-            </TabsTrigger>
             <TabsTrigger value="settings" className="text-xs">
               Settings
             </TabsTrigger>
           </TabsList>
 
-          {/* Summary Tab - Clean Minimal Design */}
           <TabsContent value="summary" className="mt-0 space-y-4">
             {statsLoading ? (
               <div className="grid grid-cols-2 gap-3">
@@ -222,33 +219,7 @@ export default function AdminPage() {
                     value={formatLargeNumber(parseFloat(stats?.totalEarnings || '0'))} 
                     iconColor="text-[#4cd3ff]"
                   />
-                  <StatCard 
-                    icon="coins" 
-                    label="TON Withdrawn" 
-                    value={parseFloat(stats?.totalWithdrawals || '0').toFixed(2) + ' TON'} 
-                    iconColor="text-green-400"
-                  />
                 </div>
-
-                {/* Withdrawal Status - Clean Card */}
-                <div className="bg-[#121212] border border-white/10 rounded-xl p-4">
-                  <p className="text-sm font-medium text-white mb-4">Withdrawal Requests</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 rounded-lg bg-[#1a1a1a]">
-                      <p className="text-2xl font-bold text-amber-400">{stats?.pendingWithdrawals || 0}</p>
-                      <p className="text-xs text-gray-500 mt-1">Pending</p>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-[#1a1a1a]">
-                      <p className="text-2xl font-bold text-emerald-400">{stats?.successfulWithdrawals || 0}</p>
-                      <p className="text-xs text-gray-500 mt-1">Approved</p>
-                    </div>
-                    <div className="text-center p-3 rounded-lg bg-[#1a1a1a]">
-                      <p className="text-2xl font-bold text-rose-400">{stats?.rejectedWithdrawals || 0}</p>
-                      <p className="text-xs text-gray-500 mt-1">Rejected</p>
-                    </div>
-                  </div>
-                </div>
-
               </>
             )}
           </TabsContent>
@@ -268,62 +239,17 @@ export default function AdminPage() {
             <PromoCreatorSection />
           </TabsContent>
 
-          {/* Payout Logs Tab */}
-          <TabsContent value="payouts" className="mt-0">
+          {/* Payout Logs Tab - REMOVED */}
+          {/* <TabsContent value="payouts" className="mt-0">
             <PayoutLogsSection data={payoutLogsData} />
-          </TabsContent>
+          </TabsContent> */}
 
-          {/* Ban Logs Tab */}
-          <TabsContent value="bans" className="mt-0">
+          {/* Ban Logs Tab - REMOVED AS REQUESTED */}
+          {/* <TabsContent value="bans" className="mt-0">
             <BanLogsSection />
-          </TabsContent>
+          </TabsContent> */}
           
           <TabsContent value="settings" className="mt-0">
-            <Card className="bg-[#121212] border-white/10 mb-4">
-              <CardContent className="p-4">
-                <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Ad Mining Boosts</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Speed Booster 1 Reward (+/hour)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.0001"
-                      defaultValue="0.0015"
-                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
-                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section1_reward: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Speed Booster 1 Daily Limit</Label>
-                    <Input 
-                      type="number" 
-                      defaultValue="250"
-                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
-                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section1_limit: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Speed Booster 2 Reward (+/hour)</Label>
-                    <Input 
-                      type="number" 
-                      step="0.0001"
-                      defaultValue="0.0001"
-                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
-                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section2_reward: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Speed Booster 2 Daily Limit</Label>
-                    <Input 
-                      type="number" 
-                      defaultValue="250"
-                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
-                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section2_limit: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
             <SettingsSection />
           </TabsContent>
         </Tabs>
@@ -1504,7 +1430,7 @@ function SettingsSection() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('ads');
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('mining');
   
   const { data: settingsData, isLoading } = useQuery({
     queryKey: ["/api/admin/settings"],
@@ -1546,7 +1472,11 @@ function SettingsSection() {
     padToBugRate: '1',
     minimumConvertPadToBug: '1000',
     bugPerUsd: '10000',
-    withdrawalBugRequirementEnabled: true
+    withdrawalBugRequirementEnabled: true,
+    ad_section1_reward: '0.0015',
+    ad_section1_limit: '250',
+    ad_section2_reward: '0.0001',
+    ad_section2_limit: '250'
   });
   
   useEffect(() => {
@@ -1586,13 +1516,17 @@ function SettingsSection() {
         padToBugRate: settingsData.padToBugRate?.toString() || '1',
         minimumConvertPadToBug: settingsData.minimumConvertPadToBug?.toString() || '1000',
         bugPerUsd: settingsData.bugPerUsd?.toString() || '10000',
-        withdrawalBugRequirementEnabled: settingsData.withdrawalBugRequirementEnabled !== false
+        withdrawalBugRequirementEnabled: settingsData.withdrawalBugRequirementEnabled !== false,
+        ad_section1_reward: settingsData.ad_section1_reward?.toString() || '0.0015',
+        ad_section1_limit: settingsData.ad_section1_limit?.toString() || '250',
+        ad_section2_reward: settingsData.ad_section2_reward?.toString() || '0.0001',
+        ad_section2_limit: settingsData.ad_section2_limit?.toString() || '250'
       });
     }
   }, [settingsData]);
   
   const categories = [
-    { id: 'ads' as const, label: 'Ads & Rewards', icon: 'play-circle' },
+    { id: 'mining' as const, label: 'Mining Boosts', icon: 'bolt' },
     { id: 'affiliates' as const, label: 'Affiliates', icon: 'users' },
     { id: 'withdrawals' as const, label: 'Withdrawals', icon: 'wallet' },
     { id: 'tasks' as const, label: 'Tasks', icon: 'tasks' },
@@ -1652,7 +1586,11 @@ function SettingsSection() {
         padToBugRate: settings.padToBugRate?.toString() || '1',
         minimumConvertPadToBug: settings.minimumConvertPadToBug?.toString() || '1000',
         bugPerUsd: settings.bugPerUsd?.toString() || '10000',
-        withdrawalBugRequirementEnabled: !!settings.withdrawalBugRequirementEnabled
+        withdrawalBugRequirementEnabled: !!settings.withdrawalBugRequirementEnabled,
+        ad_section1_reward: settings.ad_section1_reward?.toString() || '0.0015',
+        ad_section1_limit: settings.ad_section1_limit?.toString() || '250',
+        ad_section2_reward: settings.ad_section2_reward?.toString() || '0.0001',
+        ad_section2_limit: settings.ad_section2_limit?.toString() || '250'
       };
 
       const res = await apiRequest("PUT", "/api/admin/settings", payload);
@@ -1708,42 +1646,69 @@ function SettingsSection() {
       </div>
 
       <div className="space-y-3">
-        {activeCategory === 'ads' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="daily-ad-limit" className="text-sm font-semibold">
-                <i className="fas fa-calendar-day mr-2 text-orange-600"></i>
-                Daily Ad Limit
-              </Label>
-              <Input
-                id="daily-ad-limit"
-                type="number"
-                value={settings.dailyAdLimit}
-                onChange={(e) => setSettings({ ...settings, dailyAdLimit: e.target.value })}
-                placeholder="50"
-                min="1"
-              />
-              <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.dailyAdLimit || 50} ads/day
-              </p>
+        {activeCategory === 'mining' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3 p-4 border rounded-lg bg-[#1a1a1a] border-white/10">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fas fa-bolt text-amber-400"></i>
+                Booster 1 Settings
+              </h3>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-400">Reward (+/hour)</Label>
+                <Input 
+                  type="number" 
+                  step="0.0001"
+                  value={settings.ad_section1_reward as string}
+                  onChange={(e) => setSettings({ ...settings, ad_section1_reward: e.target.value })}
+                  className="bg-[#121212] border-white/10 text-white h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-400">Daily Limit (Ads)</Label>
+                <Input 
+                  type="number" 
+                  value={settings.ad_section1_limit as string}
+                  onChange={(e) => setSettings({ ...settings, ad_section1_limit: e.target.value })}
+                  className="bg-[#121212] border-white/10 text-white h-9"
+                />
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="reward-per-ad" className="text-sm font-semibold">
-                <i className="fas fa-gem mr-2 text-purple-600"></i>
-                Reward Per Ad (Hrum)
-              </Label>
-              <Input
-                id="reward-per-ad"
-                type="number"
-                value={settings.rewardPerAd}
-                onChange={(e) => setSettings({ ...settings, rewardPerAd: e.target.value })}
-                placeholder="1000"
-                min="1"
-              />
-              <p className="text-xs text-muted-foreground">
-                Current: {settingsData?.rewardPerAd || 1000} Hrum
-              </p>
+
+            <div className="space-y-3 p-4 border rounded-lg bg-[#1a1a1a] border-white/10">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <i className="fas fa-bolt text-amber-400"></i>
+                Booster 2 Settings
+              </h3>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-400">Reward (+/hour)</Label>
+                <Input 
+                  type="number" 
+                  step="0.0001"
+                  value={settings.ad_section2_reward as string}
+                  onChange={(e) => setSettings({ ...settings, ad_section2_reward: e.target.value })}
+                  className="bg-[#121212] border-white/10 text-white h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-400">Daily Limit (Ads)</Label>
+                <Input 
+                  type="number" 
+                  value={settings.ad_section2_limit as string}
+                  onChange={(e) => setSettings({ ...settings, ad_section2_limit: e.target.value })}
+                  className="bg-[#121212] border-white/10 text-white h-9"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-2 flex justify-end">
+              <Button 
+                onClick={handleSaveSettings} 
+                disabled={isSaving}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {isSaving ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-save mr-2"></i>}
+                Save Mining Boost Settings
+              </Button>
             </div>
           </div>
         )}
@@ -1806,7 +1771,7 @@ function SettingsSection() {
                   <Label className="text-xs">TON</Label>
                   <Input
                     type="number"
-                    value={settings.referralReward}
+                    value={settings.referralRewardTON}
                     onChange={(e) => setSettings({ ...settings, referralRewardTON: e.target.value })}
                     placeholder="0.0005"
                     step="0.0001"
