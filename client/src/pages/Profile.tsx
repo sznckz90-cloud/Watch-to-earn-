@@ -31,6 +31,7 @@ import { DiamondIcon } from "@/components/DiamondIcon";
 import TransactionsOverlay from "@/components/TransactionsOverlay";
 import TopUpPopup from "@/components/TopUpPopup";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
+import { format$ } from "@/lib/utils";
 
 type Language = 'en' | 'hi' | 'ru' | 'fa' | 'ar' | 'tr' | 'es' | 'pt' | 'id' | 'ur' | 'bn' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ko';
 
