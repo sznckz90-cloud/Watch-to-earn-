@@ -1304,6 +1304,29 @@ export default function Home() {
 
                 <TabsContent value="earn" className="mt-0 outline-none">
                   <div className="space-y-4 pt-1">
+                    {/* Booster Selection */}
+                    <div className="grid grid-cols-2 gap-3 mb-2">
+                      <Button
+                        onClick={() => setLocation("/adwatchsection")}
+                        className="h-24 bg-[#1a1a1a] border border-[#B9FF66]/10 rounded-[20px] flex flex-col items-center justify-center gap-2 hover:bg-[#222] transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[#B9FF66]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Zap className="w-5 h-5 text-[#B9FF66]" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Booster 1</span>
+                        <span className="text-[8px] font-bold text-[#B9FF66] uppercase tracking-tighter">+{appSettings?.ad_section1_reward || '0.0015'}/h</span>
+                      </Button>
+                      <Button
+                        onClick={() => setLocation("/adwatchsection2")}
+                        className="h-24 bg-[#1a1a1a] border border-[#B9FF66]/10 rounded-[20px] flex flex-col items-center justify-center gap-2 hover:bg-[#222] transition-all group"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[#B9FF66]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <Rocket className="w-5 h-5 text-[#B9FF66]" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Booster 2</span>
+                        <span className="text-[8px] font-bold text-[#B9FF66] uppercase tracking-tighter">+{appSettings?.ad_section2_reward || '0.0001'}/h</span>
+                      </Button>
+                    </div>
                     <AdWatchingSection user={user as User} />
                   </div>
                 </TabsContent>
@@ -1673,7 +1696,7 @@ export default function Home() {
       <UpgradePopup 
         isOpen={upgradePopupOpen} 
         onClose={() => setUpgradePopupOpen(false)} 
-        tonAppBalance={user?.tonBalance || "0"} 
+        tonAppBalance={user?.tonAppBalance || "0"} 
       />
     </Layout>
   );

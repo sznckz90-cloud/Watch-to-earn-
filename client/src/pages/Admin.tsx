@@ -278,8 +278,52 @@ export default function AdminPage() {
             <BanLogsSection />
           </TabsContent>
           
-          {/* Settings Tab */}
           <TabsContent value="settings" className="mt-0">
+            <Card className="bg-[#121212] border-white/10 mb-4">
+              <CardContent className="p-4">
+                <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Ad Mining Boosts</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Section 1 Boost (+/hour)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.0001"
+                      defaultValue="0.0015"
+                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
+                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section1_reward: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Section 1 Daily Limit</Label>
+                    <Input 
+                      type="number" 
+                      defaultValue="250"
+                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
+                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section1_limit: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Section 2 Boost (+/hour)</Label>
+                    <Input 
+                      type="number" 
+                      step="0.0001"
+                      defaultValue="0.0001"
+                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
+                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section2_reward: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-400">Section 2 Daily Limit</Label>
+                    <Input 
+                      type="number" 
+                      defaultValue="250"
+                      className="bg-[#1a1a1a] border-white/10 text-white h-9 text-sm"
+                      onBlur={(e) => apiRequest("PUT", "/api/admin/settings", { ad_section2_limit: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             <SettingsSection />
           </TabsContent>
         </Tabs>
