@@ -191,6 +191,10 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     ? (parseInt(appSettings?.ad_section1_limit || '250')) 
     : (parseInt(appSettings?.ad_section2_limit || '250'));
 
+  const sectionReward = section === 'section1'
+    ? (appSettings?.ad_section1_reward || '0.0015')
+    : (appSettings?.ad_section2_reward || '0.0001');
+
   return (
     <div className="bg-[#1a1a1a] border border-[#B9FF66]/20 rounded-2xl px-4 h-24 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
       {/* Background Glow Effect */}
@@ -211,7 +215,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#B9FF66] shadow-[0_0_8px_#B9FF66]" />
                 <span className="text-[11px] font-black text-[#B9FF66] uppercase tracking-widest">
-                  {section === 'section1' ? user?.adSection1Count || 0 : user?.adSection2Count || 0} ads watched
+                  +{sectionReward} Mining Speed
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
