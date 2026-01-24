@@ -1156,10 +1156,22 @@ export default function Home() {
             </div>
             
             <Button
-              onClick={() => setWithdrawPopupOpen(true)}
-              className="bg-[#1a1a1a] hover:bg-[#222] text-[#4cd3ff] border border-[#4cd3ff]/20 rounded-xl px-4 py-1.5 h-auto text-xs font-black uppercase tracking-wider transition-all active:scale-95"
+              onClick={() => setLocation("/profile")}
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 hover:bg-[#222] text-[#B9FF66] transition-all active:scale-90"
             >
-              {t('withdraw')}
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                className="w-6 h-6"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
+                <rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
+                <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
+                <path d="M13 17H21M17 13V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
             </Button>
           </div>
 
@@ -1190,174 +1202,180 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 bg-[#B9FF66] rounded-full animate-pulse"></div>
-                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
-              </div>
-            </div>
-            
-            <div className="text-center mb-4">
-              <div className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-1">{t('mined_hrum')}</div>
-              <div className="text-3xl font-black text-white tabular-nums tracking-tight">
-                {miningAmount.toFixed(6)}
-              </div>
-              <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
-                <Zap className="w-3 h-3 fill-current" />
-                {miningRatePerHour.toFixed(4)} H/h
-              </div>
-            </div>
 
-            {/* Active Boosts List */}
-            {activeBoosts.length > 0 && (
-              <div className="mb-4 space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-3 h-3 text-[#8E8E93]" />
-                  <span className="text-[#8E8E93] text-[9px] font-black uppercase tracking-widest">Active Boosters</span>
+          <Tabs defaultValue="mine" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
+              <TabsTrigger 
+                value="mine" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+              >
+                <Zap className="w-4 h-4" />
+                {t('mine').toUpperCase()}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="earn" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                {t('earn').toUpperCase()}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="referrals" 
+                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+              >
+                <HeartHandshake className="w-4 h-4" />
+                {t('referrals').toUpperCase()}
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="mine" className="mt-0 outline-none">
+              <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-[#B9FF66] rounded-full animate-pulse"></div>
+                    <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 gap-2">
-                  {activeBoosts.map((boost: any) => (
-                    <div key={boost.id} className="bg-white/5 rounded-xl p-3 border border-white/5 flex justify-between items-center">
-                      <div className="space-y-0.5 text-left">
-                        <div className="text-white text-[10px] font-black uppercase tracking-tight">Mining Boost</div>
-                        <div className="text-[#B9FF66] text-[9px] font-bold">+{boost.miningRate} HRUM/h</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[#8E8E93] text-[8px] font-black uppercase tracking-widest">Expires In</div>
-                        <div className="text-white text-[10px] font-bold tabular-nums">
-                          {formatRemainingTime(boost.remainingTime)}
+                
+                <div className="text-center mb-4">
+                  <div className="text-[#8E8E93] text-[9px] font-semibold uppercase tracking-wider mb-1">{t('mined_hrum')}</div>
+                  <div className="text-3xl font-black text-white tabular-nums tracking-tight">
+                    {miningAmount.toFixed(6)}
+                  </div>
+                  <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
+                    <Zap className="w-3 h-3 fill-current" />
+                    {miningRatePerHour.toFixed(4)} H/h
+                  </div>
+                </div>
+
+                {activeBoosts.length > 0 && (
+                  <div className="mb-4 space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-3 h-3 text-[#8E8E93]" />
+                      <span className="text-[#8E8E93] text-[9px] font-black uppercase tracking-widest">Active Boosters</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {activeBoosts.map((boost: any) => (
+                        <div key={boost.id} className="bg-white/5 rounded-xl p-3 border border-white/5 flex justify-between items-center">
+                          <div className="space-y-0.5 text-left">
+                            <div className="text-white text-[10px] font-black uppercase tracking-tight">Mining Boost</div>
+                            <div className="text-[#B9FF66] text-[9px] font-bold">+{boost.miningRate} HRUM/h</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[#8E8E93] text-[8px] font-black uppercase tracking-widest">Expires In</div>
+                            <div className="text-white text-[10px] font-bold tabular-nums">
+                              {formatRemainingTime(boost.remainingTime)}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <Button 
+                    onClick={() => setUpgradePopupOpen(true)}
+                    className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
+                  >
+                    <ArrowUpCircle className="w-3.5 h-3.5" />
+                    {t('upgrade')}
+                  </Button>
+                  <Button 
+                    onClick={handleClaimClick}
+                    disabled={claimMiningMutation.isPending}
+                    className={`${
+                      miningAmount >= 1 
+                        ? "bg-[#B9FF66] hover:bg-[#a8e655] text-black" 
+                        : "bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/5"
+                    } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all`}
+                  >
+                    {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
+                      <>
+                        <HandCoins className="w-3.5 h-3.5" />
+                        {t('claim')}
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
+                  <Button
+                    onClick={handleConvertClick}
+                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    {t('convert')}
+                  </Button>
+                  <Button
+                    onClick={() => setPromoPopupOpen(true)}
+                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                  >
+                    <Ticket className="w-4 h-4" />
+                    {t('promo')}
+                  </Button>
                 </div>
               </div>
-            )}
+            </TabsContent>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <Button 
-                onClick={() => setUpgradePopupOpen(true)}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
-              >
-                <ArrowUpCircle className="w-3.5 h-3.5" />
-                {t('upgrade')}
-              </Button>
-              <Button 
-                onClick={handleClaimClick}
-                disabled={claimMiningMutation.isPending}
-                className={`${
-                  miningAmount >= 1 
-                    ? "bg-[#B9FF66] hover:bg-[#a8e655] text-black" 
-                    : "bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/5"
-                } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all`}
-              >
-                {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
-                  <>
-                    <HandCoins className="w-3.5 h-3.5" />
-                    {t('claim')}
-                  </>
-                )}
-              </Button>
-            </div>
+            <TabsContent value="earn" className="mt-0 outline-none">
+              <div className="space-y-4 pt-1">
+                <AdWatchingSection user={user as User} section="section1" />
+                <AdWatchingSection user={user as User} section="section2" />
+              </div>
+            </TabsContent>
 
-            {/* Action Buttons inside profile section */}
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
-              <Button
-                onClick={handleConvertClick}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
-              >
-                <RefreshCw className="w-4 h-4" />
-                {t('convert')}
-              </Button>
-              <Button
-                onClick={() => setPromoPopupOpen(true)}
-                className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
-              >
-                <Ticket className="w-4 h-4" />
-                {t('promo')}
-              </Button>
-            </div>
+            <TabsContent value="referrals" className="mt-0 outline-none">
+              <div className="flex flex-col items-center text-center pt-2">
+                <h2 className="text-xl font-bold text-white mb-0.5">{t('invite_friends_earn')}</h2>
+                <p className="text-[11px] text-[#8E8E93] mb-3 max-w-[280px] leading-snug uppercase tracking-wider font-black opacity-80 italic">
+                  Invite friends & get 20% of their earnings instantly.
+                </p>
 
-            {/* Tab section inside Profile section */}
-            <div className="mt-4">
-              <Tabs defaultValue="earn" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
-                  <TabsTrigger 
-                    value="earn" 
-                    className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    {t('earn')}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="referrals" 
-                    className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
-                  >
-                    <HeartHandshake className="w-4 h-4" />
-                    {t('referrals')}
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="earn" className="mt-0 outline-none">
-                  <div className="space-y-4 pt-1">
-                    <AdWatchingSection user={user as User} section="section1" />
-                    <AdWatchingSection user={user as User} section="section2" />
+                <div className="w-full bg-[#111111] rounded-[24px] p-4 mb-3 flex justify-around border border-white/5">
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('user_referred')}</p>
+                    <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
                   </div>
-                </TabsContent>
+                  <div>
+                    <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('successful')}</p>
+                    <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
+                  </div>
+                </div>
 
-                <TabsContent value="referrals" className="mt-0 outline-none">
-                  <div className="flex flex-col items-center text-center pt-2">
-                    <h2 className="text-xl font-bold text-white mb-0.5">{t('invite_friends_earn')}</h2>
-                    <p className="text-[11px] text-[#8E8E93] mb-3 max-w-[280px] leading-snug uppercase tracking-wider font-black opacity-80 italic">
-                      Invite friends & get 20% of their earnings instantly.
+                <div className="grid grid-cols-2 gap-3 w-full mb-5">
+                  <Button
+                    onClick={copyReferralLink}
+                    disabled={!referralLink}
+                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-2" />
+                    Copy
+                  </Button>
+                  <Button
+                    onClick={shareReferralLink}
+                    disabled={!referralLink || isSharing}
+                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                  >
+                    {isSharing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5 mr-2" />}
+                    {isSharing ? 'Sharing...' : 'Invite'}
+                  </Button>
+                </div>
+
+                {appSettings?.referralRewardEnabled && (
+                  <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                    <p className="text-[10px] text-green-400 font-black text-center uppercase tracking-tight italic">
+                      Bonus: {appSettings.referralRewardHrum || 50} Hrum + {appSettings.referralReward || 0.0005} TON on first ad!
                     </p>
-
-                    <div className="w-full bg-[#111111] rounded-[24px] p-4 mb-3 flex justify-around border border-white/5">
-                      <div>
-                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('user_referred')}</p>
-                        <p className="text-2xl font-black text-white">{stats?.totalInvites || 0}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-[#8E8E93] mb-1 uppercase font-bold tracking-wider">{t('successful')}</p>
-                        <p className="text-2xl font-black text-white">{stats?.successfulInvites || 0}</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 w-full mb-5">
-                      <Button
-                        onClick={copyReferralLink}
-                        disabled={!referralLink}
-                        className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
-                      >
-                        <Copy className="w-3.5 h-3.5 mr-2" />
-                        Copy
-                      </Button>
-                      <Button
-                        onClick={shareReferralLink}
-                        disabled={!referralLink || isSharing}
-                        className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
-                      >
-                        {isSharing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5 mr-2" />}
-                        {isSharing ? 'Sharing...' : 'Invite'}
-                      </Button>
-                    </div>
-
-                    {appSettings?.referralRewardEnabled && (
-                      <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
-                        <p className="text-[10px] text-green-400 font-black text-center uppercase tracking-tight italic">
-                          Bonus: {appSettings.referralRewardHrum || 50} Hrum + {appSettings.referralReward || 0.0005} TON on first ad!
-                        </p>
-                      </div>
-                    )}
                   </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
 
       </main>
