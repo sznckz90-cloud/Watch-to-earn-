@@ -57,7 +57,8 @@ export function formatHrumto$(hrumAmount: number | string): string {
 /**
  * Format $values
  */
-export function format$(value: string | number, includeSymbol: boolean = true): string {
+export function format$(value: string | number | undefined | null, includeSymbol: boolean = true): string {
+  if (value === undefined || value === null) return includeSymbol ? '0 TON' : '0';
   const numValue = parseFloat(typeof value === 'string' ? value : value.toString());
   
   if (isNaN(numValue) || !isFinite(numValue)) return includeSymbol ? '0 TON' : '0';
@@ -69,8 +70,9 @@ export function format$(value: string | number, includeSymbol: boolean = true): 
   if (!parts[1]) {
     result = numValue.toString(); // "1"
   } else {
-    // If it has decimals, we show 2 decimals (0.1 -> 0.10, 0.5 -> 0.50, 2.021 -> 2.02)
-    result = numValue.toFixed(2);
+    // If it has decimals, we show up to 4 decimals for crypto precision
+    result = numValue.toFixed(4).replace(/\.?0+$/, "");
+    if (result === "") result = "0";
   }
 
   return `${result}${symbol}`;
