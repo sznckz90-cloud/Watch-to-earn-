@@ -43,12 +43,12 @@ interface AdminStats {
   totalEarnings: string;
   totalWithdrawals: string;
   tonWithdrawn: string;
+  totalAdsWatched: number;
+  todayAdsWatched: number;
   pendingWithdrawals: number;
   successfulWithdrawals: number;
   rejectedWithdrawals: number;
   dailyActiveUsers: number;
-  totalAdsWatched: number;
-  todayAdsWatched: number;
   withdrawalBugRequirementEnabled: boolean;
   ad_section1_reward?: string;
   ad_section1_limit?: string;
@@ -224,6 +224,12 @@ export default function AdminPage() {
                     label="Hrum Earned" 
                     value={formatLargeNumber(parseFloat(stats?.totalEarnings || '0'))} 
                     iconColor="text-[#4cd3ff]"
+                  />
+                  <StatCard 
+                    icon="money-bill-wave" 
+                    label="Total TON Withdrawn" 
+                    value={parseFloat(stats?.tonWithdrawn || '0').toFixed(2) + ' TON'} 
+                    iconColor="text-red-400"
                   />
                 </div>
               </>
@@ -1596,7 +1602,7 @@ function SettingsSection() {
         ad_section1_reward: settings.ad_section1_reward?.toString() || '0.0015',
         ad_section1_limit: settings.ad_section1_limit?.toString() || '250',
         ad_section2_reward: settings.ad_section2_reward?.toString() || '0.0001',
-        ad_section2_limit: settings.ad_section2_limit?.toString() || '250'
+        ad_section2_limit: settings.ad_section2_limit?.toString() || '250',
       };
 
       const res = await apiRequest("PUT", "/api/admin/settings", payload);
@@ -1653,68 +1659,61 @@ function SettingsSection() {
 
       <div className="space-y-3">
         {activeCategory === 'mining' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3 p-4 border rounded-lg bg-[#1a1a1a] border-white/10">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <i className="fas fa-bolt text-amber-400"></i>
-                Booster 1 Settings
-              </h3>
-              <div className="space-y-2">
-                <Label className="text-xs text-gray-400">Reward (+/hour)</Label>
-                <Input 
-                  type="number" 
-                  step="0.0001"
-                  value={settings.ad_section1_reward as string}
-                  onChange={(e) => setSettings({ ...settings, ad_section1_reward: e.target.value })}
-                  className="bg-[#121212] border-white/10 text-white h-9"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-gray-400">Daily Limit (Ads)</Label>
-                <Input 
-                  type="number" 
-                  value={settings.ad_section1_limit as string}
-                  onChange={(e) => setSettings({ ...settings, ad_section1_limit: e.target.value })}
-                  className="bg-[#121212] border-white/10 text-white h-9"
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ad_section1_reward" className="text-sm font-semibold">
+                <i className="fas fa-bolt mr-2 text-amber-500"></i>
+                Booster 1 Reward (+/hour)
+              </Label>
+              <Input
+                id="ad_section1_reward"
+                type="number"
+                step="0.0001"
+                value={settings.ad_section1_reward as string}
+                onChange={(e) => setSettings({ ...settings, ad_section1_reward: e.target.value })}
+                placeholder="0.0015"
+              />
             </div>
-
-            <div className="space-y-3 p-4 border rounded-lg bg-[#1a1a1a] border-white/10">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <i className="fas fa-bolt text-amber-400"></i>
-                Booster 2 Settings
-              </h3>
-              <div className="space-y-2">
-                <Label className="text-xs text-gray-400">Reward (+/hour)</Label>
-                <Input 
-                  type="number" 
-                  step="0.0001"
-                  value={settings.ad_section2_reward as string}
-                  onChange={(e) => setSettings({ ...settings, ad_section2_reward: e.target.value })}
-                  className="bg-[#121212] border-white/10 text-white h-9"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs text-gray-400">Daily Limit (Ads)</Label>
-                <Input 
-                  type="number" 
-                  value={settings.ad_section2_limit as string}
-                  onChange={(e) => setSettings({ ...settings, ad_section2_limit: e.target.value })}
-                  className="bg-[#121212] border-white/10 text-white h-9"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="ad_section1_limit" className="text-sm font-semibold">
+                <i className="fas fa-list-ol mr-2 text-amber-500"></i>
+                Booster 1 Daily Limit (Ads)
+              </Label>
+              <Input
+                id="ad_section1_limit"
+                type="number"
+                value={settings.ad_section1_limit as string}
+                onChange={(e) => setSettings({ ...settings, ad_section1_limit: e.target.value })}
+                placeholder="250"
+              />
             </div>
-
-            <div className="md:col-span-2 flex justify-end">
-              <Button 
-                onClick={handleSaveSettings} 
-                disabled={isSaving}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isSaving ? <i className="fas fa-spinner fa-spin mr-2"></i> : <i className="fas fa-save mr-2"></i>}
-                Save Mining Boost Settings
-              </Button>
+            <div className="space-y-2 border-t pt-3 mt-1 md:col-span-2"></div>
+            <div className="space-y-2">
+              <Label htmlFor="ad_section2_reward" className="text-sm font-semibold">
+                <i className="fas fa-bolt mr-2 text-purple-500"></i>
+                Booster 2 Reward (+/hour)
+              </Label>
+              <Input
+                id="ad_section2_reward"
+                type="number"
+                step="0.0001"
+                value={settings.ad_section2_reward as string}
+                onChange={(e) => setSettings({ ...settings, ad_section2_reward: e.target.value })}
+                placeholder="0.0001"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ad_section2_limit" className="text-sm font-semibold">
+                <i className="fas fa-list-ol mr-2 text-purple-500"></i>
+                Booster 2 Daily Limit (Ads)
+              </Label>
+              <Input
+                id="ad_section2_limit"
+                type="number"
+                value={settings.ad_section2_limit as string}
+                onChange={(e) => setSettings({ ...settings, ad_section2_limit: e.target.value })}
+                placeholder="250"
+              />
             </div>
           </div>
         )}
