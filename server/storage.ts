@@ -1417,10 +1417,11 @@ export class DatabaseStorage implements IStorage {
 
       // Apply reward based on type and currency
       if (rewardType === 'Hrum') {
+        const hrumReward = rewardAmount; // Use exact amount
         await tx.update(users)
           .set({ 
-            balance: sql`COALESCE(${users.balance}, 0) + ${rewardAmount}`,
-            totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${rewardAmount}`,
+            balance: sql`COALESCE(${users.balance}, 0) + ${hrumReward}`,
+            totalEarnings: sql`COALESCE(${users.totalEarnings}, 0) + ${hrumReward}`,
             updatedAt: new Date()
           })
           .where(eq(users.id, userId));

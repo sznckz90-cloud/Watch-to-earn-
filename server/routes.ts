@@ -3354,6 +3354,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         minimumConvertPadToBug: parseInt(getSetting('minimum_convert_pad_to_bug', '1000')),
         bugPerUsd: parseInt(getSetting('bug_per_usd', '10000')),
         withdrawalBugRequirementEnabled: getSetting('withdrawal_bug_requirement_enabled', 'true') === 'true',
+        ad_section1_reward: getSetting('ad_section1_reward', '0.0015'),
+        ad_section1_limit: getSetting('ad_section1_limit', '250'),
+        ad_section2_reward: getSetting('ad_section2_reward', '0.0001'),
+        ad_section2_limit: getSetting('ad_section2_limit', '250'),
         withdrawalPackages: JSON.parse(getSetting('withdrawal_packages', '[{"usd":0.2,"bug":2000},{"usd":0.4,"bug":4000},{"usd":0.8,"bug":8000}]')),
       });
     } catch (error) {
@@ -3416,7 +3420,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         padToBugRate: 'hrum_to_bug_rate',
         minimumConvertPadToBug: 'minimum_convert_pad_to_bug',
         bugPerUsd: 'bug_per_usd',
-        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled'
+        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled',
+        ad_section1_reward: 'ad_section1_reward',
+        ad_section1_limit: 'ad_section1_limit',
+        ad_section2_reward: 'ad_section2_reward',
+        ad_section2_limit: 'ad_section2_limit'
       };
 
       for (const [feKey, dbKey] of Object.entries(settingMap)) {
@@ -3494,7 +3502,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         padToBugRate: 'hrum_to_bug_rate',
         minimumConvertPadToBug: 'minimum_convert_pad_to_bug',
         bugPerUsd: 'bug_per_usd',
-        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled'
+        withdrawalBugRequirementEnabled: 'withdrawal_bug_requirement_enabled',
+        ad_section1_reward: 'ad_section1_reward',
+        ad_section1_limit: 'ad_section1_limit',
+        ad_section2_reward: 'ad_section2_reward',
+        ad_section2_limit: 'ad_section2_limit'
       };
 
       for (const [feKey, dbKey] of Object.entries(settingMap)) {
