@@ -218,10 +218,10 @@ export default function Profile() {
               <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">TON APP BALANCE</p>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    <img src="/images/ton.png" alt="TON" className="w-full h-full object-contain" />
+                  <div className="w-5 h-5 rounded-full bg-[#1a1a1a] border border-white/5 flex items-center justify-center overflow-hidden shadow-inner">
+                    <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover scale-110" />
                   </div>
-                  <p className="text-lg font-black text-[#B9FF66]">{(user as any)?.tonAppBalance || "0.0000"}</p>
+                  <p className="text-lg font-black text-[#B9FF66]">{format$((user as any)?.tonAppBalance || "0", false)}</p>
                 </div>
                 <Button 
                   size="sm" 

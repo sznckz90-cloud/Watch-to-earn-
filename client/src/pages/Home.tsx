@@ -191,7 +191,7 @@ export default function Home() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
-      showNotification(`+${parseFloat(data.amount).toFixed(2)} Hrum claimed from mining!`, "success");
+      showNotification(`+${Number(parseFloat(data.amount).toFixed(2)).toString()} Hrum claimed from mining!`, "success");
     },
     onError: (error: any) => {
       showNotification(error.message, "error");

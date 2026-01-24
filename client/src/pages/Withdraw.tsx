@@ -126,8 +126,8 @@ export default function Withdraw() {
           <div className="space-y-1">
             <p className="text-[#D1D5DB] text-[10px] font-bold tracking-wider uppercase">BALANCE</p>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30">
-                <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+              <div className="w-8 h-8 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30 shadow-inner">
+                <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover scale-110" />
               </div>
               <div className="flex items-center gap-1.5 pt-0.5">
                 <span className="text-3xl font-bold leading-none">{formatTon(tonBalance)}</span>
@@ -191,8 +191,8 @@ export default function Withdraw() {
                       <span className="text-sm font-bold text-white">
                         {withdrawAmount ? (parseFloat(withdrawAmount) - networkFee > 0 ? (parseFloat(withdrawAmount) - networkFee).toFixed(4) : "0.0000") : "0.0000"}
                       </span>
-                      <div className="w-6 h-6 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30">
-                        <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+                      <div className="w-6 h-6 rounded-full bg-[#3D1F00] flex items-center justify-center overflow-hidden border border-[#B34700]/30 shadow-inner">
+                        <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover scale-110" />
                       </div>
                     </div>
                   </div>

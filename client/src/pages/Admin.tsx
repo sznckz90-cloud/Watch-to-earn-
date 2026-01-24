@@ -12,7 +12,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import Layout from "@/components/Layout";
 import { Link } from "wouter";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, format$ } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Crown } from "lucide-react";
@@ -160,20 +160,26 @@ export default function AdminPage() {
 
         {/* Tabs Navigation - Move to Top */}
         <Tabs defaultValue="summary" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full mb-3">
-            <TabsTrigger value="summary" className="text-xs">
+          <TabsList className="grid grid-cols-7 w-full mb-3">
+            <TabsTrigger value="summary" className="text-[10px] px-1">
               Summary
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="text-xs">
+            <TabsTrigger value="tasks" className="text-[10px] px-1">
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="users" className="text-xs">
+            <TabsTrigger value="users" className="text-[10px] px-1">
               Users
             </TabsTrigger>
-            <TabsTrigger value="promos" className="text-xs">
+            <TabsTrigger value="promos" className="text-[10px] px-1">
               Promos
             </TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs">
+            <TabsTrigger value="withdrawals" className="text-[10px] px-1">
+              Withdrawals
+            </TabsTrigger>
+            <TabsTrigger value="bans" className="text-[10px] px-1">
+              Bans
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="text-[10px] px-1">
               Settings
             </TabsTrigger>
           </TabsList>
@@ -239,15 +245,15 @@ export default function AdminPage() {
             <PromoCreatorSection />
           </TabsContent>
 
-          {/* Payout Logs Tab - REMOVED */}
-          {/* <TabsContent value="payouts" className="mt-0">
+          {/* Payout Logs Tab */}
+          <TabsContent value="withdrawals" className="mt-0">
             <PayoutLogsSection data={payoutLogsData} />
-          </TabsContent> */}
+          </TabsContent>
 
-          {/* Ban Logs Tab - REMOVED AS REQUESTED */}
-          {/* <TabsContent value="bans" className="mt-0">
+          {/* Ban Logs Tab */}
+          <TabsContent value="bans" className="mt-0">
             <BanLogsSection />
-          </TabsContent> */}
+          </TabsContent>
           
           <TabsContent value="settings" className="mt-0">
             <SettingsSection />
@@ -557,8 +563,8 @@ function UserProfileTabs({ user: initialUser, onClose }: { user: any; onClose: (
             <p className="text-xs text-muted-foreground mb-2">Balances</p>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div><p className="text-xs text-muted-foreground">Hrum</p><p className="font-bold text-[#4cd3ff]">{formatHrum(user.balance)}</p></div>
-              <div><p className="text-xs text-muted-foreground">TON (W)</p><p className="font-bold text-purple-400">{parseFloat(user.tonBalance || '0').toFixed(4)}</p></div>
-              <div><p className="text-xs text-muted-foreground">TON (A)</p><p className="font-bold text-blue-400">{parseFloat(user.tonAppBalance || '0').toFixed(4)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON (W)</p><p className="font-bold text-purple-400">{format$(user.tonBalance || '0', false)}</p></div>
+              <div><p className="text-xs text-muted-foreground">TON (A)</p><p className="font-bold text-blue-400">{format$(user.tonAppBalance || '0', false)}</p></div>
               <div><p className="text-xs text-muted-foreground">BUG</p><p className="font-bold text-green-400" >{parseFloat(user.bugBalance || '0').toFixed(2)}</p></div>
             </div>
           </div>
@@ -567,7 +573,7 @@ function UserProfileTabs({ user: initialUser, onClose }: { user: any; onClose: (
             <p className="text-xs text-muted-foreground mb-2">Earnings</p>
             <div className="grid grid-cols-2 gap-2">
               <div><p className="text-xs text-muted-foreground">Total Earned</p><p className="font-bold text-emerald-400">{formatHrum(user.totalEarned)} Hrum</p></div>
-              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >{parseFloat(user.totalWithdrawn || '0').toFixed(2)} TON</p></div>
+              <div><p className="text-xs text-muted-foreground">Total Withdrawn</p><p className="font-bold text-amber-400" >{format$(user.totalWithdrawn || '0', false)}</p></div>
             </div>
           </div>
 
