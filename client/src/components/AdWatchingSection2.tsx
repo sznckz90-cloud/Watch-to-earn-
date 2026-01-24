@@ -19,10 +19,9 @@ declare global {
 
 interface AdWatchingSectionProps {
   user: any;
-  section?: 'section1' | 'section2';
 }
 
-export default function AdWatchingSection({ user, section = 'section1' }: AdWatchingSectionProps) {
+export default function AdWatchingSection({ user }: AdWatchingSectionProps) {
   const queryClient = useQueryClient();
   const [isShowingAds, setIsShowingAds] = useState(false);
   const [currentAdStep, setCurrentAdStep] = useState<'idle' | 'monetag' | 'adsgram' | 'verifying'>('idle');
@@ -41,7 +40,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
 
   const watchAdMutation = useMutation({
     mutationFn: async (adType: string) => {
-      const response = await apiRequest("POST", "/api/ads/watch", { adType, section });
+      const response = await apiRequest("POST", "/api/ads/watch", { adType });
       if (!response.ok) {
         const error = await response.json();
         throw { status: response.status, ...error };
@@ -49,17 +48,21 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
       return response.json();
     },
     onSuccess: async (data) => {
-      const rewardAmount = data?.rewardBoost || (section === 'section1' ? 0.0015 : 0.0001);
-      showNotification(`+${rewardAmount} Mining speed boost earned!`, "success");
+      const rewardAmount = data?.rewardHrum || appSettings?.rewardPerAd || 2;
+      showNotification(`+${rewardAmount} Hrum earned!`, "success");
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/earnings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/withdrawal-eligibility"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/referrals/valid-count"] });
     },
     onError: (error: any) => {
       sessionRewardedRef.current = false;
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       
       if (error.status === 429) {
-        showNotification(`Daily ad limit reached`, "error");
+        const limit = error.limit || appSettings?.dailyAdLimit || 50;
+        showNotification(`Daily ad limit reached (${limit} ads/day)`, "error");
       } else if (error.status === 401 || error.status === 403) {
         showNotification("Authentication error. Please refresh the page.", "error");
       } else if (error.message) {
@@ -186,13 +189,11 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     }
   };
 
-  const adsWatchedToday = section === 'section1' ? (user?.adSection1Count || 0) : (user?.adSection2Count || 0);
-  const dailyLimit = section === 'section1' 
-    ? (parseInt(appSettings?.ad_section1_limit || '250')) 
-    : (parseInt(appSettings?.ad_section2_limit || '250'));
+  const adsWatchedToday = user?.adsWatchedToday || 0;
+  const dailyLimit = appSettings?.dailyAdLimit || 50;
 
   return (
-    <div className="bg-[#1a1a1a] border border-[#B9FF66]/20 rounded-2xl px-4 h-24 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
+    <div className="bg-[#1a1a1a] border border-[#B9FF66]/20 rounded-2xl px-4 h-20 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
       {/* Background Glow Effect */}
       <div className="absolute -inset-1 bg-gradient-to-r from-[#B9FF66]/0 via-[#B9FF66]/5 to-[#B9FF66]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
@@ -206,18 +207,12 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-white font-black text-[13px] tracking-tight truncate uppercase italic">{section === 'section1' ? 'Speed Booster 1' : 'Speed Booster 2'}</h3>
-            <div className="flex flex-col gap-0.5 mt-0.5">
+            <h3 className="text-white font-black text-[13px] tracking-tight truncate uppercase italic">Daily Rewards</h3>
+            <div className="flex items-center gap-2 mt-0.5">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#B9FF66] shadow-[0_0_8px_#B9FF66]" />
                 <span className="text-[11px] font-black text-[#B9FF66] uppercase tracking-widest">
-                  {section === 'section1' ? user?.adSection1Count || 0 : user?.adSection2Count || 0} ads watched
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
-                  Daily Limit: {adsWatchedToday}/{dailyLimit}
+                  {adsWatchedToday}/{dailyLimit} ads
                 </span>
               </div>
             </div>

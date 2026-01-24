@@ -98,22 +98,22 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
                   </div>
                 )}
 
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">App Balance Investment</Label>
-                    <span className="text-[#8E8E93] text-[10px] font-bold uppercase tracking-widest">App Bal: {parseFloat(tonAppBalance).toFixed(3)} TON</span>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">App Balance Investment</Label>
+                      <span className="text-[#8E8E93] text-[10px] font-bold uppercase tracking-widest">App Bal: {parseFloat(tonAppBalance).toFixed(3)} TON</span>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        value={tonAmount}
+                        onChange={(e) => setTonAmount(e.target.value)}
+                        className="bg-[#1a1a1a] border-white/5 text-white h-12 rounded-xl focus:ring-[#B9FF66] font-bold"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#B9FF66] uppercase">TON</div>
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={tonAmount}
-                      onChange={(e) => setTonAmount(e.target.value)}
-                      className="bg-[#1a1a1a] border-white/5 text-white h-12 rounded-xl focus:ring-[#B9FF66] font-bold"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#B9FF66] uppercase">TON</div>
-                  </div>
-                </div>
 
                 <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-3">
                   <div className="flex justify-between items-center">
