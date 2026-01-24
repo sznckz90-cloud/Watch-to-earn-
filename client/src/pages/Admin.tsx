@@ -284,7 +284,7 @@ export default function AdminPage() {
                 <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Ad Mining Boosts</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Section 1 Boost (+/hour)</Label>
+                    <Label className="text-xs text-gray-400">Speed Booster 1 Reward (+/hour)</Label>
                     <Input 
                       type="number" 
                       step="0.0001"
@@ -294,7 +294,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Section 1 Daily Limit</Label>
+                    <Label className="text-xs text-gray-400">Speed Booster 1 Daily Limit</Label>
                     <Input 
                       type="number" 
                       defaultValue="250"
@@ -303,7 +303,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Section 2 Boost (+/hour)</Label>
+                    <Label className="text-xs text-gray-400">Speed Booster 2 Reward (+/hour)</Label>
                     <Input 
                       type="number" 
                       step="0.0001"
@@ -313,7 +313,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs text-gray-400">Section 2 Daily Limit</Label>
+                    <Label className="text-xs text-gray-400">Speed Booster 2 Daily Limit</Label>
                     <Input 
                       type="number" 
                       defaultValue="250"
