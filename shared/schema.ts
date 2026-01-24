@@ -101,6 +101,11 @@ export const users = pgTable("users", {
   // Mandatory channel/group join verification
   isChannelGroupVerified: boolean("is_channel_group_verified").default(false),
   lastMembershipCheck: timestamp("last_membership_check"),
+  // Ad boost tracking
+  adSection1Boost: decimal("ad_section1_boost", { precision: 20, scale: 8 }).default("0"),
+  adSection2Boost: decimal("ad_section2_boost", { precision: 20, scale: 8 }).default("0"),
+  adSection1Count: integer("ad_section1_count").default(0),
+  adSection2Count: integer("ad_section2_count").default(0),
   // Mining fields
   lastMiningClaim: timestamp("last_mining_claim").defaultNow(),
   miningRate: decimal("mining_rate", { precision: 20, scale: 8 }).default("0.00001"), // Hrum per second
