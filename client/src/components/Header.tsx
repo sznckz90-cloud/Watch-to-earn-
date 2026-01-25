@@ -42,13 +42,13 @@ export default function Header() {
   const photoUrl = telegramPhotoUrl || user?.profileImageUrl || user?.profileUrl || null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-40 bg-[#1A0D00] border-b border-[#B34700]/30 pt-[max(env(safe-area-inset-top),20px)]">
+    <div className="fixed top-0 left-0 right-0 z-40 bg-black/95 border-b border-white/5 pt-[max(env(safe-area-inset-top),20px)]">
       <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* Profile Photo */}
           <div 
-            className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-[#B34700]/30 bg-[#261400] ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
-            onClick={() => isAdmin && setLocation("/admin")}
+            className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-white/10 bg-[#1a1a1a] ${isAdmin ? 'cursor-pointer hover:opacity-80' : ''}`}
+            onClick={() => setLocation("/profile")}
           >
             {photoUrl ? (
               <img 
@@ -61,7 +61,7 @@ export default function Header() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 bg-[#261400] px-3 h-8 rounded-lg border border-[#B34700]/30 min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {formatBalance(hrumBalance)}
             </span>
@@ -74,7 +74,7 @@ export default function Header() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-[#261400] px-3 h-8 rounded-lg border border-[#B34700]/30 min-w-[75px] shadow-sm">
+          <div className="flex items-center gap-2 bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 min-w-[75px] shadow-sm">
             <span className="text-sm text-white font-bold tracking-tight">
               {tonBalance.toFixed(2)}
             </span>
@@ -90,15 +90,15 @@ export default function Header() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-[#261400] border border-[#B34700]/30">
+            <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-white/5">
               <Languages className="w-4 h-4 text-white" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-[#261400] border-[#B34700]/30 text-white">
-            <DropdownMenuItem onClick={() => setLanguage('en')} className="hover:bg-[#3D1F00]">
+          <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-white/5 text-white">
+            <DropdownMenuItem onClick={() => setLanguage('en')} className="hover:bg-white/5">
               {t('english')}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLanguage('ru')} className="hover:bg-[#3D1F00]">
+            <DropdownMenuItem onClick={() => setLanguage('ru')} className="hover:bg-white/5">
               {t('russian')}
             </DropdownMenuItem>
           </DropdownMenuContent>

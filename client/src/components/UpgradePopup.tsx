@@ -67,53 +67,39 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/95 backdrop-blur-sm">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-[#0d0d0d] w-full max-w-sm rounded-[24px] border border-white/5 overflow-hidden shadow-2xl"
+            className="bg-black/95 w-full max-w-sm rounded-[24px] border border-white/5 overflow-hidden shadow-2xl"
           >
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-[#B9FF66]/10 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-[#B9FF66]" />
-                  </div>
                   <h2 className="text-xl font-black text-white uppercase tracking-tight">Boost Mining</h2>
                 </div>
               </div>
 
               <div className="space-y-4">
-                {/* Active Boosts Section */}
-                {tonAppBalance && (
-                  <div className="space-y-2">
-                    <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Active Boosts</Label>
-                    <div className="max-h-[120px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                      {/* We'll pass activeBoosts via props or fetch inside, for now let's assume it's handled or we'll show a placeholder if we can't easily pass it. 
-                          Actually, better to update the parent Home.tsx to show the list, but we can add it here too if we update the component.
-                      */}
-                      <div className="text-[10px] text-[#8E8E93] font-bold uppercase">Multiple boosts can be active simultaneously</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">Available Balance</Label>
+                    <span className="text-[#8E8E93] text-[10px] font-bold uppercase tracking-widest">App Bal: {parseFloat(tonAppBalance).toFixed(3)} TON</span>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={tonAmount}
+                      onChange={(e) => setTonAmount(e.target.value)}
+                      className="bg-[#1a1a1a] border-white/5 text-white h-12 rounded-xl focus:ring-[#B9FF66] font-bold"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5">
+                      <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover rounded-full" />
                     </div>
                   </div>
-                )}
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">App Balance Investment</Label>
-                      <span className="text-[#8E8E93] text-[10px] font-bold uppercase tracking-widest">App Bal: {parseFloat(tonAppBalance).toFixed(3)} TON</span>
-                    </div>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={tonAmount}
-                        onChange={(e) => setTonAmount(e.target.value)}
-                        className="bg-[#1a1a1a] border-white/5 text-white h-12 rounded-xl focus:ring-[#B9FF66] font-bold"
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-[#B9FF66] uppercase">TON</div>
-                    </div>
-                  </div>
+                </div>
 
                 <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-3">
                   <div className="flex justify-between items-center">
@@ -163,7 +149,7 @@ export default function UpgradePopup({ isOpen, onClose, tonAppBalance }: Upgrade
                 <Button
                   onClick={handleBoost}
                   disabled={upgradeMutation.isPending || amount <= 0}
-                  className="w-full h-12 bg-[#B9FF66] hover:bg-[#a8e655] text-black font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 disabled:opacity-50"
+                  className="w-full h-12 bg-white hover:bg-white/90 text-black font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 disabled:opacity-50"
                 >
                   {upgradeMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm & Boost Mining"}
                 </Button>

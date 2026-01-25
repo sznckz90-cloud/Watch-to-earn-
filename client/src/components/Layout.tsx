@@ -140,8 +140,8 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Modern Floating Bottom Navigation */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-auto">
-        <nav className="bg-[#141414]/90 backdrop-blur-2xl border border-white/10 rounded-[32px] px-3 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
-          <div className="flex items-center gap-4 h-14 px-2">
+        <nav className="bg-[#141414]/90 backdrop-blur-2xl border border-white/10 rounded-full px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center gap-2 h-12 px-1 justify-center">
             {navItems.map((item) => {
               const isActive = location === item.href;
               const Icon = item.icon;
@@ -149,15 +149,15 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <button
-                    className="relative flex items-center justify-center transition-all duration-500"
+                    className="relative flex items-center justify-center transition-all duration-300"
                   >
-                    <div className={`flex items-center gap-2.5 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                    <div className={`flex items-center gap-2 transition-all duration-300 ease-out ${
                       isActive 
-                        ? "bg-[#B9FF66] text-black px-6 py-2.5 rounded-[20px] shadow-[0_0_20px_rgba(185,255,102,0.3)]" 
-                        : "text-[#555] hover:text-[#888] px-4 py-2.5"
+                        ? "bg-white text-black px-5 py-2 rounded-full shadow-lg" 
+                        : "text-gray-500 hover:text-gray-300 px-4 py-2"
                     }`}>
-                      <Icon className={`${isActive ? "w-5 h-5" : "w-6 h-6"} transition-transform duration-500`} isActive={isActive} />
-                      <span className={`text-[11px] font-black uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-500 ${isActive ? "max-w-[100px] opacity-100" : "max-w-0 opacity-0"}`}>
+                      <Icon className={`${isActive ? "w-4 h-4" : "w-5 h-5"} transition-transform duration-300`} isActive={isActive} />
+                      <span className={`text-[10px] font-black uppercase tracking-wider whitespace-nowrap overflow-hidden transition-all duration-300 ${isActive ? "max-w-[80px] opacity-100" : "max-w-0 opacity-0"}`}>
                         {item.label}
                       </span>
                     </div>
