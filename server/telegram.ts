@@ -216,11 +216,11 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
 
     if (action === 'success') {
       const { storage: storageInstance } = await import('./storage');
-      await storageInstance.updateDepositStatus(depositId, 'completed');
+      await storageInstance.updateWithdrawalStatus(depositId, 'completed');
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${format$(deposit.amount)} TON has been approved and added to your balance!`);
+        await sendUserTelegramNotification(user.telegram_id, `✅ Your withdrawal of ${format$(deposit.amount)} TON has been approved and sent to your wallet!`);
       }
 
       const updatedText = message.text + "\n\n✅ <b>Status: APPROVED</b>";
@@ -236,11 +236,11 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
       });
     } else if (action === 'failed') {
       const { storage: storageInstance } = await import('./storage');
-      await storageInstance.updateDepositStatus(depositId, 'failed');
+      await storageInstance.updateWithdrawalStatus(depositId, 'failed');
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${format$(deposit.amount)} TON was rejected by admin.`);
+        await sendUserTelegramNotification(user.telegram_id, `❌ Your withdrawal of ${format$(deposit.amount)} TON was rejected by admin. The amount has been returned to your balance.`);
       }
 
       const updatedText = message.text + "\n\n❌ <b>Status: REJECTED</b>";
@@ -573,13 +573,10 @@ export function formatWelcomeMessage(): { message: string; inlineKeyboard: any }
   const channelUrl = 'https://t.me/MoneyAdz';
   const groupUrl = 'https://t.me/MoneyAdzChat';
   
-  const message = `✋🏻 Stop wasting time on useless hash mining.
-Start earning real rewards today.
-
-Money $HRUM is a mining app where you buy a plan, mine $HRUM directly in the app, convert it to $TON, and withdraw to your wallet — no waiting, no fake hype. 💸
-
-Mine smarter.
-Earn real $TON. 🚀`;
+  const message = `👋 Hey! Welcome, glad to have you here.\n\n` +
+                 `Start mining HRUM directly in the app and earn effortlessly.\n\n` +
+                 `Convert your mined HRUM into TON anytime and withdraw securely.\n\n` +
+                 `Invite your friends and earn 20% of their mining income.`;
 
   const inlineKeyboard = {
     inline_keyboard: [
@@ -591,13 +588,11 @@ Earn real $TON. 🚀`;
       ],
       [
         {
-          text: "🤝 Channel",
+          text: "📢 Channel",
           url: channelUrl
-        }
-      ],
-      [
+        },
         {
-          text: "💬 Group Chat",
+          text: "💬 Group",
           url: groupUrl
         }
       ]

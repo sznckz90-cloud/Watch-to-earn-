@@ -468,7 +468,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user?.user;
       if (!user) return res.status(401).json({ message: "Not authenticated" });
       const { amount, address } = req.body;
-      const result = await storage.createPayoutRequest(user.id, amount.toString(), 'ton_coin', address);
+      
+      const tonBalance = parseFloat(user.tonBalance || "0");
+      const withdrawAmount = parseFloat(String(amount));
+      
+      if (withdrawAmount > tonBalance) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      const result = await storage.createPayoutRequest(user.id, withdrawAmount.toString(), 'ton_coin', address);
       if (!result.success) return res.status(400).json({ message: result.message });
       res.json(result);
     } catch (error) {

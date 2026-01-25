@@ -1827,16 +1827,43 @@ export class DatabaseStorage implements IStorage {
     
     const [result] = await db.update(withdrawals).set(updateData).where(eq(withdrawals.id, withdrawalId)).returning();
     
-    // Log transaction if approved
-    if (status === 'approved' || status === 'completed' || status === 'success') {
-      await this.logTransaction({
-        userId: result.userId,
-        amount: result.amount,
-        type: 'deduction',
-        source: 'withdrawal',
-        description: `Withdrawal ${status}`,
-        metadata: { withdrawalId: result.id }
-      });
+    // If withdrawal is approved, deduct balance now
+    if (status === 'approved' || status === 'completed' || status === 'success' || status === 'Approved') {
+      console.log(`💰 Deducting balance for approved withdrawal ${withdrawalId} from user ${result.userId}`);
+      
+      const user = await this.getUser(result.userId);
+      if (user) {
+        const withdrawalAmount = parseFloat(result.amount);
+        const currentTonBalance = parseFloat(user.tonBalance || "0");
+        const currentWithdrawBalance = parseFloat(user.withdrawBalance || "0");
+        
+        // Update user balances in users table
+        await db.update(users)
+          .set({
+            tonBalance: (currentTonBalance - withdrawalAmount).toFixed(10),
+            withdrawBalance: (currentWithdrawBalance - withdrawalAmount).toFixed(10),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, result.userId));
+
+        // Update user_balances table
+        await db.update(userBalances)
+          .set({
+            balance: sql`COALESCE(${userBalances.balance}, 0) - ${result.amount}`,
+            updatedAt: new Date(),
+          })
+          .where(eq(userBalances.userId, result.userId));
+          
+        // Log transaction for the deduction
+        await this.logTransaction({
+          userId: result.userId,
+          amount: result.amount,
+          type: 'deduction',
+          source: 'withdrawal',
+          description: `Withdrawal ${status}`,
+          metadata: { withdrawalId: result.id }
+        });
+      }
     }
     
     return result;
