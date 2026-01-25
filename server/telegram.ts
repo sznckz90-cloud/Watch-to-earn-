@@ -463,7 +463,15 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
     // Notify user (TYPE 1 ✅)
     const userMessage = `🚀 Your payout has been successfully processed.\n\n💵 Amount: ${format$(netAmount)} TON\n🛂 Fee: ${format$(feeAmount)} TON (${feePercent}%)\n\n[💬 Join Chat]\nhttps://t.me/MoneyAdzChat`;
     
-    await sendUserTelegramNotification(userTelegramId, userMessage);
+    const replyMarkup = {
+      inline_keyboard: [
+        [
+          { text: "💬 Join Chat", url: "https://t.me/MoneyAdzChat" }
+        ]
+      ]
+    };
+
+    await sendUserTelegramNotification(userTelegramId, userMessage, replyMarkup);
 
     // Group notification
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
