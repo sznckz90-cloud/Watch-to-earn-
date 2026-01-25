@@ -20,7 +20,9 @@ import {
   Languages,
   X,
   History,
-  Wallet
+  Wallet,
+  UserPlus,
+  Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -271,8 +273,6 @@ export default function Profile() {
             Top Up
           </Button>
         </div>
-      </main>
-
         {/* Settings Groups */}
         <div className="space-y-4">
           <section>
@@ -430,7 +430,7 @@ export default function Profile() {
           onOpenChange={setIsWithdrawOpen}
           tonBalance={Number((user as any)?.tonAppBalance) || 0}
         />
-      </div>
+      </main>
     </Layout>
   );
 }
