@@ -389,6 +389,44 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+export async function sendWithdrawalRequestNotification(withdrawal: any, user: any): Promise<boolean> {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_ADMIN_ID) {
+    console.error('❌ Telegram bot token or admin ID not configured for withdrawal request notification');
+    return false;
+  }
+
+  try {
+    const netAmount = parseFloat(withdrawal.amount);
+    const feeAmount = parseFloat((withdrawal.details as any)?.fee || '0');
+    const feePercent = (withdrawal.details as any)?.feePercent || '0';
+    const walletAddress = (withdrawal.details as any)?.paymentDetails || (withdrawal.details as any)?.walletAddress || 'N/A';
+    
+    const userName = user?.firstName || user?.username || 'Unknown';
+    const userTelegramId = user?.telegram_id || '';
+    const userTelegramUsername = user?.username ? `@${user.username}` : 'N/A';
+    const currentDate = new Date().toUTCString();
+
+    const message = `💰 <b>Withdrawal Request</b>\n\n` +
+                 `🗣 User: ${escapeHtml(userName)}\n` +
+                 `🆔 User ID: <code>${userTelegramId}</code>\n` +
+                 `💳 Username: ${userTelegramUsername}\n` +
+                 `🌐 Address:\n<code>${walletAddress}</code>\n` +
+                 `💸 Amount: ${format$(netAmount)} TON\n` +
+                 `🛂 Fee: ${format$(feeAmount)} (${feePercent}%)\n` +
+                 `📅 Date: ${currentDate}\n` +
+                 `🤖 Bot: @MoneyHrumbot`;
+
+    const result = await sendUserTelegramNotification(TELEGRAM_ADMIN_ID, message);
+    if (!result) {
+      console.error(`❌ Failed to send withdrawal request notification to admin ${TELEGRAM_ADMIN_ID}`);
+    }
+    return result;
+  } catch (error) {
+    console.error('❌ Error sending withdrawal request notification:', error);
+    return false;
+  }
+}
+
 export async function sendWithdrawalApprovedNotification(withdrawal: any): Promise<boolean> {
   if (!TELEGRAM_BOT_TOKEN) {
     console.error('❌ Telegram bot token not configured for withdrawal approval notification');
@@ -422,21 +460,12 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
 📅 Date: ${currentDate}
 🤖 Bot: @MoneyHrumbot`;
 
-    // Notify user
-    const userMessage = `🚀 Your payout has been successfully processed.\n\n💵 Amount: ${format$(netAmount)} TON\n🛂 Fee: ${format$(feeAmount)} TON (${feePercent}%)`;
-    const userKeyboard = {
-      inline_keyboard: [[
-        { text: "💬 Join Chat", url: "https://t.me/MoneyAdzChat" }
-      ]]
-    };
-    await sendUserTelegramNotification(userTelegramId, userMessage, userKeyboard);
+    // Notify user (TYPE 1 ✅)
+    const userMessage = `🚀 Your payout has been successfully processed.\n\n💵 Amount: ${format$(netAmount)} TON\n🛂 Fee: ${format$(feeAmount)} TON (${feePercent}%)\n\n[💬 Join Chat]\nhttps://t.me/MoneyAdzChat`;
+    
+    await sendUserTelegramNotification(userTelegramId, userMessage);
 
-    // Notify admin
-    const adminId = process.env.TELEGRAM_ADMIN_ID;
-    if (adminId) {
-      await sendUserTelegramNotification(adminId, `🔔 Withdrawal approved for user ${userTelegramId}\nAmount: ${format$(netAmount)} TON`);
-    }
-
+    // Group notification
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

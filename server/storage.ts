@@ -1968,6 +1968,8 @@ export class DatabaseStorage implements IStorage {
       
       // Send group notification for approval
       try {
+        // sendWithdrawalApprovedNotification now handles both user notification (Type 1) 
+        // and group notification. Admin notification is disabled.
         const { sendWithdrawalApprovedNotification } = require('./telegram');
         await sendWithdrawalApprovedNotification(updatedWithdrawal);
       } catch (notifyError) {

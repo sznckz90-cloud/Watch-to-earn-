@@ -456,6 +456,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: result.message });
       }
 
+      // Send real-time notification to admin
+      try {
+        const { sendWithdrawalRequestNotification } = await import("./telegram");
+        const fullUser = await storage.getUser(user.id);
+        const withdrawal = await storage.getWithdrawal(result.withdrawalId);
+        if (fullUser && withdrawal) {
+          await sendWithdrawalRequestNotification(withdrawal, fullUser);
+        }
+      } catch (notifyError) {
+        console.error("Failed to send withdrawal request notification:", notifyError);
+      }
+
       res.json(result);
     } catch (error) {
       console.error("Withdrawal request error:", error);
@@ -478,6 +490,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await storage.createPayoutRequest(user.id, withdrawAmount.toString(), 'ton_coin', address);
       if (!result.success) return res.status(400).json({ message: result.message });
+
+      // Send real-time notification to admin
+      try {
+        const { sendWithdrawalRequestNotification } = await import("./telegram");
+        const fullUser = await storage.getUser(user.id);
+        const withdrawal = await storage.getWithdrawal(result.withdrawalId);
+        if (fullUser && withdrawal) {
+          await sendWithdrawalRequestNotification(withdrawal, fullUser);
+        }
+      } catch (notifyError) {
+        console.error("Failed to send withdrawal request notification:", notifyError);
+      }
+
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
