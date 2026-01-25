@@ -288,6 +288,10 @@ export default function Home() {
     },
   });
 
+  const [promoCode, setPromoCode] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [isClaimingStreak, setIsClaimingStreak] = useState(false);
+
   const claimStreakMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/streak/claim");
@@ -1112,7 +1116,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-4 pb-24 overflow-y-auto">
+      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto">
         {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
@@ -1249,7 +1253,7 @@ export default function Home() {
                         <div key={boost.id} className="bg-white/5 rounded-xl p-3 border border-white/5 flex justify-between items-center">
                           <div className="space-y-0.5 text-left">
                             <div className="text-white text-[10px] font-black uppercase tracking-tight">Mining Boost</div>
-                            <div className="text-[#B9FF66] text-[9px] font-bold">+{boost.miningRate} HRUM/h</div>
+                            <div className="text-white text-[9px] font-bold">+{boost.miningRate} HRUM/h</div>
                           </div>
                           <div className="text-right">
                             <div className="text-[#8E8E93] text-[8px] font-black uppercase tracking-widest">Expires In</div>
@@ -1337,7 +1341,7 @@ export default function Home() {
                   <Button
                     onClick={copyReferralLink}
                     disabled={!referralLink}
-                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                    className="bg-white hover:bg-white/90 text-black rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-white/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
                   >
                     <Copy className="w-3.5 h-3.5 mr-2" />
                     Copy
@@ -1345,7 +1349,7 @@ export default function Home() {
                   <Button
                     onClick={shareReferralLink}
                     disabled={!referralLink || isSharing}
-                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                    className="bg-white hover:bg-white/90 text-black rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-white/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
                   >
                     {isSharing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5 mr-2" />}
                     {isSharing ? 'Sharing...' : 'Invite'}

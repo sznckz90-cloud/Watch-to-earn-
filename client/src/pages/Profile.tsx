@@ -281,6 +281,11 @@ export default function Profile() {
                 value={languages.find(l => l.code === language)?.name}
                 onClick={() => setIsLanguageOpen(true)}
               />
+              <ProfileItem 
+                icon={<Languages className="w-4 h-4 text-blue-400" />} 
+                label="Switch Language" 
+                onClick={() => setIsLanguageOpen(true)}
+              />
               {(user as any)?.isAdmin && (
                 <ProfileItem 
                   icon={<ShieldCheck className="w-4 h-4 text-red-500" />} 
