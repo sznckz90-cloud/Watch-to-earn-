@@ -1222,7 +1222,7 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="mine" className="mt-0 outline-none">
-              <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
+              <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-1">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
                   <div className="flex items-center gap-1.5">

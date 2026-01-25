@@ -180,79 +180,98 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="flex flex-col h-full bg-transparent text-white p-4 space-y-4 pb-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-white/5 flex items-center justify-center overflow-hidden">
-              {typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url ? (
-                <img 
-                  src={(window as any).Telegram.WebApp.initDataUnsafe.user.photo_url} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                    if (e.target instanceof HTMLElement && e.target.parentElement) {
-                      e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-xs">{(user as any)?.firstName?.[0] || "U"}</div>';
-                    }
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-xs">
-                  {(user as any)?.firstName?.[0] || 'U'}
-                </div>
-              )}
-            </div>
-            <span className="font-black italic uppercase tracking-tighter text-sm">{(user as any)?.firstName || (user as any)?.username || 'User'}</span>
+      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto">
+        {/* Header - Matching screenshot */}
+        <div className="bg-[#141414] rounded-[28px] p-6 border border-white/5 flex items-center justify-between mb-2 shadow-xl">
+          <div>
+            <h2 className="text-[28px] font-bold text-white leading-tight">Hello,</h2>
+            <p className="text-[28px] font-bold text-white leading-tight uppercase">
+              {(user as any)?.firstName || (user as any)?.username || 'SZN'}
+            </p>
+          </div>
+          <div className="w-[64px] h-[64px] rounded-full bg-[#1a1a1a] border-2 border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
+            {typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.photo_url ? (
+              <img 
+                src={(window as any).Telegram.WebApp.initDataUnsafe.user.photo_url} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#B9FF66] to-[#80B542] flex items-center justify-center text-black font-black text-2xl">
+                {(user as any)?.firstName?.[0] || 'U'}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* User Info Card - Simplified to match Home page style */}
-        <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-4">
-          <div className="flex justify-between items-center">
-            <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('user_account')}</span>
-            <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5 col-span-2">
-              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">TON APP BALANCE</p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-full bg-[#1a1a1a] border border-white/5 flex items-center justify-center overflow-hidden shadow-inner">
-                    <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover scale-110" />
-                  </div>
-                  <p className="text-lg font-black text-[#B9FF66]">{format$((user as any)?.tonAppBalance || "0", false)}</p>
-                </div>
-                <Button 
-                  size="sm" 
-                  className="h-7 bg-[#B9FF66] text-black text-[10px] font-black uppercase italic rounded-lg px-4"
-                  onClick={() => setIsTopUpOpen(true)}
-                >
-                  Top Up
-                </Button>
-              </div>
-            </div>
-            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
-              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">HRUM BALANCE</p>
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-sm overflow-hidden">
-                  <img src="/images/hrum-logo.jpg" alt="Hrum" className="w-full h-full object-cover" />
-                </div>
-                <p className="text-lg font-black text-white">{Math.floor(parseFloat((user as any)?.balance || "0")).toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="bg-[#1a1a1a] rounded-xl p-3 border border-white/5">
-              <p className="text-[9px] text-[#8E8E93] font-semibold uppercase tracking-wider mb-1">{t('user_uid')}</p>
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-black text-white">{uid}</p>
-                <button onClick={copyUid} className="text-[#B9FF66]">
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Action Items Grouped - Compact like Home page */}
+        <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-3 mb-2">
+          <ProfileItem 
+            icon={<span className="text-xl font-bold">#</span>} 
+            label="My ID" 
+            value={uid}
+            onClick={copyUid}
+            isModern
+          />
+          <ProfileItem 
+            icon={<Languages className="w-5 h-5" />} 
+            label="Language" 
+            value={languages.find(l => l.code === language)?.name}
+            onClick={() => setIsLanguageOpen(true)}
+            isModern
+          />
+          <ProfileItem 
+            icon={<UserPlus className="w-5 h-5" />} 
+            label="Invite Friends" 
+            onClick={() => (window as any).location.href = '/affiliates'}
+            isModern
+          />
         </div>
+
+        <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-3 mb-2">
+          <ProfileItem 
+            icon={<MessageSquare className="w-5 h-5" />} 
+            label="Contact Support" 
+            onClick={() => openLink('http://t.me/szxzyz')}
+            isModern
+          />
+          <ProfileItem 
+            icon={<Shield className="w-5 h-5" />} 
+            label="Legal Information" 
+            onClick={() => setSelectedLegal('terms')}
+            isModern
+          />
+          <ProfileItem 
+            icon={<Trophy className="w-5 h-5 text-[#EAB308]" />} 
+            label="Ratings & Leagues" 
+            onClick={() => {}}
+            isModern
+            isSoon
+          />
+        </div>
+
+        {/* TON Balance Card - White Text */}
+        <div className="bg-[#141414] rounded-[24px] p-5 border border-white/5 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-3.5">
+            <div className="w-9 h-9 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center shadow-inner">
+              <img src="/images/ton.png" alt="TON" className="w-5 h-5 object-cover" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-[#8E8E93] uppercase tracking-widest mb-0.5">TON APP BALANCE</p>
+              <p className="text-xl font-black text-white leading-none">
+                {format$((user as any)?.tonAppBalance || "0", false)}
+              </p>
+            </div>
+          </div>
+          <Button 
+            size="sm" 
+            className="h-9 bg-[#B9FF66] hover:bg-[#a3e64b] text-black text-[11px] font-black uppercase italic rounded-xl px-5 transition-all active:scale-95"
+            onClick={() => setIsTopUpOpen(true)}
+          >
+            Top Up
+          </Button>
+        </div>
+      </main>
 
         {/* Settings Groups */}
         <div className="space-y-4">
@@ -416,7 +435,27 @@ export default function Profile() {
   );
 }
 
-function ProfileItem({ icon, label, value, onClick }: { icon: React.ReactNode, label: string, value?: string, onClick: () => void }) {
+function ProfileItem({ icon, label, value, onClick, isModern, isSoon, flag }: { icon: React.ReactNode, label: string, value?: string, onClick: () => void, isModern?: boolean, isSoon?: boolean, flag?: string }) {
+  if (isModern) {
+    return (
+      <button 
+        onClick={onClick}
+        className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl p-3.5 flex items-center justify-between hover:bg-white/[0.04] transition-all active:scale-[0.98]"
+      >
+        <div className="flex items-center gap-3">
+          <div className="text-white">
+            {icon}
+          </div>
+          <span className={`font-bold text-[13px] ${isSoon ? 'text-[#EAB308] opacity-80' : 'text-gray-200'}`}>{label}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {flag && <span className="text-lg leading-none mr-1">{flag}</span>}
+          {value && <span className="text-[10px] font-black text-[#B9FF66] bg-[#B9FF66]/10 px-2 py-0.5 rounded-md uppercase">{value}</span>}
+          {!isSoon && <ChevronRight className="w-3.5 h-3.5 text-gray-600" />}
+        </div>
+      </button>
+    );
+  }
   return (
     <button 
       onClick={onClick}
