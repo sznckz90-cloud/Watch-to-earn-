@@ -70,13 +70,6 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  const [isConverting, setIsConverting] = useState(false);
-  const [isClaimingStreak, setIsClaimingStreak] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
-  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [hasClaimed, setHasClaimed] = useState(false);
-  const [timeUntilNextClaim, setTimeUntilNextClaim] = useState<string>("");
-  
   const [promoPopupOpen, setPromoPopupOpen] = useState(false);
   const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
   const [convertPopupOpen, setConvertPopupOpen] = useState(false);
@@ -91,6 +84,8 @@ export default function Home() {
   const [dailyCheckinStep, setDailyCheckinStep] = useState<'idle' | 'ads' | 'countdown' | 'ready' | 'claiming'>('idle');
   const [checkForUpdatesStep, setCheckForUpdatesStep] = useState<'idle' | 'opened' | 'countdown' | 'ready' | 'claiming'>('idle');
   const [checkForUpdatesCountdown, setCheckForUpdatesCountdown] = useState(3);
+  const [hasClaimed, setHasClaimed] = useState(false);
+  const [timeUntilNextClaim, setTimeUntilNextClaim] = useState<string>("");
 
   const { runAdFlow } = useAdFlow();
 
@@ -796,11 +791,7 @@ export default function Home() {
     setConvertPopupOpen(true);
   };
 
-  const rawBalance = parseFloat((user as User)?.balance || "0");
-  const padBalance = rawBalance < 1 ? Math.round(rawBalance * 10000000) : Math.round(rawBalance);
   const tonBalance = parseFloat((user as User)?.tonBalance || "0");
-  const balance = parseFloat((user as User)?.balance || "0");
-  const balanceBUG = parseFloat((user as User)?.bugBalance || "0");
   const withdrawBalance = parseFloat((user as User)?.tonBalance || "0");
   
   const displayName = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || (user as User)?.firstName || (user as User)?.username || "User";
@@ -1155,24 +1146,19 @@ export default function Home() {
               </div>
             </div>
             
-            <Button
-              onClick={() => setLocation("/profile")}
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 hover:bg-[#222] text-[#B9FF66] transition-all active:scale-90"
-            >
-              <svg 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                className="w-6 h-6"
-                xmlns="http://www.w3.org/2000/svg"
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setSettingsOpen(true)}
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 hover:bg-[#222] text-[#B9FF66] transition-all active:scale-90"
               >
-                <rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
-                <rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
-                <rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
-                <path d="M13 17H21M17 13V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            </Button>
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-black leading-none">{t('current_lang_code')?.toUpperCase() || 'EN'}</span>
+                  <Settings className="w-3.5 h-3.5 mt-0.5" />
+                </div>
+              </Button>
+            </div>
           </div>
 
           <div className="bg-[#141414] rounded-2xl px-4 py-2 flex justify-between items-center mb-4 border border-white/5 h-12">
@@ -1280,7 +1266,7 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <Button 
                     onClick={() => setUpgradePopupOpen(true)}
-                    className="bg-[#1a1a1a] hover:bg-[#222] text-white rounded-xl py-2.5 text-xs font-bold border border-white/5 h-auto uppercase tracking-wider flex items-center justify-center gap-2"
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5"
                   >
                     <ArrowUpCircle className="w-3.5 h-3.5" />
                     {t('upgrade')}
@@ -1290,9 +1276,9 @@ export default function Home() {
                     disabled={claimMiningMutation.isPending}
                     className={`${
                       miningAmount >= 1 
-                        ? "bg-[#B9FF66] hover:bg-[#a8e655] text-black" 
+                        ? "bg-blue-600 hover:bg-blue-700 text-white" 
                         : "bg-[#1a1a1a] hover:bg-[#222] text-white border border-white/5"
-                    } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all`}
+                    } rounded-xl py-2.5 text-xs font-bold h-auto uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-white/5`}
                   >
                     {claimMiningMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : (
                       <>
@@ -1306,14 +1292,14 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
                   <Button
                     onClick={handleConvertClick}
-                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5"
                   >
                     <RefreshCw className="w-4 h-4" />
                     {t('convert')}
                   </Button>
                   <Button
                     onClick={() => setPromoPopupOpen(true)}
-                    className="bg-[#1a1a1a] hover:bg-[#222] text-[#B9FF66] rounded-2xl py-2.5 text-sm font-black flex items-center justify-center gap-2 border border-[#B9FF66]/10 h-auto transition-transform active:scale-95 uppercase tracking-wider"
+                    className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5"
                   >
                     <Ticket className="w-4 h-4" />
                     {t('promo')}
