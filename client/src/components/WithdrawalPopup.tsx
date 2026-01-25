@@ -24,6 +24,13 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
     staleTime: 30000,
   });
 
+  const { data: user } = useQuery<any>({
+    queryKey: ['/api/auth/user'],
+    staleTime: 0,
+  });
+
+  const tonBalanceFromUser = parseFloat(user?.tonBalance || "0");
+
   const minWithdraw = appSettings?.minimum_withdrawal_ton ? parseFloat(appSettings.minimum_withdrawal_ton) : 0.1;
   const networkFee = appSettings?.withdrawal_fee_ton ? parseFloat(appSettings.withdrawal_fee_ton) : 0.01;
 
@@ -70,8 +77,8 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       showNotification(`Minimum withdrawal amount is ${minWithdraw} TON`, "error");
       return;
     }
-    if (amount > tonBalance) {
-      showNotification(`Insufficient balance. Available: ${tonBalance} TON`, "error");
+    if (amount > tonBalanceFromUser) {
+      showNotification(`Insufficient balance. Available: ${tonBalanceFromUser} TON`, "error");
       return;
     }
     if (!withdrawAddress.trim()) {
@@ -89,7 +96,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
   const toReceive = withdrawAmount ? Math.max(0, parseFloat(withdrawAmount) - networkFee).toFixed(4) : "0.0000";
 
   const handleMaxClick = () => {
-    setWithdrawAmount(tonBalance.toString());
+    setWithdrawAmount(tonBalanceFromUser.toString());
   };
 
   return (
@@ -128,7 +135,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
               </button>
             </div>
             <p className="text-[10px] text-zinc-500 font-bold ml-1">
-              Available: <span className="text-zinc-300">{Number(tonBalance).toFixed(4)} TON</span>
+              Available: <span className="text-zinc-300">{Number(tonBalanceFromUser).toFixed(4)} TON</span>
             </p>
           </div>
 
