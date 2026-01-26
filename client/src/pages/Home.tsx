@@ -7,8 +7,9 @@ import React from "react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
+import { SettingsPopup } from "@/components/SettingsPopup";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap,  Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy, Download } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy, Download } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,15 +64,18 @@ interface User {
 }
 
 export default function Home() {
-  const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
   const { user, isLoading } = useAuth();
   const { isAdmin } = useAdmin();
   const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
 
-  // Settings button removed - Plan Status text added to header via Header.tsx
-  // No click navigation needed for plan status display.
+  const [promoPopupOpen, setPromoPopupOpen] = useState(false);
+  const [withdrawPopupOpen, setWithdrawPopupOpen] = useState(false);
+  const [convertPopupOpen, setConvertPopupOpen] = useState(false);
+  const [boosterPopupOpen, setBoosterPopupOpen] = useState(false);
+  const [upgradePopupOpen, setUpgradePopupOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedConvertType, setSelectedConvertType] = useState<'' | 'BUG'>('');
   const [convertAmount, setConvertAmount] = useState<string>("");
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
@@ -1055,7 +1059,7 @@ export default function Home() {
   const handleCheckForUpdates = useCallback(() => {
     if (missionStatus?.checkForUpdates?.claimed || checkForUpdatesStep !== 'idle') return;
     const tgWebApp = (window as any).Telegram?.WebApp;
-    const channelUrl = 'https://t.me/HrumReward';
+    const channelUrl = 'https://t.me/MoneyAdz';
     if (tgWebApp?.openTelegramLink) {
       tgWebApp.openTelegramLink(channelUrl);
     } else if (tgWebApp?.openLink) {
@@ -1112,18 +1116,52 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto min-h-screen bg-[#0a0a0a]">
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent pointer-events-none" />
-        {/* Unified Balance Section */}
+      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto">
+        {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <div className="bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 flex items-center justify-center shadow-sm">
-                <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider mr-1.5">PLAN:</span>
-                <span className={`text-xs font-bold uppercase tracking-widest ${user?.planStatus === 'Premium' ? 'text-yellow-400' : 'text-blue-400'}`}>
-                  {user?.planStatus || 'Trial'}
+            <div className="flex items-center gap-3">
+              <div 
+                className={`w-11 h-11 rounded-full overflow-hidden flex items-center justify-center border border-white/5 bg-[#1a1a1a] cursor-pointer hover:opacity-80 transition-opacity`}
+                onClick={() => setLocation("/admin")}
+              >
+                {photoUrl ? (
+                  <img 
+                    src={photoUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <UserIcon className="w-6 h-6 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span 
+                  className={`text-white font-black text-base leading-none tracking-tight cursor-pointer hover:opacity-80`}
+                  onClick={() => setLocation("/admin")}
+                >
+                  {(user as User)?.firstName || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.first_name || "User"}
+                </span>
+                <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest mt-1 opacity-90">
+                  ID: {(user as User)?.id?.substring(0, 8) || "N/A"}
                 </span>
               </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setSettingsOpen(true)}
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 hover:bg-[#222] text-[#B9FF66] transition-all active:scale-90"
+              >
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-black leading-none">{t('current_lang_code')?.toUpperCase() || 'EN'}</span>
+                  <Settings className="w-3.5 h-3.5 mt-0.5" />
+                </div>
+              </Button>
             </div>
           </div>
 
@@ -1513,7 +1551,7 @@ export default function Home() {
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => window.open("https://t.me/HrumReward", "_blank")}
+                      onClick={() => window.open("https://t.me/MoneyAdz", "_blank")}
                       className="flex-1 h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider gap-1"
                     >
                       <Send className="w-3.5 h-3.5" />
@@ -1627,6 +1665,12 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {settingsOpen && (
+        <SettingsPopup 
+          onClose={() => setSettingsOpen(false)} 
+        />
       )}
 
       <WithdrawalPopup 
