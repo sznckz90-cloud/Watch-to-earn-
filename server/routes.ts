@@ -1430,7 +1430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Add referral link with fallback bot username - use /start flow for reliable referral tracking
-      const botUsername = process.env.BOT_USERNAME || "MoneyAdzbot";
+      const botUsername = process.env.BOT_USERNAME || "MoneyHrumbot";
       const referralLink = `https://t.me/${botUsername}?start=${user.referralCode}`;
       
       res.json({
@@ -2654,7 +2654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     'https://vuuug.onrender.com';
       
       // Build the referral URL using /start flow for reliable referral tracking
-      const botUsername = process.env.BOT_USERNAME || 'MoneyAdzbot';
+      const botUsername = process.env.BOT_USERNAME || 'MoneyHrumbot';
       const webAppUrl = `https://t.me/${botUsername}?start=${user.referralCode}`;
       
       // Get share banner image URL
@@ -6316,7 +6316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Check if our bot is in the admin list
-        const botUsername = process.env.BOT_USERNAME || 'MoneyAdzbot';
+        const botUsername = process.env.BOT_USERNAME || 'MoneyHrumbot';
         const isAdmin = data.result.some((admin: any) => 
           admin.user?.username?.toLowerCase() === botUsername.toLowerCase()
         );
@@ -6871,7 +6871,7 @@ ${walletAddress}
 💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
-🤖 Bot: @MoneyAdzbot`;
+🤖 Bot: @MoneyHrumbot`;
 
       // Create inline keyboard with Approve and Reject buttons
       const inlineKeyboard = {
@@ -6911,7 +6911,7 @@ ${walletAddress}
 💸 Amount: ${newWithdrawal.withdrawnAmount.toFixed(5)} TON
 🛂 Fee: ${feeAmount.toFixed(5)} (${feePercent}%)
 📅 Date: ${currentDate}
-🤖 Bot: @MoneyAdzbot`;
+🤖 Bot: @MoneyHrumbot`;
 
         fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: 'POST',
@@ -9079,7 +9079,7 @@ ${walletAddress}
         return res.status(400).json({ error: 'Referral code not found' });
       }
 
-      const botUsername = process.env.BOT_USERNAME || 'MoneyAdzbot';
+      const botUsername = process.env.BOT_USERNAME || 'MoneyHrumbot';
       const referralLink = `https://t.me/${botUsername}?start=${user.referralCode}`;
 
       // Return just the referral link for the new share flow
@@ -9368,6 +9368,47 @@ ${walletAddress}
     } catch (error) {
       console.error('❌ Error unblocking country:', error);
       res.status(500).json({ error: 'Failed to unblock country' });
+    }
+  });
+
+  app.get("/api/referrals/tasks", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      
+      const claimedTasks = await storage.getUserReferralTasks(user.id);
+      const tasks = [
+        { id: 'task_1', required: 1, rewardHrum: 1, boost: 0.0001, title: 'Invite 1 friend' },
+        { id: 'task_2', required: 3, rewardHrum: 3, boost: 0.0003, title: 'Invite 3 friends' },
+        { id: 'task_3', required: 10, rewardHrum: 5, boost: 0.0005, title: 'Invite 10 friends' },
+        { id: 'task_4', required: 25, rewardHrum: 10, boost: 0.001, title: 'Invite 25 friends' },
+        { id: 'task_5', required: 50, rewardHrum: 25, boost: 0.002, title: 'Invite 50 friends' },
+        { id: 'task_6', required: 100, rewardHrum: 30, boost: 0.003, title: 'Invite 100 friends' },
+      ].map(task => ({
+        ...task,
+        claimed: claimedTasks.some(ct => ct.taskId === task.id),
+        canClaim: (user.friendsInvited || 0) >= task.required
+      }));
+
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching referral tasks:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/referrals/tasks/:taskId/claim", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      
+      const result = await storage.claimReferralTask(user.id, req.params.taskId);
+      if (!result.success) return res.status(400).json({ message: result.message });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error claiming referral task:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

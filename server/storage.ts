@@ -165,6 +165,7 @@ export interface IStorage {
     amount: string;
     message: string;
   }>;
+  hasEverBoughtBoost(userId: string): Promise<boolean>;
   
   // Deposit operations
   getPendingDeposit(userId: string): Promise<Deposit | undefined>;
@@ -175,6 +176,10 @@ export interface IStorage {
   // New Mining operations
   getMiningBoosts(userId: string): Promise<MiningBoost[]>;
   addMiningBoost(boost: InsertMiningBoost): Promise<MiningBoost>;
+  
+  // Referral Tasks
+  getUserReferralTasks(userId: string): Promise<UserReferralTask[]>;
+  claimReferralTask(userId: string, taskId: string): Promise<{ success: boolean; message: string; rewardHrum?: string; miningBoost?: string }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4021,6 +4026,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Deposit operations implementation
+  async hasEverBoughtBoost(userId: string): Promise<boolean> {
+    try {
+      const result = await db.execute(sql`
+        SELECT COUNT(*) as count FROM mining_boosts WHERE user_id = ${userId}
+      `);
+      const count = parseInt(result.rows[0].count as string);
+      return count > 0;
+    } catch (error) {
+      console.error('Error checking boost purchase history:', error);
+      return false;
+    }
+  }
+
   async getPendingDeposit(userId: string): Promise<Deposit | undefined> {
     try {
       const [deposit] = await db
@@ -4147,6 +4165,79 @@ export class DatabaseStorage implements IStorage {
       )
     `);
     return result.rows[0].exists;
+  }
+
+  async getUserReferralTasks(userId: string): Promise<UserReferralTask[]> {
+    const { userReferralTasks } = await import("../shared/schema");
+    return db.select().from(userReferralTasks).where(eq(userReferralTasks.userId, userId));
+  }
+
+  async claimReferralTask(userId: string, taskId: string): Promise<{ success: boolean; message: string; rewardHrum?: string; miningBoost?: string }> {
+    const { userReferralTasks } = await import("../shared/schema");
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("User not found");
+
+    const tasks = [
+      { id: 'task_1', required: 1, rewardHrum: '1', boost: '0.0001' },
+      { id: 'task_2', required: 3, rewardHrum: '3', boost: '0.0003' },
+      { id: 'task_3', required: 10, rewardHrum: '5', boost: '0.0005' },
+      { id: 'task_4', required: 25, rewardHrum: '10', boost: '0.001' },
+      { id: 'task_5', required: 50, rewardHrum: '25', boost: '0.002' },
+      { id: 'task_6', required: 100, rewardHrum: '30', boost: '0.003' },
+    ];
+
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return { success: false, message: "Task not found" };
+
+    const totalInvited = user.friendsInvited || 0;
+    if (totalInvited < task.required) {
+      return { success: false, message: `You need ${task.required} invites to claim this reward.` };
+    }
+
+    // Check if already claimed
+    const existing = await db.select().from(userReferralTasks)
+      .where(and(eq(userReferralTasks.userId, userId), eq(userReferralTasks.taskId, taskId)));
+    
+    if (existing.length > 0) {
+      return { success: false, message: "Task already claimed" };
+    }
+
+    await db.transaction(async (tx) => {
+      // 1. Record claim
+      await tx.insert(userReferralTasks).values({ userId, taskId });
+
+      // 2. Add Hrum reward
+      await tx.update(users)
+        .set({ 
+          balance: sql`COALESCE(${users.balance}, 0) + ${task.rewardHrum}`,
+          withdrawBalance: sql`COALESCE(${users.withdrawBalance}, 0) + ${task.rewardHrum}`,
+          totalEarned: sql`COALESCE(${users.totalEarned}, 0) + ${task.rewardHrum}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      // 3. Add permanent mining boost (99 years)
+      const now = new Date();
+      const expiresAt = new Date(now.getFullYear() + 99, now.getMonth(), now.getDate());
+      await tx.insert(miningBoosts).values({
+        userId,
+        planId: `referral_${taskId}`,
+        miningRate: (parseFloat(task.boost) / 3600).toFixed(10), // Convert HRUM/h to HRUM/s
+        expiresAt,
+      });
+
+      // 4. Log transaction
+      await tx.insert(transactions).values({
+        userId,
+        amount: task.rewardHrum,
+        type: 'addition',
+        source: 'referral_task',
+        description: `Claimed reward for ${task.required} invites`,
+        metadata: { taskId, boost: task.boost }
+      });
+    });
+
+    return { success: true, message: "Reward claimed successfully!", rewardHrum: task.rewardHrum, miningBoost: task.boost };
   }
 }
 
