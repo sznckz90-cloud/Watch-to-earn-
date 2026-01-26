@@ -86,6 +86,9 @@ export default function Home() {
   const [checkForUpdatesCountdown, setCheckForUpdatesCountdown] = useState(3);
   const [hasClaimed, setHasClaimed] = useState(false);
   const [timeUntilNextClaim, setTimeUntilNextClaim] = useState<string>("");
+  const [isConverting, setIsConverting] = useState(false);
+  
+  const padBalance = parseFloat((user as User)?.balance || "0");
 
   const { runAdFlow } = useAdFlow();
 
