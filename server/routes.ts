@@ -335,6 +335,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  app.get("/api/auth/user", authenticateTelegram, async (req: any, res) => {
+    try {
+      const user = req.user?.user;
+      if (!user) return res.status(401).json({ message: "Not authenticated" });
+      
+      const hasBoughtBoost = await storage.hasEverBoughtBoost(user.id);
+      res.json({ 
+        ...user, 
+        planStatus: hasBoughtBoost ? 'Premium' : 'Trial' 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/admin/stats", authenticateAdmin, async (req: any, res) => {
     try {
       const stats = await storage.getAppStats();

@@ -4139,6 +4139,15 @@ export class DatabaseStorage implements IStorage {
     return newBoost;
   }
 
+  async hasEverBoughtBoost(userId: string): Promise<boolean> {
+    const result = await db.execute(sql`
+      SELECT EXISTS (
+        SELECT 1 FROM mining_boosts 
+        WHERE user_id = ${userId}
+      )
+    `);
+    return result.rows[0].exists;
+  }
 }
 
 export const storage = new DatabaseStorage();
