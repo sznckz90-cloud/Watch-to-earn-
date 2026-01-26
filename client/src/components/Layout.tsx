@@ -120,7 +120,8 @@ export default function Layout({ children }: LayoutProps) {
   const isHomePage = location === "/";
 
   return (
-    <div className="min-h-screen bg-transparent pb-4">
+    <div className="min-h-screen bg-[#0a0a0a] pb-4 text-foreground font-sans selection:bg-[#4cd3ff]/30 relative overflow-hidden">
+      <div className="fixed inset-0 bg-gradient-to-b from-blue-500/5 via-transparent to-transparent pointer-events-none" />
       {/* Page Content with Transition */}
       <AnimatePresence mode="wait">
         <motion.div

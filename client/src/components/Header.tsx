@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { DiamondIcon } from "@/components/DiamondIcon";
-import { Bug, Settings, User as UserIcon, Languages } from "lucide-react";
+import { User as UserIcon, Languages } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useState } from "react";
-import { SettingsPopup } from "./SettingsPopup";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
   DropdownMenu,
@@ -22,12 +19,10 @@ export default function Header() {
   
   const [, setLocation] = useLocation();
   const { isAdmin } = useAdmin();
-  const [showSettings, setShowSettings] = useState(false);
-  const { language, setLanguage, t } = useLanguage();
+  const { setLanguage, t } = useLanguage();
 
   const tonBalance = parseFloat(user?.tonBalance || "0");
   const hrumBalance = parseFloat(user?.balance || "0");
-  const bugBalance = parseFloat(user?.bugBalance || "0");
 
   const formatBalance = (balance: number) => {
     if (balance >= 1000000) {
@@ -88,21 +83,14 @@ export default function Header() {
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-white/5">
-              <Languages className="w-4 h-4 text-white" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-white/5 text-white">
-            <DropdownMenuItem onClick={() => setLanguage('en')} className="hover:bg-white/5">
-              {t('english')}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setLanguage('ru')} className="hover:bg-white/5">
-              {t('russian')}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <div className="bg-[#1a1a1a] px-3 h-8 rounded-lg border border-white/5 flex items-center justify-center shadow-sm">
+            <span className="text-[10px] text-white/50 font-bold uppercase tracking-wider mr-1.5">PLAN:</span>
+            <span className={`text-xs font-bold uppercase tracking-widest ${user?.planStatus === 'Premium' ? 'text-yellow-400' : 'text-blue-400'}`}>
+              {user?.planStatus || 'Trial'}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
