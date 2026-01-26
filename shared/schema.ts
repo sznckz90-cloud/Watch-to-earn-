@@ -379,7 +379,20 @@ export const insertDailyMissionSchema = createInsertSchema(dailyMissions).omit({
 export const insertBlockedCountrySchema = createInsertSchema(blockedCountries).omit({ id: true, createdAt: true });
 export const insertDepositSchema = createInsertSchema(deposits).omit({ id: true, createdAt: true, updatedAt: true });
 
+// User referral task completion tracking
+export const userReferralTasks = pgTable("user_referral_tasks", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  taskId: varchar("task_id").notNull(), // task_1, task_2, etc.
+  claimedAt: timestamp("claimed_at").defaultNow(),
+}, (table) => [
+  unique("user_referral_tasks_user_task_unique").on(table.userId, table.taskId),
+]);
+
 // Types
+export type UserReferralTask = typeof userReferralTasks.$inferSelect;
+export type InsertUserReferralTask = typeof userReferralTasks.$inferInsert;
+export const insertUserReferralTaskSchema = createInsertSchema(userReferralTasks).omit({ id: true, claimedAt: true });
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type MiningBoost = typeof miningBoosts.$inferSelect;
