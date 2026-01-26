@@ -9,7 +9,7 @@ import { useAdFlow } from "@/hooks/useAdFlow";
 import { useLocation } from "wouter";
 import { SettingsPopup } from "@/components/SettingsPopup";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy, Download } from "lucide-react";
+import { Award, Wallet, RefreshCw, Flame, Ticket, Info, User as UserIcon, Clock, Loader2, Gift, Rocket, X, Bug, DollarSign, Coins, Send, Users, Check, ExternalLink, Plus, CalendarCheck, Bell, Star, Play, Sparkles, Zap, Settings, Film, Tv, Target, LayoutDashboard, ClipboardList, UserPlus, Share2, Copy, HeartHandshake, ArrowUpCircle, HandCoins, LogOut, Trophy, Download, Crown, ShieldCheck } from "lucide-react";
 import { DiamondIcon } from "@/components/DiamondIcon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -618,6 +618,135 @@ export default function Home() {
     },
   });
 
+  const { data: referralTasks, isLoading: isLoadingReferralTasks } = useQuery<any[]>({
+    queryKey: ['/api/referrals/tasks'],
+    retry: false,
+  });
+
+  const claimReferralTaskMutation = useMutation({
+    mutationFn: async (taskId: string) => {
+      const res = await apiRequest("POST", `/api/referrals/tasks/${taskId}/claim`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      showNotification(data.message || "Reward claimed!", "success");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/referrals/tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/mining/state"] });
+    },
+    onError: (error: any) => {
+      showNotification(error.message || "Failed to claim reward", "error");
+    }
+  });
+
+  const friendsInvitedCount = (user as User)?.friendsInvited || 0;
+
+  const referralTasksSection = (
+    <div className="space-y-4 mt-10 w-full px-2">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#B9FF66]/10 flex items-center justify-center border border-[#B9FF66]/20">
+            <Trophy className="w-5 h-5 text-[#B9FF66]" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-white uppercase tracking-tight leading-none">Referral Rewards</h2>
+            <p className="text-[10px] text-[#8E8E93] uppercase font-bold tracking-widest mt-1">Milestone Goals</p>
+          </div>
+        </div>
+      </div>
+      
+      {isLoadingReferralTasks ? (
+        <div className="flex justify-center p-12">
+          <Loader2 className="w-8 h-8 animate-spin text-[#B9FF66] opacity-50" />
+        </div>
+      ) : (
+        <div className="grid gap-4 text-left">
+          {referralTasks?.map((task) => {
+            return (
+              <div key={task.id} className="relative group">
+                <div className={`absolute -inset-0.5 rounded-[24px] blur opacity-20 transition duration-500 group-hover:opacity-40 ${task.claimed ? 'bg-green-500' : task.canClaim ? 'bg-[#B9FF66]' : 'bg-white/5'}`}></div>
+                
+                <Card className="relative bg-[#0D0D0D] border-white/5 rounded-[22px] overflow-hidden">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform duration-500 group-hover:scale-110 ${task.claimed ? 'bg-green-500/10 border border-green-500/20' : 'bg-white/5 border border-white/10'}`}>
+                          {task.required <= 1 ? <Sparkles className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} /> :
+                           task.required <= 3 ? <Target className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} /> :
+                           task.required <= 10 ? <Flame className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} /> :
+                           task.required <= 25 ? <Rocket className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} /> :
+                           task.required <= 50 ? <Crown className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} /> :
+                           <Trophy className={`w-7 h-7 ${task.claimed ? 'text-green-500' : 'text-[#B9FF66]'}`} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-black text-sm uppercase tracking-tight mb-2 truncate">{task.title}</h3>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-1.5 bg-[#B9FF66]/10 px-2 py-1 rounded-lg border border-[#B9FF66]/10">
+                              <img src="/images/hrum-logo.jpg" alt="" className="w-3 h-3 rounded-full" />
+                              <span className="text-[10px] font-black text-[#B9FF66] tracking-tighter">
+                                +{task.rewardHrum}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/10">
+                              <Zap className="w-3 h-3 text-blue-400 fill-current" />
+                              <span className="text-[10px] font-black text-blue-400 tracking-tighter">
+                                +{task.boost} H/h
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <Button
+                        onClick={() => claimReferralTaskMutation.mutate(task.id)}
+                        disabled={task.claimed || !task.canClaim || claimReferralTaskMutation.isPending}
+                        className={`rounded-2xl px-6 h-11 font-black text-[11px] uppercase tracking-widest transition-all duration-300 shadow-xl ${
+                          task.claimed 
+                            ? 'bg-green-500/10 text-green-500 border border-green-500/30' 
+                            : task.canClaim 
+                              ? 'bg-[#B9FF66] text-black hover:bg-[#B9FF66]/90 hover:scale-105 active:scale-95 shadow-[#B9FF66]/20' 
+                              : 'bg-white/5 text-white/20 cursor-not-allowed grayscale'
+                        }`}
+                      >
+                        {task.claimed ? (
+                          <Check className="w-5 h-5" />
+                        ) : claimReferralTaskMutation.isPending && claimReferralTaskMutation.variables === task.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Claim'
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {!task.claimed && (
+                      <div className="mt-5">
+                        <div className="flex justify-between items-end mb-2 px-1">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-[#8E8E93]">Progress</span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-white font-black text-sm">{friendsInvitedCount}</span>
+                            <span className="text-[#8E8E93] font-bold text-[10px]">/ {task.required}</span>
+                          </div>
+                        </div>
+                        <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(100, (friendsInvitedCount / task.required) * 100)}%` }}
+                            transition={{ duration: 1, ease: "easeOut" }}
+                            className={`h-full rounded-full shadow-lg ${task.canClaim ? 'bg-[#B9FF66] shadow-[#B9FF66]/20' : 'bg-white/20'}`}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   const handleWatchAd = async (providerId: string) => {
     if (loadingProvider) return;
     
@@ -1151,17 +1280,12 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setSettingsOpen(true)}
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/5 hover:bg-[#222] text-[#B9FF66] transition-all active:scale-90"
-              >
-                <div className="flex flex-col items-center justify-center">
-                  <span className="text-[10px] font-black leading-none">{t('current_lang_code')?.toUpperCase() || 'EN'}</span>
-                  <Settings className="w-3.5 h-3.5 mt-0.5" />
-                </div>
-              </Button>
+              <div className="bg-[#1a1a1a] px-3 h-10 rounded-xl border border-white/5 flex items-center justify-center shadow-sm">
+                <span className="text-[10px] text-white/50 font-black uppercase tracking-widest mr-2">Plan:</span>
+                <span className={`text-[11px] font-black uppercase tracking-widest ${user?.planStatus === 'Premium' ? 'text-[#B9FF66]' : 'text-blue-400'}`}>
+                  {user?.planStatus || 'Trial'}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1337,7 +1461,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 w-full mb-5">
+                <div className="grid grid-cols-2 gap-3 w-full mb-2">
                   <Button
                     onClick={copyReferralLink}
                     disabled={!referralLink}
@@ -1357,12 +1481,15 @@ export default function Home() {
                 </div>
 
                 {appSettings?.referralRewardEnabled && (
-                  <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl mb-0">
                     <p className="text-[10px] text-green-400 font-black text-center uppercase tracking-tight italic">
                       Bonus: {appSettings.referralRewardHrum || 50} Hrum + {appSettings.referralReward || 0.0005} TON on first ad!
                     </p>
                   </div>
                 )}
+              </div>
+              <div className="-mt-6">
+                {referralTasksSection}
               </div>
             </TabsContent>
           </Tabs>
