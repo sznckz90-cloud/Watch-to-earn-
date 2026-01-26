@@ -122,6 +122,12 @@ export async function ensureDatabaseSchema(): Promise<void> {
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS active_plan_id VARCHAR`);
       await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP`);
       
+      // Add ad boost tracking columns
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS ad_section1_boost DECIMAL(20, 8) DEFAULT '0'`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS ad_section2_boost DECIMAL(20, 8) DEFAULT '0'`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS ad_section1_count INTEGER DEFAULT 0`);
+      await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS ad_section2_count INTEGER DEFAULT 0`);
+      
       // Alter existing balance columns to new precision (safely handle existing data)
       await db.execute(sql`ALTER TABLE users ALTER COLUMN balance TYPE DECIMAL(20, 0) USING ROUND(balance)`);
       await db.execute(sql`ALTER TABLE users ALTER COLUMN usd_balance TYPE DECIMAL(30, 10)`);
@@ -350,12 +356,25 @@ export async function ensureDatabaseSchema(): Promise<void> {
         id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
         referrer_id VARCHAR NOT NULL REFERENCES users(id),
         referee_id VARCHAR NOT NULL REFERENCES users(id),
-        reward_amount DECIMAL(12, 5) DEFAULT '0.01',
+        reward_amount DECIMAL(30, 10) DEFAULT '1000',
+        usd_reward_amount DECIMAL(30, 10) DEFAULT '0',
+        ton_reward_amount DECIMAL(30, 10) DEFAULT '0',
+        bug_reward_amount DECIMAL(30, 10) DEFAULT '0',
         status VARCHAR DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(referrer_id, referee_id)
       )
     `);
+    
+    // Add missing columns to referrals table
+    try {
+      await db.execute(sql`ALTER TABLE referrals ADD COLUMN IF NOT EXISTS usd_reward_amount DECIMAL(30, 10) DEFAULT '0'`);
+      await db.execute(sql`ALTER TABLE referrals ADD COLUMN IF NOT EXISTS ton_reward_amount DECIMAL(30, 10) DEFAULT '0'`);
+      await db.execute(sql`ALTER TABLE referrals ADD COLUMN IF NOT EXISTS bug_reward_amount DECIMAL(30, 10) DEFAULT '0'`);
+      console.log('✅ [MIGRATION] Referral reward columns ensured');
+    } catch (error) {
+      console.log('ℹ️ [MIGRATION] Referral reward columns already exist');
+    }
     
     // Referral commissions table
     await db.execute(sql`
@@ -609,6 +628,19 @@ export async function ensureDatabaseSchema(): Promise<void> {
       )
     `);
     console.log('✅ [MIGRATION] blocked_countries table created');
+    
+    // User referral tasks table for tracking claimed referral rewards
+    console.log('🔄 [MIGRATION] Creating user_referral_tasks table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS user_referral_tasks (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR NOT NULL REFERENCES users(id),
+        task_id VARCHAR NOT NULL,
+        claimed_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(user_id, task_id)
+      )
+    `);
+    console.log('✅ [MIGRATION] user_referral_tasks table created');
     
     // Create index for blocked countries
     await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_blocked_countries_code ON blocked_countries(country_code)`);
