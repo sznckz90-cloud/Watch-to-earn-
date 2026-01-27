@@ -49,6 +49,13 @@ export default function TopUpPopup({ open, onOpenChange, telegramId }: TopUpPopu
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-[90vw] rounded-3xl p-6">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-center">Top Up TON</DialogTitle>
+          <DialogDescription className="text-zinc-500 text-xs text-center font-bold uppercase tracking-wider">
+            Manual Deposit with Admin Approval
+          </DialogDescription>
+        </DialogHeader>
+
         <div className="space-y-4 mt-4">
           <div className="space-y-2">
             <Label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Amount (TON)</Label>
@@ -93,7 +100,7 @@ export default function TopUpPopup({ open, onOpenChange, telegramId }: TopUpPopu
           <Button
             onClick={() => depositMutation.mutate(amount)}
             disabled={!amount || parseFloat(amount) <= 0 || depositMutation.isPending}
-            className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase italic tracking-wider rounded-2xl transition-all"
+            className="w-full h-14 bg-white hover:bg-zinc-200 text-black font-black uppercase italic tracking-wider rounded-2xl transition-all"
           >
             {depositMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Deposit"}
           </Button>

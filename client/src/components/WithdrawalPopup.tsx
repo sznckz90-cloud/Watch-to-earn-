@@ -101,7 +101,7 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[400px] min-h-[500px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm">
+        <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm [&>button]:hidden">
         <DialogHeader className="pt-2">
           <DialogTitle className="text-xl font-black text-center uppercase tracking-tight">TON withdrawal</DialogTitle>
         </DialogHeader>
