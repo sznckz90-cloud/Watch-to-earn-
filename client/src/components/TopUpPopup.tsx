@@ -48,7 +48,7 @@ export default function TopUpPopup({ open, onOpenChange, telegramId }: TopUpPopu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-[90vw] rounded-3xl p-6">
+      <DialogContent className="bg-zinc-950 border-white/10 text-white max-w-[90vw] w-full max-w-sm rounded-3xl p-6 shadow-2xl backdrop-blur-sm [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-center">Top Up TON</DialogTitle>
           <DialogDescription className="text-zinc-500 text-xs text-center font-bold uppercase tracking-wider">
@@ -97,13 +97,23 @@ export default function TopUpPopup({ open, onOpenChange, telegramId }: TopUpPopu
             </p>
           </div>
 
-          <Button
-            onClick={() => depositMutation.mutate(amount)}
-            disabled={!amount || parseFloat(amount) <= 0 || depositMutation.isPending}
-            className="w-full h-14 bg-white hover:bg-zinc-200 text-black font-black uppercase italic tracking-wider rounded-2xl transition-all"
-          >
-            {depositMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Deposit"}
-          </Button>
+          <div className="space-y-2">
+            <Button
+              onClick={() => depositMutation.mutate(amount)}
+              disabled={!amount || parseFloat(amount) <= 0 || depositMutation.isPending}
+              className="w-full h-14 bg-white hover:bg-zinc-200 text-black font-black uppercase italic tracking-wider rounded-2xl transition-all"
+            >
+              {depositMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Confirm Deposit"}
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
+            >
+              Close
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

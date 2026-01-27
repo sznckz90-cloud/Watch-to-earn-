@@ -56,7 +56,6 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       try {
         if (typeof error.message === 'string') {
           const trimmed = error.message.trim();
-          // Check if it's a JSON string from apiRequest
           if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
             const parsed = JSON.parse(trimmed);
             if (parsed.message) message = parsed.message;
@@ -85,11 +84,6 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
       showNotification("Please enter TON address", "error");
       return;
     }
-    console.log("Submitting withdrawal:", {
-      address: withdrawAddress,
-      amount: amount.toString(),
-      method: "TON"
-    });
     withdrawMutation.mutate();
   };
 
@@ -101,85 +95,89 @@ export default function WithdrawalPopup({ open, onOpenChange, tonBalance }: With
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="bg-[#0d0d0d] border-white/5 text-white w-[95%] max-w-[320px] rounded-[24px] p-6 shadow-2xl backdrop-blur-sm [&>button]:hidden">
-        <DialogHeader className="pt-2">
-          <DialogTitle className="text-xl font-black text-center uppercase tracking-tight">TON withdrawal</DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4 mt-4">
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Address (TON):</Label>
-            <Input 
-              placeholder="" 
-              value={withdrawAddress}
-              onChange={(e) => setWithdrawAddress(e.target.value)}
-              className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black"
-            />
+      <DialogContent className="bg-black/95 border-white/5 text-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl backdrop-blur-sm [&>button]:hidden">
+        <div className="p-0">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-black text-white uppercase tracking-tight italic">TON withdrawal</h2>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Amount (TON):</Label>
-            <div className="relative">
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <Label className="text-[#8E8E93] text-[11px] font-black uppercase tracking-widest ml-1">Address (TON):</Label>
+              </div>
               <Input 
-                type="number"
-                placeholder="0.0000" 
-                value={withdrawAmount}
-                onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="bg-white/5 border-white/10 h-11 rounded-xl text-sm placeholder:text-zinc-600 focus:border-blue-500/50 transition-all font-black pr-16"
+                placeholder="Enter wallet address" 
+                value={withdrawAddress}
+                onChange={(e) => setWithdrawAddress(e.target.value)}
+                className="bg-[#1a1a1a] border-white/5 text-white h-14 rounded-2xl focus:ring-[#B9FF66] font-bold text-base"
               />
-              <button 
-                onClick={handleMaxClick}
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-[10px] font-black rounded-md transition-all uppercase"
-              >
-                Max
-              </button>
             </div>
-            <p className="text-[10px] text-zinc-500 font-bold ml-1">
-              Available: <span className="text-zinc-300">{Number(tonBalanceFromUser).toFixed(4)} TON</span>
-            </p>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">To receive (TON):</Label>
-            <div className="bg-white/5 border-white/10 h-11 rounded-xl px-4 flex items-center justify-between">
-              <span className="text-sm font-black text-white tabular-nums">
-                {toReceive}
-              </span>
-              <div className="w-5 h-5 rounded-full overflow-hidden border border-white/10">
-                <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-[#8E8E93] text-[11px] font-black uppercase tracking-widest ml-1">Amount (TON):</Label>
+                <span className="text-[#8E8E93] text-[10px] font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg">Avail: {Number(tonBalanceFromUser).toFixed(4)}</span>
+              </div>
+              <div className="relative">
+                <Input 
+                  type="number"
+                  placeholder="0.0000" 
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="bg-[#1a1a1a] border-white/5 text-white h-14 rounded-2xl focus:ring-[#B9FF66] font-bold text-base pr-20"
+                />
+                <button 
+                  onClick={handleMaxClick}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-[11px] font-black rounded-xl transition-all uppercase"
+                >
+                  Max
+                </button>
               </div>
             </div>
-          </div>
 
-          <div className="pt-2">
-            <Button 
-              className="w-full h-11 bg-white hover:bg-zinc-200 text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-white/5 border-0 active:scale-[0.98] disabled:opacity-50"
-              onClick={handleWithdrawClick}
-              disabled={withdrawMutation.isPending}
-            >
-              {withdrawMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Withdraw Now"
-              )}
-            </Button>
-          </div>
+            <div className="bg-[#141414] rounded-3xl p-6 border border-white/5 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-[#8E8E93] text-[11px] font-black uppercase tracking-widest">To receive (TON):</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white text-lg font-black tabular-nums">{toReceive}</span>
+                  <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10">
+                    <img src="/images/ton.png" alt="TON" className="w-full h-full object-cover" />
+                  </div>
+                </div>
+              </div>
+              <div className="h-[1px] bg-white/5" />
+              <div className="flex justify-between items-center text-[#8E8E93]">
+                <span className="text-[11px] font-black uppercase tracking-widest">Network fee</span>
+                <span className="text-white text-sm font-black">{networkFee} TON</span>
+              </div>
+            </div>
 
-          <div className="pt-3 border-t border-white/5 mt-1 space-y-1.5">
-            <p className="text-[9px] font-black flex items-center gap-1.5 uppercase tracking-wider text-zinc-500">
-              <span className="w-1 h-1 bg-zinc-600 rounded-full"></span>
-              Network fee: {networkFee} TON
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="w-full h-10 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-lg font-black text-[10px] uppercase tracking-wider"
-            >
-              Close
-            </Button>
+            <div className="space-y-3 pt-2">
+              <Button 
+                className="w-full h-14 bg-white hover:bg-zinc-200 text-black rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-xl border-0 active:scale-[0.98] disabled:opacity-50"
+                onClick={handleWithdrawClick}
+                disabled={withdrawMutation.isPending}
+              >
+                {withdrawMutation.isPending ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  "Withdraw Now"
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl font-black text-[11px] uppercase tracking-wider"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
+}
 }
