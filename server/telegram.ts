@@ -455,7 +455,7 @@ export async function sendWithdrawalApprovedNotification(withdrawal: any): Promi
   }
 
   try {
-    const PAIDADZ_GROUP_CHAT_ID = '-1003402950172';
+    const PAIDADZ_GROUP_CHAT_ID = '-1002422003884';
     const user = await storage.getUser(withdrawal.userId);
     
     const withdrawalDetails = withdrawal.details as any;
@@ -616,7 +616,7 @@ export async function sendSharePhotoToChat(
 export function formatWelcomeMessage(): { message: string; inlineKeyboard: any } {
   const botUsername = process.env.VITE_BOT_USERNAME || process.env.BOT_USERNAME || 'MoneyHrumbot';
   const channelUrl = 'https://t.me/MoneyAdz';
-  const groupUrl = 'https://t.me/MoneyAdzChat';
+  const groupUrl = 'https://t.me/+fahpWJGmJEowZGQ1';
   
   const message = `👋 Hey! Welcome, glad to have you here.\n\n` +
                  `Start mining HRUM directly in the app and earn effortlessly.\n\n` +

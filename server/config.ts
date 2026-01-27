@@ -14,7 +14,7 @@ export const config = {
     channelName: process.env.TELEGRAM_CHANNEL_NAME || 'Money adz',
     // Group settings (environment variables required)
     groupId: process.env.TELEGRAM_GROUP_ID || '-1002422003884',
-    groupUrl: process.env.TELEGRAM_GROUP_URL || 'https://t.me/MoneyAdzChat',
+    groupUrl: process.env.TELEGRAM_GROUP_URL || 'https://t.me/+fahpWJGmJEowZGQ1',
     groupName: process.env.TELEGRAM_GROUP_NAME || 'Money adz community',
   },
   
