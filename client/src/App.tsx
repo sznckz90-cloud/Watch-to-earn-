@@ -357,15 +357,50 @@ function App() {
 
   if (isCheckingCountry || isAuthenticating || isCheckingMembership) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="relative w-24 h-24">
-          <div className="absolute inset-0 rounded-full border-2 border-white/10 animate-pulse"></div>
-          <img 
-            src="/images/hrum-logo.jpg" 
-            alt="Hrum" 
-            className="w-full h-full object-cover rounded-full border-2 border-white/20"
-          />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#050505] overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+        
+        <div className="relative flex flex-col items-center">
+          {/* Logo Container with multiple glow layers */}
+          <div className="relative w-28 h-28 mb-8">
+            <div className="absolute inset-0 rounded-full bg-blue-500/20 blur-md animate-ping"></div>
+            <div className="absolute inset-[-4px] rounded-full bg-gradient-to-tr from-blue-600 via-transparent to-blue-400 opacity-30 animate-spin-slow"></div>
+            <div className="absolute inset-0 rounded-full border border-white/10"></div>
+            
+            <img 
+              src="/images/hrum-logo.jpg" 
+              alt="Hrum" 
+              className="w-full h-full object-cover rounded-full border-2 border-white/20 relative z-10 shadow-2xl"
+            />
+          </div>
+
+          {/* Text Elements */}
+          <div className="text-center relative z-10">
+            <h2 className="text-white font-black text-xl tracking-[0.2em] uppercase mb-2 animate-pulse">
+              CashWatch
+            </h2>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            <p className="text-blue-500/60 text-[10px] font-black uppercase tracking-widest mt-4 italic">
+              Loading your earnings...
+            </p>
+          </div>
         </div>
+
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+          }
+        `}} />
       </div>
     );
   }
@@ -400,7 +435,10 @@ function App() {
             <Suspense fallback={null}>
               <ChannelJoinPopup 
                 telegramId={telegramId || ""} 
-                onVerified={() => setIsChannelVerified(true)} 
+                onVerified={() => {
+                  setIsChannelVerified(true);
+                  showNotification("Verification successful! Welcome.", "success");
+                }} 
               />
             </Suspense>
           )}
