@@ -11,7 +11,6 @@ import {
   X,
   ArrowLeftRight,
   Globe2,
-  Users,
   Headphones,
   Shield,
   ScrollText,
@@ -83,10 +82,6 @@ export default function Profile() {
     } else {
       window.open(url, '_blank');
     }
-  };
-
-  const handleInviteFriends = () => {
-    navigate('/affiliates');
   };
 
   const legalContent: Record<string, { title: string, content: React.ReactNode }> = {
@@ -296,11 +291,6 @@ export default function Profile() {
             onClick={() => setIsLanguageOpen(true)}
           />
           <ProfileItem 
-            icon={<Users className="w-5 h-5 text-[#B9FF66]" strokeWidth={1.5} />} 
-            label="Invite Friends" 
-            onClick={handleInviteFriends}
-          />
-          <ProfileItem 
             icon={<Headphones className="w-5 h-5 text-blue-400" strokeWidth={1.5} />} 
             label="Contact Support" 
             onClick={() => openLink('http://t.me/szxzyz')}
@@ -346,9 +336,6 @@ export default function Profile() {
                 <h2 className="text-xl font-bold text-white uppercase tracking-tight italic">
                   {legalContent[selectedLegal].title}
                 </h2>
-                <Button variant="ghost" size="icon" onClick={() => setSelectedLegal(null)}>
-                  <X className="w-6 h-6" />
-                </Button>
               </div>
               <div className="flex-1 overflow-y-auto p-6">
                 {legalContent[selectedLegal].content}
