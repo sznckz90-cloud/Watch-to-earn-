@@ -36,7 +36,7 @@ export default function MandatoryJoinScreen({ telegramId, onVerified }: Mandator
         channelMember: data.channelMember || false,
         groupMember: data.groupMember || false,
         channelUrl: data.channelUrl || "https://t.me/MoneyAdz",
-        groupUrl: data.groupUrl || "https://t.me/MoneyAdzChat",
+        groupUrl: data.groupUrl || "https://t.me/+fahpWJGmJEowZGQ1",
         channelName: data.channelName || "Money Adz",
         groupName: data.groupName || "Money Adz Chat"
       });
@@ -62,7 +62,7 @@ export default function MandatoryJoinScreen({ telegramId, onVerified }: Mandator
   };
 
   const openGroup = () => {
-    const url = membershipStatus?.groupUrl || "https://t.me/MoneyAdzChat";
+    const url = membershipStatus?.groupUrl || "https://t.me/+fahpWJGmJEowZGQ1";
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.openTelegramLink(url);
     } else {
@@ -115,7 +115,6 @@ export default function MandatoryJoinScreen({ telegramId, onVerified }: Mandator
               </div>
               <div className="text-left">
                 <p className="text-white font-medium">Join Channel</p>
-                <p className="text-white/40 text-xs">{membershipStatus?.channelName || "Paid Ads News"}</p>
               </div>
             </div>
             {membershipStatus?.channelMember ? (
@@ -143,7 +142,6 @@ export default function MandatoryJoinScreen({ telegramId, onVerified }: Mandator
               </div>
               <div className="text-left">
                 <p className="text-white font-medium">Join Group</p>
-                <p className="text-white/40 text-xs">{membershipStatus?.groupName || "Paid Ads Community"}</p>
               </div>
             </div>
             {membershipStatus?.groupMember ? (
