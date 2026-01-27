@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MembershipStatus {
   channelMember: boolean;
@@ -15,6 +16,7 @@ interface ChannelJoinPopupProps {
 }
 
 export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoinPopupProps) {
+  const queryClient = useQueryClient();
   const [isChecking, setIsChecking] = useState(false);
   const [membershipStatus, setMembershipStatus] = useState<MembershipStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,8 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
       
       if (data.success && data.isVerified) {
         onVerified();
+        // Force refresh user data to ensure frontend state is in sync
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         return;
       }
       
