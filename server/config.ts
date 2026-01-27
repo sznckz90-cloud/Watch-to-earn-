@@ -16,6 +16,9 @@ export const config = {
     groupId: process.env.TELEGRAM_GROUP_ID || '-1002422003884',
     groupUrl: process.env.TELEGRAM_GROUP_URL || 'https://t.me/+fahpWJGmJEowZGQ1',
     groupName: process.env.TELEGRAM_GROUP_NAME || 'Money adz community',
+    moneyCatsId: process.env.TELEGRAM_MONEYCATS_ID || '-1001996425997',
+    moneyCatsUrl: process.env.TELEGRAM_MONEYCATS_URL || 'https://t.me/MoneyCatsPromoCode',
+    moneyCatsName: process.env.TELEGRAM_MONEYCATS_NAME || 'Money Cats Promo Code',
   },
   
   // Bot configuration
@@ -36,6 +39,9 @@ export function getChannelConfig() {
     groupId: config.telegram.groupId,
     groupUrl: config.telegram.groupUrl,
     groupName: config.telegram.groupName,
+    moneyCatsId: config.telegram.moneyCatsId,
+    moneyCatsUrl: config.telegram.moneyCatsUrl,
+    moneyCatsName: config.telegram.moneyCatsName,
     botUsername: config.bot.username,
     botUrl: config.bot.botUrl,
   };

@@ -1076,58 +1076,66 @@ export class DatabaseStorage implements IStorage {
             })
             .where(eq(referrals.id, referral.id));
 
-          // Award Hrum referral bonus to referrer (uses admin-configured amount)
-          await this.addEarning({
-            userId: referral.referrerId,
-            amount: String(referralRewardHrum),
-            source: 'referral',
-            description: `Referral bonus - friend watched ${referralAdsRequired} ads (+${referralRewardHrum} Hrum)`,
-          });
+    // Award Hrum referral bonus to referrer (uses admin-configured amount)
+    await this.addEarning({
+      userId: referral.referrerId,
+      amount: String(referralRewardHrum),
+      source: 'referral',
+      description: `Referral bonus - friend watched ${referralAdsRequired} ads (+${referralRewardHrum} Hrum)`,
+    });
 
-          console.log(`✅ Referral bonus: ${referralRewardHrum} Hrum awarded to ${referral.referrerId} from ${userId}'s ${referralAdsRequired} ad watches`);
+    // Award bonus if enabled (uses admin-configured amount)
+    if (referralRewardEnabled === 'true' && referralReward > 0) {
+      await this.addTONBalance(
+        referral.referrerId,
+        String(referralReward),
+        'referral',
+        `Referral bonus - friend watched ${referralAdsRequired} ads (+TON${referralReward})`
+      );
 
-          // Award  bonus if enabled (uses admin-configured amount)
-          if (referralRewardEnabled === 'true' && referralReward > 0) {
-            await this.addTONBalance(
-              referral.referrerId,
-              String(referralReward),
-              'referral',
-              `Referral bonus - friend watched ${referralAdsRequired} ads (+TON${referralReward} )`
-            );
-            console.log(`✅ Referral bonus: TON${referralReward}  awarded to ${referral.referrerId} from ${userId}'s ${referralAdsRequired} ad watches`);
+      // CRITICAL FIX: Also credit BUG balance for referral bonus
+      const bugRewardAmount = parseFloat(String(referralReward)) * 50; // Calculate BUG from TON
+      await this.addBUGBalance(
+        referral.referrerId,
+        String(bugRewardAmount),
+        'referral',
+        `Referral bonus - BUG earned (+${bugRewardAmount} BUG)`
+      );
+    }
 
-            // CRITICAL FIX: Also credit BUG balance for referral bonus
-            const bugRewardAmount = parseFloat(String(referralReward)) * 50; // Calculate BUG from TON
-            await this.addBUGBalance(
-              referral.referrerId,
-              String(bugRewardAmount),
-              'referral',
-              `Referral bonus - BUG earned (+${bugRewardAmount} BUG)`
-            );
-            console.log(`✅ Referral bonus: ${bugRewardAmount} BUG awarded to ${referral.referrerId}`);
-          }
+    // Sync friendsInvited count
+    await db.update(users)
+      .set({ 
+        friendsInvited: sql`COALESCE(${users.friendsInvited}, 0) + 1`,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, referral.referrerId));
 
-          // CRITICAL: Send ONLY ONE notification to referrer when their friend watches their first ad
-          // Uses  reward amount from Admin Settings (no Hrum/commission messages)
-          try {
-            const { sendReferralRewardNotification } = await import('./telegram');
-            const referrer = await this.getUser(referral.referrerId);
-            const referredUser = await this.getUser(userId);
-            
-            if (referrer && referrer.telegram_id && referredUser) {
-              const referredName = referredUser.username || referredUser.firstName || 'your friend';
-              // Send notification with  amount from Admin Settings (not Hrum)
-              await sendReferralRewardNotification(
-                referrer.telegram_id,
-                referredName,
-                String(referralReward) //  amount from admin settings
-              );
-              console.log(`📩 Referral reward notification sent to ${referrer.telegram_id} with TON${referralReward} TON`);
-            }
-          } catch (notifyError) {
-            console.error('❌ Error sending referral reward notification:', notifyError);
-            // Don't throw - notification failure shouldn't block the referral process
-          }
+    console.log(`✅ Referral bonus: ${referralRewardHrum} Hrum awarded and friendsInvited incremented for ${referral.referrerId}`);
+
+    /* 
+    // CRITICAL: Send ONLY ONE notification to referrer when their friend watches their first ad
+    // Uses  reward amount from Admin Settings (no Hrum/commission messages)
+    try {
+      const { sendReferralRewardNotification } = await import('./telegram');
+      const referrer = await this.getUser(referral.referrerId);
+      const referredUser = await this.getUser(userId);
+      
+      if (referrer && referrer.telegram_id && referredUser) {
+        const referredName = referredUser.username || referredUser.firstName || 'your friend';
+        // Send notification with  amount from Admin Settings (not Hrum)
+        await sendReferralRewardNotification(
+          referrer.telegram_id,
+          referredName,
+          String(referralReward) //  amount from admin settings
+        );
+        console.log(`📩 Referral reward notification sent to ${referrer.telegram_id} with TON${referralReward} TON`);
+      }
+    } catch (notifyError) {
+      console.error('❌ Error sending referral reward notification:', notifyError);
+      // Don't throw - notification failure shouldn't block the referral process
+    }
+    */
         }
       }
     } catch (error) {

@@ -1020,14 +1020,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 2. CHANNEL/GROUP JOIN CHECK
       // MANDATORY: ALWAYS check membership in both channel and group
-      const [channelMember, groupMember] = await Promise.all([
+      const [channelMember, groupMember, moneyCatsMember] = await Promise.all([
         verifyChannelMembership(userId, channelConfig.channelId, botToken),
-        verifyChannelMembership(userId, channelConfig.groupId, botToken)
+        verifyChannelMembership(userId, channelConfig.groupId, botToken),
+        verifyChannelMembership(userId, channelConfig.moneyCatsId, botToken)
       ]);
       
-      const isVerified = channelMember && groupMember;
+      const isVerified = channelMember && groupMember && moneyCatsMember;
       
-      console.log(`🔍 check-membership for ${telegramId}: channel=${channelMember}, group=${groupMember}, verified=${isVerified}`);
+      console.log(`🔍 check-membership for ${telegramId}: channel=${channelMember}, group=${groupMember}, moneyCats=${moneyCatsMember}, verified=${isVerified}`);
       
       // Update user status in database to match current membership state
       if (user) {
@@ -1039,10 +1040,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified,
         channelMember,
         groupMember,
+        moneyCatsMember,
         channelUrl: channelConfig.channelUrl,
         groupUrl: channelConfig.groupUrl,
+        moneyCatsUrl: channelConfig.moneyCatsUrl,
         channelName: channelConfig.channelName,
-        groupName: channelConfig.groupName
+        groupName: channelConfig.groupName,
+        moneyCatsName: channelConfig.moneyCatsName
       });
     } catch (error) {
       console.error('❌ check-membership error:', error);
@@ -1052,10 +1056,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isVerified: false,
         channelMember: false,
         groupMember: false,
+        moneyCatsMember: false,
         channelUrl: channelConfig.channelUrl,
         groupUrl: channelConfig.groupUrl,
+        moneyCatsUrl: channelConfig.moneyCatsUrl,
         channelName: channelConfig.channelName,
         groupName: channelConfig.groupName,
+        moneyCatsName: channelConfig.moneyCatsName,
         message: 'Failed to check membership'
       });
     }
