@@ -4,10 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 interface MembershipStatus {
   channelMember: boolean;
   groupMember: boolean;
+  moneyCatsMember: boolean;
   channelUrl: string;
   groupUrl: string;
+  moneyCatsUrl: string;
   channelName: string;
   groupName: string;
+  moneyCatsName: string;
 }
 
 interface ChannelJoinPopupProps {
@@ -50,15 +53,18 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
         setMembershipStatus({
           channelMember: data.channelMember || false,
           groupMember: data.groupMember || false,
+          moneyCatsMember: data.moneyCatsMember || false,
           channelUrl: data.channelUrl || "https://t.me/MoneyAdz",
           groupUrl: data.groupUrl || "https://t.me/+fahpWJGmJEowZGQ1",
+          moneyCatsUrl: data.moneyCatsUrl || "https://t.me/MoneyCatsPromoCode",
           channelName: data.channelName || "Money adz",
-          groupName: data.groupName || "Money adz community"
+          groupName: data.groupName || "Money adz community",
+          moneyCatsName: data.moneyCatsName || "Money Cats Promo Code"
         });
         
-        if (!data.channelMember || !data.groupMember) {
+        if (!data.channelMember || !data.groupMember || !data.moneyCatsMember) {
           if (!isInitialCheck) {
-            setError("Please join both channel and group first!");
+            setError("Please join all channels and the group first!");
           }
         }
       } else if (!isInitialCheck) {
@@ -99,11 +105,20 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
     }
   };
 
+  const openMoneyCats = () => {
+    const url = membershipStatus?.moneyCatsUrl || "https://t.me/MoneyCatsPromoCode";
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(url);
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
   const handleContinue = () => {
     checkMembership(false);
   };
 
-  const bothJoined = membershipStatus?.channelMember && membershipStatus?.groupMember;
+  const allJoined = membershipStatus?.channelMember && membershipStatus?.groupMember && membershipStatus?.moneyCatsMember;
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -136,6 +151,34 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
               </div>
             </div>
             {membershipStatus?.channelMember ? (
+              <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <span className="text-blue-500 text-[10px] font-black tracking-widest uppercase">JOIN</span>
+            )}
+          </button>
+
+          {/* Money Cats Channel Button */}
+          <button
+            onClick={openMoneyCats}
+            className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all mb-2.5 ${
+              membershipStatus?.moneyCatsMember
+                ? "bg-blue-500/10 border-blue-500/30"
+                : "bg-white/5 border-white/10 hover:border-blue-500/50"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+              </div>
+              <div className="text-left">
+                <p className="text-white font-semibold text-xs tracking-tight">Join Money Cats</p>
+              </div>
+            </div>
+            {membershipStatus?.moneyCatsMember ? (
               <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -186,7 +229,7 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
                 Checking...
               </span>
             ) : (
-              "I've Joined Both"
+              "I've Joined All"
             )}
           </button>
         </div>
