@@ -175,7 +175,7 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-white font-semibold text-xs tracking-tight">Join Money Cats</p>
+                <p className="text-white font-semibold text-xs tracking-tight">Join King of Profit</p>
               </div>
             </div>
             {membershipStatus?.moneyCatsMember ? (
