@@ -32,7 +32,11 @@ const PageLoader = memo(function PageLoader() {
 
 function Router() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-[#050505]">
+        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+      </div>
+    }>
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/task/create" component={CreateTask} />
@@ -171,10 +175,10 @@ function App() {
   const isDevMode = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
   useEffect(() => {
-    // Force show loading screen for at least 3 seconds
+    // Show loading screen for a shorter time or remove if not needed
     const timer = setTimeout(() => {
       setShowLoading(false);
-    }, 3000);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
