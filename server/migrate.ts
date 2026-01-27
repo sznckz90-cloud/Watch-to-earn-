@@ -1,8 +1,26 @@
-// Migration helper to ensure all database tables exist with correct schema
+import pkg from 'pg';
+const { Client } = pkg;
 import { db } from './db';
 import { sql } from 'drizzle-orm';
 
+// CRITICAL: Disable TLS check for internal Render/Replit DB connections
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 export async function ensureDatabaseSchema(): Promise<void> {
+  if (process.env.DATABASE_URL) {
+    const client = new Client({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    });
+    try {
+      await client.connect();
+      console.log('✅ Database connection verified for migrations');
+    } catch (err) {
+      console.error('❌ Migration connection test failed:', err);
+    } finally {
+      await client.end();
+    }
+  }
   try {
     console.log('🔄 [MIGRATION] Ensuring all database tables exist...');
     
@@ -69,10 +87,45 @@ export async function ensureDatabaseSchema(): Promise<void> {
         friends_invited INTEGER DEFAULT 0,
         first_ad_watched BOOLEAN DEFAULT false,
         last_reset_date TIMESTAMP,
+        ton_wallet_address TEXT,
+        ton_wallet_comment TEXT,
+        telegram_username_wallet TEXT,
+        cwallet_id TEXT,
+        wallet_updated_at TIMESTAMP,
+        pending_referral_bonus DECIMAL(12, 8) DEFAULT '0',
+        total_claimed_referral_bonus DECIMAL(12, 8) DEFAULT '0',
+        ton_balance DECIMAL(30, 10) DEFAULT '0',
+        usd_balance DECIMAL(30, 10) DEFAULT '0',
+        pdz_balance DECIMAL(30, 10) DEFAULT '0',
+        bug_balance DECIMAL(30, 10) DEFAULT '0',
+        usdt_wallet_address TEXT,
+        telegram_stars_username TEXT,
+        task_share_completed_today BOOLEAN DEFAULT false,
+        task_channel_completed_today BOOLEAN DEFAULT false,
+        task_community_completed_today BOOLEAN DEFAULT false,
+        task_checkin_completed_today BOOLEAN DEFAULT false,
+        extra_ads_watched_today INTEGER DEFAULT 0,
+        last_extra_ad_date TIMESTAMP,
+        app_version TEXT,
+        browser_fingerprint TEXT,
+        registered_at TIMESTAMP DEFAULT NOW(),
+        referrer_uid TEXT,
+        is_channel_group_verified BOOLEAN DEFAULT false,
+        last_membership_check TIMESTAMP,
+        last_mining_claim TIMESTAMP DEFAULT NOW(),
+        mining_rate DECIMAL(20, 8) DEFAULT '0.00001',
+        active_plan_id VARCHAR,
+        plan_expires_at TIMESTAMP,
+        ad_section1_boost DECIMAL(20, 8) DEFAULT '0',
+        ad_section2_boost DECIMAL(20, 8) DEFAULT '0',
+        ad_section1_count INTEGER DEFAULT 0,
+        ad_section2_count INTEGER DEFAULT 0,
+        ton_app_balance decimal(30, 10) DEFAULT '0',
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       )
     `);
+    console.log('✅ [MIGRATION] Users table ensured with full schema');
     
     // Add missing columns to existing users table (for production databases)
     try {
