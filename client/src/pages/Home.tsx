@@ -417,11 +417,20 @@ export default function Home() {
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.message || 'Failed to claim reward');
+
+      // Update local state to instantly hide the popup
+      setCompletedTasks(prev => {
+        const next = new Set(prev);
+        next.add(taskId);
+        return next;
+      });
+
       return data;
     },
     onSuccess: async (data) => {
+      // Background refetch to keep data in sync
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/tasks/home/unified'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks/home/unified'] });
       const hrumReward = Number(data.reward ?? 0);
       showNotification(`+${hrumReward.toLocaleString()} Hrum earned!`, 'success');
     },
@@ -1321,30 +1330,27 @@ export default function Home() {
           </div>
 
           <Tabs defaultValue="mine" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border-b border-white/5 h-12 p-0 rounded-none mb-4">
+            <TabsList className="grid w-full grid-cols-3 bg-[#0d0d0d] border border-white/5 h-12 p-1 rounded-xl mb-4 shadow-inner">
               <TabsTrigger 
                 value="mine" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                className="flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-wider rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-white/40 transition-all h-full"
               >
-                <Zap className="w-4 h-4" />
+                <Zap className="w-3.5 h-3.5" />
                 {t('mine').toUpperCase()}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
               </TabsTrigger>
               <TabsTrigger 
                 value="earn" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                className="flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-wider rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-white/40 transition-all h-full"
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-3.5 h-3.5" />
                 {t('earn').toUpperCase()}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
               </TabsTrigger>
               <TabsTrigger 
                 value="referrals" 
-                className="flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider rounded-none data-[state=active]:bg-transparent data-[state=active]:text-white transition-all relative h-full"
+                className="flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-wider rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=inactive]:text-white/40 transition-all h-full"
               >
-                <HeartHandshake className="w-4 h-4" />
+                <HeartHandshake className="w-3.5 h-3.5" />
                 {t('referrals').toUpperCase()}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 opacity-0 data-[state=active]:opacity-100 transition-opacity"></div>
               </TabsTrigger>
             </TabsList>
 
@@ -1353,8 +1359,8 @@ export default function Home() {
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 bg-[#B9FF66] rounded-full animate-pulse"></div>
-                    <span className="text-[#B9FF66] text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-blue-500 text-[10px] font-black uppercase tracking-widest">{t('active')}</span>
                   </div>
                 </div>
                 
@@ -1363,7 +1369,7 @@ export default function Home() {
                   <div className="text-3xl font-black text-white tabular-nums tracking-tight">
                     {miningAmount.toFixed(6)}
                   </div>
-                  <div className="flex items-center justify-center gap-1 mt-1 text-[#B9FF66] text-[11px] font-bold">
+                  <div className="flex items-center justify-center gap-1 mt-1 text-blue-500 text-[11px] font-bold">
                     <Zap className="w-3 h-3 fill-current" />
                     {miningRatePerHour.toFixed(4)} H/h
                   </div>
@@ -1484,8 +1490,8 @@ export default function Home() {
                 </div>
 
                 {appSettings?.referralRewardEnabled && (
-                  <div className="w-full p-3 bg-green-500/10 border border-green-500/20 rounded-xl mb-0">
-                    <p className="text-[10px] text-green-400 font-black text-center uppercase tracking-tight italic">
+                  <div className="w-full p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-0">
+                    <p className="text-[10px] text-blue-400 font-black text-center uppercase tracking-tight italic">
                       Bonus: {appSettings.referralRewardHrum || 50} Hrum + {appSettings.referralReward || 0.0005} TON on first ad!
                     </p>
                   </div>
