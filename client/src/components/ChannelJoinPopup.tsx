@@ -34,7 +34,7 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
       }
       
       // Use the specific membership check endpoint that verifies with Telegram
-      const response = await fetch('/api/membership/check', { headers });
+      const response = await fetch(`/api/membership/check?t=${Date.now()}`, { headers });
       const data = await response.json();
       
       if (data.success && data.isVerified) {
@@ -51,6 +51,12 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
           channelName: data.channelName || "Money adz",
           groupName: data.groupName || "Money adz community"
         });
+        
+        if (!data.channelMember || !data.groupMember) {
+          if (!isInitialCheck) {
+            setError("Please join both channel and group first!");
+          }
+        }
       } else if (!isInitialCheck) {
         setError(data.message || "Failed to verify membership.");
       }
@@ -102,70 +108,70 @@ export default function ChannelJoinPopup({ telegramId, onVerified }: ChannelJoin
         <div className="text-center">
           {error && (
             <div className="mb-4 py-2 px-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-red-400 text-xs">{error}</p>
+              <p className="text-red-400 text-[10px]">{error}</p>
             </div>
           )}
 
           {/* Channel Join Button */}
           <button
             onClick={openChannel}
-            className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all mb-3 ${
+            className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all mb-2.5 ${
               membershipStatus?.channelMember
-                ? "bg-[#B9FF66]/10 border-[#B9FF66]/30"
-                : "bg-white/5 border-white/10 hover:border-[#B9FF66]/50"
+                ? "bg-blue-500/10 border-blue-500/30"
+                : "bg-white/5 border-white/10 hover:border-blue-500/50"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#B9FF66]/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#B9FF66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-white font-medium text-sm">Join Channel</p>
+                <p className="text-white font-semibold text-xs tracking-tight">Join Channel</p>
               </div>
             </div>
             {membershipStatus?.channelMember ? (
-              <svg className="w-5 h-5 text-[#B9FF66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             ) : (
-              <span className="text-[#B9FF66] text-xs font-medium">JOIN</span>
+              <span className="text-blue-500 text-[10px] font-black tracking-widest uppercase">JOIN</span>
             )}
           </button>
 
           {/* Group Join Button */}
           <button
             onClick={openGroup}
-            className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all mb-4 ${
+            className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all mb-4 ${
               membershipStatus?.groupMember
-                ? "bg-[#B9FF66]/10 border-[#B9FF66]/30"
-                : "bg-white/5 border-white/10 hover:border-[#B9FF66]/50"
+                ? "bg-blue-500/10 border-blue-500/30"
+                : "bg-white/5 border-white/10 hover:border-blue-500/50"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#B9FF66]/10 flex items-center justify-center">
-                <svg className="w-5 h-5 text-[#B9FF66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                 </svg>
               </div>
               <div className="text-left">
-                <p className="text-white font-medium text-sm">Join Group</p>
+                <p className="text-white font-semibold text-xs tracking-tight">Join Group</p>
               </div>
             </div>
             {membershipStatus?.groupMember ? (
-              <svg className="w-5 h-5 text-[#B9FF66]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             ) : (
-              <span className="text-[#B9FF66] text-xs font-medium">JOIN</span>
+              <span className="text-blue-500 text-[10px] font-black tracking-widest uppercase">JOIN</span>
             )}
           </button>
 
           <button
             onClick={handleContinue}
             disabled={isChecking}
-            className="w-full py-3 px-4 bg-[#B9FF66] text-black font-semibold rounded-xl transition-all hover:bg-[#B9FF66]/90 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="w-full py-3 px-4 bg-blue-500 text-white font-black rounded-xl transition-all hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] uppercase tracking-widest shadow-[0_4px_15px_rgba(59,130,246,0.3)]"
           >
             {isChecking ? (
               <span className="flex items-center justify-center gap-2">

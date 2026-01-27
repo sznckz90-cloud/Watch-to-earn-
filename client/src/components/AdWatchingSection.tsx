@@ -196,9 +196,9 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
     : (appSettings?.ad_section2_reward || '0.0001');
 
   return (
-    <div className="bg-[#1a1a1a] border border-[#B9FF66]/20 rounded-2xl px-4 h-24 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
+    <div className="bg-[#1a1a1a] border border-blue-500/20 rounded-2xl px-4 h-24 flex items-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] relative overflow-hidden group">
       {/* Background Glow Effect */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-[#B9FF66]/0 via-[#B9FF66]/5 to-[#B9FF66]/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/0 via-blue-500/5 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       <div className="flex items-center justify-between w-full relative z-10">
         <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -213,14 +213,14 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
             <h3 className="text-white font-black text-[13px] tracking-tight truncate uppercase italic">{section === 'section1' ? 'Speed Booster 1' : 'Speed Booster 2'}</h3>
             <div className="flex flex-col gap-0.5 mt-0.5">
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#B9FF66] shadow-[0_0_8px_#B9FF66]" />
-                <span className="text-[11px] font-black text-[#B9FF66] uppercase tracking-widest">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" />
+                <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">
                   +{sectionReward} Mining Speed
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">
                   Daily Limit: {adsWatchedToday}/{dailyLimit}
                 </span>
               </div>
@@ -232,7 +232,7 @@ export default function AdWatchingSection({ user, section = 'section1' }: AdWatc
           <Button
             onClick={handleStartEarning}
             disabled={isShowingAds || adsWatchedToday >= dailyLimit}
-            className="rounded-xl px-6 h-10 font-black text-[11px] uppercase tracking-widest bg-[#B9FF66] text-black hover:bg-[#B9FF66]/90 border-none transition-all active:scale-95 shadow-[0_0_20px_rgba(185,255,102,0.15)]"
+            className="rounded-xl px-6 h-10 font-black text-[11px] uppercase tracking-widest bg-blue-500 text-white hover:bg-blue-600 border-none transition-all active:scale-95 shadow-[0_0_20px_rgba(59,130,246,0.15)]"
           >
             {isShowingAds ? (
               <div className="flex items-center gap-2">
