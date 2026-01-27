@@ -4157,16 +4157,6 @@ export class DatabaseStorage implements IStorage {
     return newBoost;
   }
 
-  async hasEverBoughtBoost(userId: string): Promise<boolean> {
-    const result = await db.execute(sql`
-      SELECT EXISTS (
-        SELECT 1 FROM mining_boosts 
-        WHERE user_id = ${userId}
-      )
-    `);
-    return result.rows[0].exists;
-  }
-
   async getUserReferralTasks(userId: string): Promise<UserReferralTask[]> {
     const { userReferralTasks } = await import("../shared/schema");
     return db.select().from(userReferralTasks).where(eq(userReferralTasks.userId, userId));
