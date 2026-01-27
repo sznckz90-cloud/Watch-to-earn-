@@ -201,26 +201,41 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
 
   if (!isAdmin(adminId)) return false;
 
-  if (data.startsWith('deposit_')) {
-    const parts = data.split('_');
-    const action = parts[1]; // 'success' or 'failed'
-    const depositId = parts[2];
+  if (data.startsWith('deposit_success_') || data.startsWith('deposit_failed_')) {
+    let action: string;
+    let depositId: string;
     
-    // Use direct import if possible or ensure storage is correctly loaded
+    if (data.startsWith('deposit_success_')) {
+      action = 'success';
+      depositId = data.replace('deposit_success_', '');
+    } else {
+      action = 'failed';
+      depositId = data.replace('deposit_failed_', '');
+    }
+    
+    if (!depositId) {
+      console.error('Deposit callback received with empty depositId');
+      return false;
+    }
+    
     const { storage: storageInstance } = await import('./storage');
     const deposit = await storageInstance.getDeposit(depositId);
     if (!deposit) {
       console.error(`Deposit ${depositId} not found`);
       return false;
     }
+    
+    if (!deposit.userId) {
+      console.error(`Deposit ${depositId} has no userId`);
+      return false;
+    }
 
     if (action === 'success') {
-      const { storage: storageInstance } = await import('./storage');
-      await storageInstance.updateWithdrawalStatus(depositId, 'completed');
+      await storageInstance.updateDepositStatus(depositId, 'completed');
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `✅ Your withdrawal of ${format$(deposit.amount)} TON has been approved and sent to your wallet!`);
+        await sendUserTelegramNotification(user.telegram_id, `✅ Your deposit of ${format$(deposit.amount)} TON has been approved and credited to your account!`);
       }
 
       const updatedText = message.text + "\n\n✅ <b>Status: APPROVED</b>";
@@ -235,12 +250,11 @@ export async function handleTelegramCallback(callbackQuery: any): Promise<boolea
         })
       });
     } else if (action === 'failed') {
-      const { storage: storageInstance } = await import('./storage');
-      await storageInstance.updateWithdrawalStatus(depositId, 'failed');
+      await storageInstance.updateDepositStatus(depositId, 'failed');
       
       const user = await storageInstance.getUser(deposit.userId);
       if (user && user.telegram_id) {
-        await sendUserTelegramNotification(user.telegram_id, `❌ Your withdrawal of ${format$(deposit.amount)} TON was rejected by admin. The amount has been returned to your balance.`);
+        await sendUserTelegramNotification(user.telegram_id, `❌ Your deposit of ${format$(deposit.amount)} TON was rejected by admin.`);
       }
 
       const updatedText = message.text + "\n\n❌ <b>Status: REJECTED</b>";
@@ -416,7 +430,14 @@ export async function sendWithdrawalRequestNotification(withdrawal: any, user: a
                  `📅 Date: ${currentDate}\n` +
                  `🤖 Bot: @MoneyHrumbot`;
 
-    const result = await sendUserTelegramNotification(TELEGRAM_ADMIN_ID, message);
+    const replyMarkup = {
+      inline_keyboard: [[
+        { text: "✅ Approve", callback_data: `withdraw_paid_${withdrawal.id}` },
+        { text: "❌ Reject", callback_data: `withdraw_reject_${withdrawal.id}` }
+      ]]
+    };
+
+    const result = await sendUserTelegramNotification(TELEGRAM_ADMIN_ID, message, replyMarkup);
     if (!result) {
       console.error(`❌ Failed to send withdrawal request notification to admin ${TELEGRAM_ADMIN_ID}`);
     }
@@ -989,7 +1010,7 @@ Share your unique referral link and earn Hrum when your friends join:
           const totalAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)` }).from(users);
           const todayAdsSum = await db.select({ total: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)` }).from(users);
           const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`);
-          const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.totalEarned}), '0')` }).from(users);
+          const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(${users.total_earned}), '0')` }).from(users);
           const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`);
           const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(total_earned), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`);
           const totalPayoutsSum = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), '0')` }).from(withdrawals).where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved')`);
@@ -1590,7 +1611,7 @@ ${walletAddress}
       lastName: user.last_name,
       username: user.username,
       personalCode: user.username || chatId,
-      withdrawBalance: '0',
+      withdraw_balance: '0',
       totalEarnings: '0',
       adsWatched: 0,
       dailyAdsWatched: 0,
@@ -1883,7 +1904,7 @@ ${walletAddress}
         const yesterdayAdsQuery = await db.execute(sql`SELECT COALESCE(SUM(ads_watched_today), 0) as total FROM users WHERE last_ad_date::date = CURRENT_DATE - INTERVAL '1 day'`).catch(() => ({ rows: [{ total: 0 }] }));
         
         // Use explicit cast to numeric for SUM on decimal columns
-        const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarned} AS NUMERIC)), '0')` }).from(users).catch(() => [{ total: '0' }]);
+        const totalHrumSum = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.total_earned} AS NUMERIC)), '0')` }).from(users).catch(() => [{ total: '0' }]);
         const todayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(CAST(total_earned AS NUMERIC)), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE`).catch(() => ({ rows: [{ total: '0' }] }));
         const yesterdayHrumQuery = await db.execute(sql`SELECT COALESCE(SUM(CAST(total_earned AS NUMERIC)), '0') as total FROM users WHERE DATE(updated_at) = CURRENT_DATE - INTERVAL '1 day'`).catch(() => ({ rows: [{ total: '0' }] }));
         
