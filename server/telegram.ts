@@ -294,7 +294,21 @@ export async function sendDepositNotificationToAdmin(deposit: any, user: any): P
     ]]
   };
 
-  return await sendUserTelegramNotification(adminId, text, replyMarkup);
+  const result = await sendUserTelegramNotification(adminId, text, replyMarkup);
+  
+  // Group notification
+  const PAIDADZ_GROUP_CHAT_ID = '-1002422003884';
+  await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: PAIDADZ_GROUP_CHAT_ID,
+      text: text,
+      parse_mode: 'HTML'
+    })
+  });
+
+  return result;
 }
 
 export async function sendTelegramMessage(message: string): Promise<boolean> {
@@ -441,6 +455,19 @@ export async function sendWithdrawalRequestNotification(withdrawal: any, user: a
     if (!result) {
       console.error(`❌ Failed to send withdrawal request notification to admin ${TELEGRAM_ADMIN_ID}`);
     }
+
+    // Group notification
+    const PAIDADZ_GROUP_CHAT_ID = '-1002422003884';
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: PAIDADZ_GROUP_CHAT_ID,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
     return result;
   } catch (error) {
     console.error('❌ Error sending withdrawal request notification:', error);
