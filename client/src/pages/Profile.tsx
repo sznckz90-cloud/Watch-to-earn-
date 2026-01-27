@@ -249,7 +249,7 @@ export default function Profile() {
           <div className="grid grid-cols-2 gap-3">
             <Button 
               onClick={() => setIsTopUpOpen(true)}
-              className="h-12 bg-[#B9FF66] hover:bg-[#a3e64b] text-black rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#B9FF66]/20"
+              className="h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-600/20"
             >
               <Plus className="w-4 h-4 mr-1.5" />
               Deposit
