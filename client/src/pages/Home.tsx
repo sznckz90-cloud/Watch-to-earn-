@@ -22,6 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
 
 import UpgradePopup from "@/components/UpgradePopup";
+import { FAQSection } from "@/components/FAQSection";
 
 // Unified Task Interface
 interface UnifiedTask {
@@ -1820,6 +1821,7 @@ export default function Home() {
         onClose={() => setUpgradePopupOpen(false)} 
         tonAppBalance={user?.tonAppBalance || "0"} 
       />
+      <FAQSection />
     </Layout>
   );
 }
