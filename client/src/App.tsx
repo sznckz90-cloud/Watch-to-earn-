@@ -24,8 +24,6 @@ const Admin = lazy(() => import("@/pages/Admin"));
 const Profile = lazy(() => import("@/pages/Profile"));
 const CreateTask = lazy(() => import("@/pages/CreateTask"));
 const CountryControls = lazy(() => import("@/pages/CountryControls"));
-const AdWatchSection1Page = lazy(() => import("@/pages/AdWatchSection1Page"));
-const AdWatchSection2Page = lazy(() => import("@/pages/AdWatchSection2Page"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const PageLoader = memo(function PageLoader() {
@@ -37,8 +35,6 @@ function Router() {
     <Suspense fallback={null}>
       <Switch>
         <Route path="/" component={Home} />
-        <Route path="/adwatchsection" component={AdWatchSection1Page} />
-        <Route path="/adwatchsection2" component={AdWatchSection2Page} />
         <Route path="/task/create" component={CreateTask} />
         <Route path="/create-task" component={CreateTask} />
         <Route path="/profile" component={Profile} />
@@ -158,6 +154,7 @@ function AppContent() {
 }
 
 import { LanguageProvider } from "@/hooks/useLanguage";
+import { showNotification } from "@/components/AppNotification";
 
 function App() {
   const [isBanned, setIsBanned] = useState(false);
@@ -167,10 +164,19 @@ function App() {
   const [telegramId, setTelegramId] = useState<string | null>(null);
   const [isCheckingCountry, setIsCheckingCountry] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const [showLoading, setShowLoading] = useState(true);
   const [isChannelVerified, setIsChannelVerified] = useState<boolean>(true);
   const [isCheckingMembership, setIsCheckingMembership] = useState(true);
   
   const isDevMode = import.meta.env.DEV || import.meta.env.MODE === 'development';
+
+  useEffect(() => {
+    // Force show loading screen for at least 3 seconds
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const checkMembership = useCallback(async () => {
     try {
@@ -355,7 +361,7 @@ function App() {
     return <BanScreen reason={banReason} />;
   }
 
-  if (isCheckingCountry || isAuthenticating || isCheckingMembership) {
+  if (isCheckingCountry || isAuthenticating || isCheckingMembership || showLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#050505] overflow-hidden">
         {/* Animated Background Elements */}
@@ -379,7 +385,7 @@ function App() {
           {/* Text Elements */}
           <div className="text-center relative z-10">
             <h2 className="text-white font-black text-xl tracking-[0.2em] uppercase mb-2 animate-pulse">
-              CashWatch
+              Money Hrum
             </h2>
             <div className="flex items-center justify-center gap-2">
               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
