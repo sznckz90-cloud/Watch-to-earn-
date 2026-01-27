@@ -1,49 +1,38 @@
 import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Layout from "@/components/Layout";
+import { useLocation } from "wouter";
 import { 
-  User as UserIcon, 
   Copy, 
-  Globe, 
-  MessageSquare, 
   ShieldCheck, 
   FileText, 
-  ExternalLink, 
   Check, 
   ChevronRight, 
-  RefreshCw,
-  LogOut,
-  Settings,
-  Bell,
-  HelpCircle,
-  Shield,
-  Languages,
   X,
-  History,
-  Wallet,
-  UserPlus,
-  Trophy,
-  ArrowDownToLine,
-  ArrowUpFromLine,
+  ArrowLeftRight,
+  Globe2,
+  Users,
+  Headphones,
+  Shield,
+  ScrollText,
+  AlertCircle,
   Plus,
   Minus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { showNotification } from "@/components/AppNotification";
-import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-import { DiamondIcon } from "@/components/DiamondIcon";
 import TransactionsOverlay from "@/components/TransactionsOverlay";
 import TopUpPopup from "@/components/TopUpPopup";
 import WithdrawalPopup from "@/components/WithdrawalPopup";
-import { format$ } from "@/lib/utils";
 
 type Language = 'en' | 'hi' | 'ru' | 'fa' | 'ar' | 'tr' | 'es' | 'pt' | 'id' | 'ur' | 'bn' | 'fr' | 'de' | 'it' | 'zh' | 'ja' | 'ko';
 
 export default function Profile() {
   const { user } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const [, navigate] = useLocation();
   const [copied, setCopied] = React.useState(false);
   const [selectedLegal, setSelectedLegal] = React.useState<string | null>(null);
   const [isLanguageOpen, setIsLanguageOpen] = React.useState(false);
@@ -96,32 +85,40 @@ export default function Profile() {
     }
   };
 
+  const handleInviteFriends = () => {
+    navigate('/affiliates');
+  };
+
   const legalContent: Record<string, { title: string, content: React.ReactNode }> = {
     terms: {
       title: t('terms_conditions'),
       content: (
         <div className="space-y-4 text-gray-400 text-sm">
           <p className="text-[#B9FF66] font-bold">Last Updated: January 21, 2026</p>
-          <p>Welcome to CashWatch. By accessing or using this app, you agree to comply with these Terms & Conditions. If you do not agree, please do not use the app.</p>
+          <p>Welcome to Money Hrum. By accessing or using this app, you agree to comply with these Terms & Conditions. If you do not agree, please do not use the app.</p>
           <div>
             <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">1. Eligibility</h4>
             <p>Users must be at least 13 years old. You represent that you are of legal age to form a binding contract. You are responsible for maintaining the confidentiality of your account and all activities that occur under your account.</p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">2. Rewards & Earning</h4>
-            <p>CashWatch allows users to earn HRUM tokens through various activities including watching ads, completing tasks, and referrals. Rewards are credited to your virtual balance and do not represent legal tender until successfully withdrawn according to our conversion rates and rules.</p>
+            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">2. HRUM Mining & Rewards</h4>
+            <p>Money Hrum is a free HRUM mining application. Users can mine HRUM tokens through free mining activities and boost their mining speed through optional investments. Mined HRUM is credited to your virtual balance and can be converted to TON for withdrawal.</p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">3. Withdrawals</h4>
-            <p>Withdrawals are subject to system verification, minimum limits, and available liquidity. Users must provide valid wallet addresses. We reserve the right to delay or cancel withdrawals for security audits or suspected fraudulent activity.</p>
+            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">3. Mining Boost & Investment</h4>
+            <p>Users can optionally invest TON to boost their mining speed. Mining boosts are time-limited and increase the rate at which HRUM is mined. Investment in mining boosts is voluntary and subject to the terms displayed at the time of purchase.</p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">4. Account Suspension & Bans</h4>
+            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">4. Withdrawals</h4>
+            <p>HRUM tokens can be converted to TON and withdrawn to your personal wallet. Withdrawals are subject to system verification, minimum limits, and available liquidity. Users must provide valid wallet addresses. We reserve the right to delay or cancel withdrawals for security audits or suspected fraudulent activity.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">5. Account Suspension & Bans</h4>
             <p>We reserve the right to suspend or permanently ban accounts without prior notice if we detect violations of our policies, including but not limited to: multiple accounts, bot usage, script automation, or exploitation of system bugs.</p>
           </div>
           <div>
-            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">5. Fraud & Abuse</h4>
-            <p>Any attempt to manipulate the reward system, bypass ad-view requirements, or provide false information during verification will result in immediate termination of the account and forfeiture of all accumulated rewards.</p>
+            <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">6. Fraud & Abuse</h4>
+            <p>Any attempt to manipulate the mining system, exploit technical vulnerabilities, or provide false information during verification will result in immediate termination of the account and forfeiture of all accumulated rewards.</p>
           </div>
         </div>
       )
@@ -130,10 +127,10 @@ export default function Profile() {
       title: t('privacy_policy'),
       content: (
         <div className="space-y-4 text-gray-400 text-sm">
-          <p>CashWatch respects your privacy and is committed to protecting your personal data.</p>
+          <p>Money Hrum respects your privacy and is committed to protecting your personal data.</p>
           <div>
             <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">1. Data Collection</h4>
-            <p>We collect essential data to provide our services, including your Telegram User ID (UID), device information (model, OS version), IP address, app usage statistics, and task completion history.</p>
+            <p>We collect essential data to provide our HRUM mining services, including your Telegram User ID (UID), device information (model, OS version), IP address, app usage statistics, and mining activity history.</p>
           </div>
           <div>
             <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">2. Data Storage & Security</h4>
@@ -141,7 +138,7 @@ export default function Profile() {
           </div>
           <div>
             <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">3. Third-Party Services</h4>
-            <p>We integrate with third-party ad networks (e.g., Monetag, AdGram) and payment gateways. These services may collect non-personal data according to their own privacy policies for the purpose of ad delivery and transaction processing.</p>
+            <p>We integrate with third-party payment gateways for processing TON transactions. These services may collect non-personal data according to their own privacy policies for the purpose of transaction processing.</p>
           </div>
           <div>
             <h4 className="text-white font-bold mb-1 italic uppercase tracking-tighter">4. Your Rights</h4>
@@ -154,16 +151,16 @@ export default function Profile() {
       title: t('acceptable_use'),
       content: (
         <div className="space-y-4 text-gray-400 text-sm">
-          <p>To maintain a fair ecosystem for all users, you must adhere to the following rules:</p>
+          <p>To maintain a fair HRUM mining ecosystem for all users, you must adhere to the following rules:</p>
           <div>
             <h4 className="text-rose-400 font-bold mb-1 flex items-center gap-2 italic uppercase tracking-tighter">
               Prohibited Actions
             </h4>
             <ul className="list-disc pl-5 space-y-1">
               <li>Creating or managing multiple accounts for a single user.</li>
-              <li>Using automated bots, scripts, or any third-party software to simulate activity.</li>
+              <li>Using automated bots, scripts, or any third-party software to simulate mining activity.</li>
               <li>Exploiting technical vulnerabilities or bugs for unauthorized gain.</li>
-              <li>Bypassing or attempting to circumvent ad-watching requirements.</li>
+              <li>Attempting to manipulate the HRUM mining or conversion rates.</li>
               <li>Reverse-engineering, decompiling, or attempting to extract source code from the app.</li>
             </ul>
           </div>
@@ -172,7 +169,7 @@ export default function Profile() {
               <ShieldCheck className="w-4 h-4 text-[#B9FF66]" />
               Multi-Account Abuse
             </h4>
-            <p>Our system employs advanced detection for multi-account activity. Users found operating multiple profiles to inflate referral rewards or daily earnings will face permanent bans across all linked accounts.</p>
+            <p>Our system employs advanced detection for multi-account activity. Users found operating multiple profiles to inflate referral rewards or mining earnings will face permanent bans across all linked accounts.</p>
           </div>
           <div>
             <h4 className="text-white font-bold mb-1 flex items-center gap-2 italic uppercase tracking-tighter">
@@ -192,7 +189,6 @@ export default function Profile() {
     <Layout>
       <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto bg-[#050505]">
         
-        {/* User Profile Header - Matching Home Page Style */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border-2 border-[#B9FF66]/30 flex items-center justify-center overflow-hidden shadow-lg shadow-[#B9FF66]/10">
@@ -226,10 +222,8 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* Balance Section - Two Column Layout */}
         <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
           <div className="grid grid-cols-2 gap-3 mb-4">
-            {/* TON App Balance */}
             <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/5">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-6 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
@@ -243,7 +237,6 @@ export default function Profile() {
               <p className="text-[#B9FF66] text-[9px] font-bold uppercase tracking-wider mt-1">TON</p>
             </div>
 
-            {/* TON Withdraw Balance */}
             <div className="bg-[#0d0d0d] rounded-xl p-4 border border-white/5">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-6 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
@@ -258,7 +251,6 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Deposit & Withdraw Buttons */}
           <div className="grid grid-cols-2 gap-3">
             <Button 
               onClick={() => setIsTopUpOpen(true)}
@@ -277,7 +269,6 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Transactions Section */}
         <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-4">
           <button 
             onClick={() => setIsTransactionsOpen(true)}
@@ -285,7 +276,7 @@ export default function Profile() {
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/20 flex items-center justify-center">
-                <History className="w-5 h-5 text-amber-400" />
+                <ArrowLeftRight className="w-5 h-5 text-amber-400" strokeWidth={1.5} />
               </div>
               <div className="text-left">
                 <span className="text-white font-bold text-sm block">Transactions</span>
@@ -296,55 +287,52 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* Quick Actions */}
         <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-2 mb-4">
           <h3 className="text-[9px] uppercase font-black text-[#8E8E93] tracking-widest mb-3 px-1">Quick Actions</h3>
           <ProfileItem 
-            icon={<Languages className="w-5 h-5 text-purple-400" />} 
+            icon={<Globe2 className="w-5 h-5 text-purple-400" strokeWidth={1.5} />} 
             label="Language" 
             value={languages.find(l => l.code === language)?.name}
             onClick={() => setIsLanguageOpen(true)}
           />
           <ProfileItem 
-            icon={<UserPlus className="w-5 h-5 text-[#B9FF66]" />} 
+            icon={<Users className="w-5 h-5 text-[#B9FF66]" strokeWidth={1.5} />} 
             label="Invite Friends" 
-            onClick={() => (window as any).location.href = '/affiliates'}
+            onClick={handleInviteFriends}
           />
           <ProfileItem 
-            icon={<MessageSquare className="w-5 h-5 text-blue-400" />} 
+            icon={<Headphones className="w-5 h-5 text-blue-400" strokeWidth={1.5} />} 
             label="Contact Support" 
             onClick={() => openLink('http://t.me/szxzyz')}
           />
         </div>
 
-        {/* Legal & Settings */}
         <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 space-y-2 mb-4">
           <h3 className="text-[9px] uppercase font-black text-[#8E8E93] tracking-widest mb-3 px-1">Legal & Info</h3>
           <ProfileItem 
-            icon={<Shield className="w-5 h-5 text-emerald-400" />} 
+            icon={<Shield className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />} 
             label="Terms & Conditions" 
             onClick={() => setSelectedLegal('terms')}
           />
           <ProfileItem 
-            icon={<FileText className="w-5 h-5 text-orange-400" />} 
+            icon={<ScrollText className="w-5 h-5 text-orange-400" strokeWidth={1.5} />} 
             label="Privacy Policy" 
             onClick={() => setSelectedLegal('privacy')}
           />
           <ProfileItem 
-            icon={<HelpCircle className="w-5 h-5 text-rose-400" />} 
+            icon={<AlertCircle className="w-5 h-5 text-rose-400" strokeWidth={1.5} />} 
             label="Acceptable Use" 
             onClick={() => setSelectedLegal('acceptable')}
           />
           {(user as any)?.isAdmin && (
             <ProfileItem 
-              icon={<ShieldCheck className="w-5 h-5 text-red-500" />} 
+              icon={<ShieldCheck className="w-5 h-5 text-red-500" strokeWidth={1.5} />} 
               label="Admin Panel" 
-              onClick={() => window.location.href = '/admin'}
+              onClick={() => navigate('/admin')}
             />
           )}
         </div>
 
-        {/* Legal Overlay */}
         <AnimatePresence>
           {selectedLegal && (
             <motion.div 
@@ -377,7 +365,6 @@ export default function Profile() {
           )}
         </AnimatePresence>
 
-        {/* Language Selection Overlay */}
         <AnimatePresence>
           {isLanguageOpen && (
             <motion.div 
