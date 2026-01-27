@@ -1248,7 +1248,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto">
+      <main className="max-w-md mx-auto px-4 pt-4 pb-24">
         {/* Unified Profile & Balance Section */}
         <div className="mb-4 relative">
           <div className="flex justify-between items-center mb-4">
@@ -1348,7 +1348,7 @@ export default function Home() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="mine" className="mt-0 outline-none">
+            <TabsContent value="mine" className="mt-0 outline-none overflow-hidden">
               <div className="bg-[#141414] rounded-2xl p-4 border border-white/5 mb-1">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[#8E8E93] text-[10px] font-black uppercase tracking-widest">{t('mining_status')}</span>

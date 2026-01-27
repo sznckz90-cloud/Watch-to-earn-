@@ -182,7 +182,7 @@ export default function Profile() {
 
   return (
     <Layout>
-      <main className="max-w-md mx-auto px-4 pt-16 pb-24 overflow-y-auto bg-[#050505]">
+      <main className="max-w-md mx-auto px-4 pt-4 pb-24 overflow-y-auto bg-[#050505]">
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -293,7 +293,7 @@ export default function Profile() {
           <ProfileItem 
             icon={<Headphones className="w-5 h-5 text-blue-400" strokeWidth={1.5} />} 
             label="Contact Support" 
-            onClick={() => openLink('http://t.me/szxzyz')}
+            onClick={() => openLink('https://t.me/+fahpWJGmJEowZGQ1')}
           />
         </div>
 
