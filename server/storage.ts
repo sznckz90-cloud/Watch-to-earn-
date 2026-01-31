@@ -1686,28 +1686,22 @@ export class DatabaseStorage implements IStorage {
 
       // Total earnings (Hrum)
       const [totalEarningsResult] = await db
-        .select({ total: sql<string>`COALESCE(SUM(CAST(${users.total_earnings} AS NUMERIC)), '0')` })
+        .select({ total: sql<string>`COALESCE(SUM(CAST(total_earnings AS NUMERIC)), '0')` })
         .from(users);
 
       // Total referral earnings
       const [totalReferralEarningsResult] = await db
-        .select({ total: sql<string>`COALESCE(SUM(CAST(${referralCommissions.commissionAmount} AS NUMERIC)), '0')` })
+        .select({ total: sql<string>`COALESCE(SUM(CAST(commission_amount AS NUMERIC)), '0')` })
         .from(referralCommissions);
 
       // Total payouts (approved withdrawals sum in TON)
       const [totalPayoutsResult] = await db
-        .select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` })
+        .select({ total: sql<string>`COALESCE(SUM(CAST(amount AS NUMERIC)), '0')` })
         .from(withdrawals)
-        .where(sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`);
+        .where(sql`status IN ('completed', 'success', 'paid', 'Approved', 'approved')`);
 
-      // Total TON withdrawn (approved withdrawals specifically for TON)
-      const [tonWithdrawnResult] = await db
-        .select({ total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amount} AS NUMERIC)), '0')` })
-        .from(withdrawals)
-        .where(and(
-          sql`${withdrawals.status} IN ('completed', 'success', 'paid', 'Approved', 'approved')`,
-          eq(withdrawals.paymentSystemId, 'ton_coin')
-        ));
+      // Total TON withdrawn (same as total payouts since all withdrawals are in TON)
+      const tonWithdrawnResult = totalPayoutsResult;
 
       // New users in last 24h
       const [newUsersResult] = await db
@@ -1717,8 +1711,8 @@ export class DatabaseStorage implements IStorage {
 
       // Ads stats
       const [adsRes] = await db.select({ 
-        total: sql<number>`COALESCE(SUM(${users.adsWatched}), 0)`,
-        today: sql<number>`COALESCE(SUM(${users.adsWatchedToday}), 0)`
+        total: sql<number>`COALESCE(SUM(ads_watched), 0)`,
+        today: sql<number>`COALESCE(SUM(ads_watched_today), 0)`
       }).from(users);
 
       // Withdrawal counts
@@ -1739,7 +1733,7 @@ export class DatabaseStorage implements IStorage {
         totalInvites: Number(totalInvitesResult.count || 0),
         totalEarnings: totalEarningsResult.total || '0',
         totalReferralEarnings: totalReferralEarningsResult.total || '0',
-        totalPayouts: payoutSum.sum || '0',
+        totalPayouts: totalPayoutsResult.total || '0',
         tonWithdrawn: tonWithdrawnResult.total || '0',
         newUsersLast24h: Number(newUsersResult.count || 0),
         totalAdsWatched: Number(adsRes.total || 0),
@@ -1747,7 +1741,7 @@ export class DatabaseStorage implements IStorage {
         pendingWithdrawals: Number(withdrawStatusRes.pending || 0),
         approvedWithdrawals: Number(withdrawStatusRes.approved || 0),
         rejectedWithdrawals: Number(withdrawStatusRes.rejected || 0),
-        pendingDeposits: pendingDepositsRes.count
+        pendingDeposits: Number(pendingDepositsRes.count || 0)
       };
     } catch (error) {
       console.error('❌ Error in getAppStats:', error);

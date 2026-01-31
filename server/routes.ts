@@ -350,15 +350,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/stats", authenticateAdmin, async (req: any, res) => {
-    try {
-      const stats = await storage.getAppStats();
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
   app.get("/api/admin/settings", authenticateAdmin, async (req, res) => {
     try {
       const settings = await storage.getAllAdminSettings();
@@ -685,6 +676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         currentMining: minedAmount,
+        minedAmount: minedAmount,
         miningRate: (totalRate * 3600).toFixed(4),
         rawMiningRate: totalRate,
         baseRate: (baseRate * 3600).toFixed(4),
@@ -813,11 +805,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Atomic status update and balance credit with transaction locking and idempotency
       await storage.updateDepositStatus(depositId, 'completed');
       
-      // Fetch deposit details for real-time update
+      // Fetch deposit details and updated user balance for real-time update
       const [deposit] = await db.select().from(deposits).where(eq(deposits.id, depositId)).limit(1);
       if (deposit) {
+        // Fetch the updated user to get the new tonAppBalance
+        const updatedUser = await storage.getUser(deposit.userId);
         sendRealtimeUpdate(deposit.userId, {
           type: 'balance_update',
+          tonAppBalance: updatedUser?.tonAppBalance || '0',
           message: `✅ Your deposit of ${deposit.amount} TON has been approved and added to your App Balance!`
         });
       }
@@ -1110,7 +1105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const miningState = await storage.getMiningState(user.id);
       const minClaimAmount = 1;
       
-      if (parseFloat(miningState.minedAmount) < minClaimAmount) {
+      if (parseFloat(miningState.currentMining) < minClaimAmount) {
         return res.status(400).json({ 
           success: false, 
           message: `Minimum claim amount is ${minClaimAmount} HRUM` 
