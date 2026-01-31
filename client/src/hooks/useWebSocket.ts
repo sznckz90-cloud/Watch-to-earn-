@@ -126,6 +126,7 @@ export function useWebSocket() {
                 return {
                   ...oldUser,
                   tonBalance: (message as any).tonBalance ?? oldUser.tonBalance,
+                  tonAppBalance: (message as any).tonAppBalance ?? oldUser.tonAppBalance,
                   balance: (message as any).balance ?? oldUser.balance,
                   usdBalance: (message as any).usdBalance ?? oldUser.usdBalance,
                   bugBalance: (message as any).bugBalance ?? oldUser.bugBalance,
